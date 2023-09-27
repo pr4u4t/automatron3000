@@ -14,7 +14,7 @@ class DataWindow : public MdiChild{
     
 public:
     
-    Q_INVOKABLE DataWindow(QWidget* parent = nullptr,QWidget* mwin = nullptr);
+    Q_INVOKABLE DataWindow(QWidget* parent = nullptr, QWidget* mwin = nullptr);
 
 private:
     static constexpr const char* database = "./szpuler.dat";

@@ -100,13 +100,19 @@ void MainWindow::updateWindowMenu(){
         action->setChecked(child == activeMdiChild());
     }
 }
-#include "datawindow.h"
+
 void MainWindow::createOrActivate(){
-    qDebug() << "click" << QObject::sender() << qobject_cast<QAction*>(QObject::sender())->data();
+    QMdiSubWindow *win;
+    
+    if((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))){
+        m_mdiArea->setActiveSubWindow(win);
+        return;
+    }
+    
     const QMetaObject *mo = QMetaType::metaObjectForType(QMetaType::type(qobject_cast<QAction*>(QObject::sender())->data().toByteArray()+"*"));
     QObject* child = mo->newInstance(Q_ARG(QWidget*,m_mdiArea),Q_ARG(QWidget*,this));
     QWidget* mchild = qobject_cast<QWidget*>(child);
-    QMdiSubWindow *win = m_mdiArea->addSubWindow(mchild);
+    win = m_mdiArea->addSubWindow(mchild);
     mchild->show();
 }
 

@@ -5,7 +5,7 @@
 
 DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     : MdiChild(parent){
-    qDebug() << mwin;
+
     QString db = qobject_cast<MainWindow*>(mwin)->settings().value("DataWindow/database", QString(database)).toString();
     QString tbl = qobject_cast<MainWindow*>(mwin)->settings().value("DataWindow/table", QString(table)).toString();
         
@@ -24,8 +24,7 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     model->setTable(tbl);
     model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     model->select();
-    //model->setHeaderData(0, Qt::Horizontal, tr("Part"));
-    //model->setHeaderData(1, Qt::Horizontal, tr("Shelf"));
+    
     QTableView *view = new QTableView();
     view->setModel(model);
     QBoxLayout *l = new QVBoxLayout();

@@ -20,11 +20,13 @@ CONFIG += debug
 HEADERS +=  main.h \
             mainwindow.h \
             mdichild.h \
-            datawindow.h
+            datawindow.h \
+            console.h
 
 SOURCES +=  main.cpp \
             mainwindow.cpp \
             mdichild.cpp \
-            datawindow.cpp
+            datawindow.cpp \
+            console.cpp
 
 RESOURCES += szpuler.qrc
