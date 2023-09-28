@@ -7,7 +7,7 @@
 #include "mdichild.h"
 
 MainWindow::MainWindow()
-    : m_mdiArea(new QMdiArea){
+    : m_mdiArea(new QMdiArea),m_logger("./szpuler.log",this){
         
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -126,6 +126,11 @@ void MainWindow::createActions()
     connect(database, &QAction::triggered, this, &MainWindow::createOrActivate);
     fileMenu->addAction(database);
     
+    QAction *console = new QAction(tr("Console"), this);
+    database->setData(QVariant("Console"));
+    connect(database, &QAction::triggered, this, &MainWindow::createOrActivate);
+    fileMenu->addAction(console);
+    
     fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
     fileMenu->addSeparator();
 
@@ -207,6 +212,7 @@ void MainWindow::writeSettings(){
 }
 
 MdiChild *MainWindow::activeMdiChild() const{
+    m_logger.message("activeMdiChild()");
     if (QMdiSubWindow *activeSubWindow = m_mdiArea->activeSubWindow()){
         return qobject_cast<MdiChild*>(activeSubWindow->widget());
     }
@@ -214,17 +220,23 @@ MdiChild *MainWindow::activeMdiChild() const{
 }
 
 QMdiSubWindow *MainWindow::findMdiChild(const QString &key) const{
+    m_logger.message("findMdiChild("+key+")");
+    
     const QList<QMdiSubWindow *> subWindows = m_mdiArea->subWindowList();
     for (QMdiSubWindow *window : subWindows) {
         MdiChild *mdiChild = qobject_cast<MdiChild*>(window->widget());
         if (mdiChild->metaObject()->metaType().name() == key){
+            m_logger.message(QString("child found: ")+mdiChild->metaObject()->metaType().name());
             return window;
         }
     }
+    m_logger.message("child not found");
     return nullptr;
 }
 
 void MainWindow::switchLayoutDirection(){
+    m_logger.message("switchLayoutDirection");
+    
     if (layoutDirection() == Qt::LeftToRight){
         QGuiApplication::setLayoutDirection(Qt::RightToLeft);
     } else {

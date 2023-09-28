@@ -56,23 +56,27 @@ SOURCES       = main.cpp \
 		mainwindow.cpp \
 		mdichild.cpp \
 		datawindow.cpp \
-		console.cpp qrc_szpuler.cpp \
+		console.cpp \
+		logger.cpp qrc_szpuler.cpp \
 		moc_main.cpp \
 		moc_mainwindow.cpp \
 		moc_mdichild.cpp \
 		moc_datawindow.cpp \
-		moc_console.cpp
+		moc_console.cpp \
+		moc_logger.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		mdichild.o \
 		datawindow.o \
 		console.o \
+		logger.o \
 		qrc_szpuler.o \
 		moc_main.o \
 		moc_mainwindow.o \
 		moc_mdichild.o \
 		moc_datawindow.o \
-		moc_console.o
+		moc_console.o \
+		moc_logger.o
 DIST          = /usr/lib/qt6/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt6/mkspecs/common/unix.conf \
 		/usr/lib/qt6/mkspecs/common/linux.conf \
@@ -277,11 +281,13 @@ DIST          = /usr/lib/qt6/mkspecs/features/spec_pre.prf \
 		mainwindow.h \
 		mdichild.h \
 		datawindow.h \
-		console.h main.cpp \
+		console.h \
+		logger.h main.cpp \
 		mainwindow.cpp \
 		mdichild.cpp \
 		datawindow.cpp \
-		console.cpp
+		console.cpp \
+		logger.cpp
 QMAKE_TARGET  = szpuler
 DESTDIR       = 
 TARGET        = szpuler
@@ -722,8 +728,8 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents szpuler.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/qt6/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents main.h mainwindow.h mdichild.h datawindow.h console.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp mdichild.cpp datawindow.cpp console.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents main.h mainwindow.h mdichild.h datawindow.h console.h logger.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp mdichild.cpp datawindow.cpp console.cpp logger.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -766,9 +772,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/qt6/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/qt6/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp
+compiler_moc_header_make_all: moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp moc_logger.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp
+	-$(DEL_FILE) moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp moc_logger.cpp
 moc_main.cpp: main.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
@@ -792,9 +798,15 @@ moc_datawindow.cpp: datawindow.h \
 	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include datawindow.h -o moc_datawindow.cpp
 
 moc_console.cpp: console.h \
+		mdichild.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
 	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include console.h -o moc_console.cpp
+
+moc_logger.cpp: logger.h \
+		moc_predefs.h \
+		/usr/lib/qt6/moc
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include logger.h -o moc_logger.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -815,7 +827,8 @@ compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_heade
 main.o: main.cpp main.h \
 		mainwindow.h \
 		mdichild.h \
-		datawindow.h
+		datawindow.h \
+		console.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
@@ -831,8 +844,12 @@ datawindow.o: datawindow.cpp datawindow.h \
 		mainwindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o datawindow.o datawindow.cpp
 
-console.o: console.cpp console.h
+console.o: console.cpp console.h \
+		mdichild.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o console.o console.cpp
+
+logger.o: logger.cpp logger.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o logger.o logger.cpp
 
 qrc_szpuler.o: qrc_szpuler.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_szpuler.o qrc_szpuler.cpp
@@ -851,6 +868,9 @@ moc_datawindow.o: moc_datawindow.cpp
 
 moc_console.o: moc_console.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_console.o moc_console.cpp
+
+moc_logger.o: moc_logger.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_logger.o moc_logger.cpp
 
 ####### Install
 

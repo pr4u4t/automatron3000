@@ -15,6 +15,7 @@ QSettings& MdiChild::settings(){
 }
 
 void MdiChild::closeEvent(QCloseEvent *event){
+    Q_UNUSED(event);
     /*if (maybeSave()) {
         event->accept();
     } else {

@@ -20,13 +20,13 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
         m_db.exec(QString("CREATE TABLE %1 (id INTEGER PRIMARY KEY AUTOINCREMENT, part VARCHAR(255), shelf VARCHAR(255))").arg(tbl));
     }
     
-    QSqlTableModel* model = new QSqlTableModel(nullptr,m_db);
+    QTableView *view = new QTableView();
+    QSqlTableModel* model = new QSqlTableModel(view,m_db);
     model->setTable(tbl);
     model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     model->select();
-    
-    QTableView *view = new QTableView();
     view->setModel(model);
+    
     QBoxLayout *l = new QVBoxLayout();
     l->addWidget(view);
     setLayout(l);

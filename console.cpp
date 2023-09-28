@@ -5,53 +5,59 @@
 #include "console.h"
 
 #include <QScrollBar>
+#include <QHBoxLayout>
 
-Console::Console(QWidget *parent, QWidget* wmin) 
-    : MdiChild(parent){
-    m_console = new QPlainTextEdit();
-    m_console.document()->setMaximumBlockCount(100);
+Terminal::Terminal(QWidget* parent)
+    : QPlainTextEdit(parent){
+    document()->setMaximumBlockCount(100);
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);
     p.setColor(QPalette::Text, Qt::green);
-    m_console.setPalette(p);
+    setPalette(p);
 }
 
-void Console::putData(const QByteArray &data){
-    m_console.insertPlainText(data);
-
-    QScrollBar *bar = m_console.verticalScrollBar();
-    bar->setValue(bar->maximum());
-}
-
-void Console::setLocalEchoEnabled(bool set){
+void Terminal::setLocalEchoEnabled(bool set){
     m_localEchoEnabled = set;
 }
 
-void Console::keyPressEvent(QKeyEvent *e)
-{
+void Terminal::keyPressEvent(QKeyEvent *e){
     switch (e->key()) {
-    case Qt::Key_Backspace:
-    case Qt::Key_Left:
-    case Qt::Key_Right:
-    case Qt::Key_Up:
-    case Qt::Key_Down:
-        break;
-    default:
-        if (m_localEchoEnabled)
-            m_console.keyPressEvent(e);
-        emit getData(e->text().toLocal8Bit());
+        case Qt::Key_Backspace:
+        case Qt::Key_Left:
+        case Qt::Key_Right:
+        case Qt::Key_Up:
+        case Qt::Key_Down:
+            break;
+        default:
+            if (m_localEchoEnabled){
+                keyPressEvent(e);
+            }
+            emit getData(e->text().toLocal8Bit());
     }
 }
-
-void Console::mousePressEvent(QMouseEvent *e){
+    
+void Terminal::mousePressEvent(QMouseEvent *e){
     Q_UNUSED(e);
-    m_console.setFocus();
+    setFocus();
+}
+    
+void Terminal::mouseDoubleClickEvent(QMouseEvent *e){
+    Q_UNUSED(e);
+}
+    
+void Terminal::contextMenuEvent(QContextMenuEvent *e){
+    Q_UNUSED(e);
+}
+    
+Console::Console(QWidget *parent, QWidget* wmin) 
+    : MdiChild(parent),m_terminal(new Terminal(this)){
+    QBoxLayout *l = new QVBoxLayout();
+    l->addWidget(m_terminal);
+    setLayout(l);
 }
 
-void Console::mouseDoubleClickEvent(QMouseEvent *e){
-    Q_UNUSED(e);
-}
-
-void Console::contextMenuEvent(QContextMenuEvent *e){
-    Q_UNUSED(e);
+void Console::putData(const QByteArray &data){
+    m_terminal->insertPlainText(data);
+    QScrollBar *bar = m_terminal->verticalScrollBar();
+    bar->setValue(bar->maximum());
 }

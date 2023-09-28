@@ -21,12 +21,14 @@ HEADERS +=  main.h \
             mainwindow.h \
             mdichild.h \
             datawindow.h \
-            console.h
+            console.h \
+	    logger.h
 
 SOURCES +=  main.cpp \
             mainwindow.cpp \
             mdichild.cpp \
             datawindow.cpp \
-            console.cpp
+            console.cpp \
+	    logger.cpp
 
 RESOURCES += szpuler.qrc

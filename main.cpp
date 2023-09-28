@@ -5,10 +5,13 @@
 #include "mainwindow.h"
 #include <QDebug>
 #include <exception>
+
 #include "datawindow.h"
+#include "console.h"
 
 int main(int argc, char *argv[]){
     qRegisterMetaType<DataWindow*>("DataWindow*");
+    qRegisterMetaType<Console*>("Console*");
     
     Main app(argc,argv);
     MainWindow mainWin;

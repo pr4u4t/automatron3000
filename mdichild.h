@@ -7,9 +7,15 @@
 #include <QWidget>
 #include <QSettings>
 
+#include "logger.h"
+
 class MdiChild : public QWidget{
     Q_OBJECT
 
+signals:
+    
+    void log_message(const QString& msg, LoggerSeverity severity);
+    
 public:
     MdiChild(QWidget *parent);
 

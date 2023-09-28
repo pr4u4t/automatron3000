@@ -11,7 +11,8 @@
 #include <QMdiArea>
 #include <QAction>
 #include <QString>
-#include <mdichild.h>
+#include "mdichild.h"
+#include "logger.h"
 
 class MainWindow : public QMainWindow
 {
@@ -59,6 +60,8 @@ private:
     QAction *m_previousAct;
     QAction *m_windowMenuSeparatorAct;
     QSettings m_settings;
+    mutable Logger m_logger;
+    
 };
 
 #endif
