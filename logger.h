@@ -15,6 +15,9 @@ enum LoggerSeverity{
 class Logger : public QObject{
     Q_OBJECT
     
+signals:
+    void echo(const QString& msg);
+    
 public:
     static constexpr const char* LE = "\r\n";
     

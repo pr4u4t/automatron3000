@@ -31,3 +31,6 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     l->addWidget(view);
     setLayout(l);
 }
+
+
+void DataWindow::settingsChanged(){}

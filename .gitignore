@@ -1,2 +1,5 @@
 szpuler
 .qmake.stash
+*.log
+moc_*
+*.o

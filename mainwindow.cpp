@@ -3,11 +3,15 @@
 
 #include <QtWidgets>
 
+#include "settingsdialog.h"
 #include "mainwindow.h"
 #include "mdichild.h"
+#include "main.h"
 
 MainWindow::MainWindow()
-    : m_mdiArea(new QMdiArea),m_logger("./szpuler.log",this){
+    : m_mdiArea(new QMdiArea),
+    m_logger(logPath,this),
+    m_serial(new QSerialPort(this)) {
         
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -24,6 +28,10 @@ MainWindow::MainWindow()
 
     setWindowTitle(tr(winTitle));
     setUnifiedTitleAndToolBarOnMac(true);
+}
+
+Logger* MainWindow::logger(){
+    return &m_logger;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event){
@@ -84,16 +92,7 @@ void MainWindow::updateWindowMenu(){
     for (int i = 0; i < windows.size(); ++i) {
         QMdiSubWindow *mdiSubWindow = windows.at(i);
         MdiChild *child = qobject_cast<MdiChild *>(mdiSubWindow->widget());
-
-        QString text;
-        if (i < 9) {
-            //text = tr("&%1 %2").arg(i + 1)
-            //                   .arg(child->userFriendlyCurrentFile());
-        } else {
-            //text = tr("%1 %2").arg(i + 1)
-            //                 .arg(child->userFriendlyCurrentFile());
-        }
-        QAction *action = m_windowMenu->addAction(text, mdiSubWindow, [this, mdiSubWindow]() {
+        QAction *action = m_windowMenu->addAction(mdiSubWindow->windowTitle(), mdiSubWindow, [this, mdiSubWindow]() {
             m_mdiArea->setActiveSubWindow(mdiSubWindow);
         });
         action->setCheckable(true);
@@ -102,22 +101,47 @@ void MainWindow::updateWindowMenu(){
 }
 
 void MainWindow::createOrActivate(){
+    m_logger.message("MainWindow::createOrActivate()");
+    
     QMdiSubWindow *win;
     
     if((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))){
+        m_logger.message("activating subwindow");
         m_mdiArea->setActiveSubWindow(win);
         return;
     }
     
-    const QMetaObject *mo = QMetaType::metaObjectForType(QMetaType::type(qobject_cast<QAction*>(QObject::sender())->data().toByteArray()+"*"));
+    m_logger.message("creating new instance");
+    QString name = qobject_cast<QAction*>(QObject::sender())->data().toString();
+    const QMetaObject *mo = QMetaType::metaObjectForType(QMetaType::type((name+"*").toLocal8Bit()));
+    if(mo == nullptr){
+        m_logger.message("failed to get metaobject for "+name);
+        QMessageBox::critical(this, tr(Main::appName),
+                             tr(fatalError),
+                             QMessageBox::Ok);
+        return;
+    }
+    
     QObject* child = mo->newInstance(Q_ARG(QWidget*,m_mdiArea),Q_ARG(QWidget*,this));
+    if(child == nullptr){
+        m_logger.message("failed to create instance");
+        QMessageBox::critical(this, tr(Main::appName),
+                             tr(fatalError),
+                             QMessageBox::Ok);
+        return;
+    }
+        
+    MdiChild* mdi = qobject_cast<MdiChild*>(child);
+    connect(mdi, &MdiChild::logMessage, &m_logger, &Logger::message);
     QWidget* mchild = qobject_cast<QWidget*>(child);
     win = m_mdiArea->addSubWindow(mchild);
+    win->setWindowTitle(name);
     mchild->show();
+    
+    //updateWindowMenu();
 }
 
-void MainWindow::createActions()
-{
+void MainWindow::createActions(){
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     QToolBar *fileToolBar = addToolBar(tr("File"));
 
@@ -127,21 +151,38 @@ void MainWindow::createActions()
     fileMenu->addAction(database);
     
     QAction *console = new QAction(tr("Console"), this);
-    database->setData(QVariant("Console"));
-    connect(database, &QAction::triggered, this, &MainWindow::createOrActivate);
+    console->setData(QVariant("Console"));
+    connect(console, &QAction::triggered, this, &MainWindow::createOrActivate);
     fileMenu->addAction(console);
+    
+    QAction *logviewer = new QAction(tr("Log Viewer"), this);
+    logviewer->setData(QVariant("LogViewer"));
+    connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivate);
+    fileMenu->addAction(logviewer);
     
     fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
     fileMenu->addSeparator();
 
-//! [0]
     const QIcon exitIcon = QIcon::fromTheme("application-exit");
     QAction *exitAct = fileMenu->addAction(exitIcon, tr("E&xit"), qApp, &QApplication::quit);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     fileMenu->addAction(exitAct);
-//! [0]
 
+    QMenu* serialMenu = menuBar()->addMenu(tr("&Serial"));
+    m_actionConfigure = new QAction(tr("Settings"), this);
+    m_actionConfigure->setData(QVariant("SettingsDialog"));
+    connect(m_actionConfigure, &QAction::triggered, this, &MainWindow::createOrActivate);
+    serialMenu->addAction(m_actionConfigure);
+
+    m_actionConnect = new QAction(tr("Connect"), this);
+    connect(m_actionConnect, &QAction::triggered, this, &MainWindow::openSerialPort);
+    serialMenu->addAction(m_actionConnect);
+
+    m_actionDisconnect = new QAction(tr("Disconnect"), this);
+    connect(m_actionDisconnect, &QAction::triggered, this, &MainWindow::closeSerialPort);
+    serialMenu->addAction(m_actionDisconnect);
+    
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
     connect(m_windowMenu, &QMenu::aboutToShow, this, &MainWindow::updateWindowMenu);
 
@@ -242,4 +283,47 @@ void MainWindow::switchLayoutDirection(){
     } else {
         QGuiApplication::setLayoutDirection(Qt::LeftToRight);
     }
+}
+
+void MainWindow::openSerialPort(){
+    /*
+    const SettingsDialog::SerialSettings p = qobject_cast<>m_settings->settings();
+    m_serial->setPortName(p.name);
+    m_serial->setBaudRate(p.baudRate);
+    m_serial->setDataBits(p.dataBits);
+    m_serial->setParity(p.parity);
+    m_serial->setStopBits(p.stopBits);
+    m_serial->setFlowControl(p.flowControl);
+    */
+    if (m_serial->open(QIODevice::ReadWrite)) {
+        //m_console->setLocalEchoEnabled(p.localEchoEnabled);
+        m_actionConnect->setEnabled(false);
+        m_actionDisconnect->setEnabled(true);
+        m_actionConfigure->setEnabled(false);
+        //showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
+        //.arg(p.name, p.stringBaudRate, p.stringDataBits,
+        //     p.stringParity, p.stringStopBits, p.stringFlowControl));*/
+    } else {
+        QMessageBox::critical(this, tr("Error"), m_serial->errorString());
+        
+        showStatusMessage(tr("Open error"));
+    }
+}
+
+void MainWindow::closeSerialPort(){
+    if (m_serial->isOpen())
+        m_serial->close();
+    //m_console->setEnabled(false);
+    m_actionConnect->setEnabled(true);
+    m_actionDisconnect->setEnabled(false);
+    m_actionConfigure->setEnabled(true);
+    showStatusMessage(tr("Disconnected"));
+}
+
+void MainWindow::showStatusMessage(const QString &msg){
+    statusBar()->showMessage(msg, statusTimeOut);
+}
+
+void MainWindow::showWriteError(const QString &message){
+    QMessageBox::warning(this, tr("Warning"), message);
 }

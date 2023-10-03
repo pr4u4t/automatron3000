@@ -7,13 +7,15 @@
 #include <QScrollBar>
 #include <QHBoxLayout>
 
-Terminal::Terminal(QWidget* parent)
-    : QPlainTextEdit(parent){
+Terminal::Terminal(QWidget* parent, QWidget* mwin)
+    : QPlainTextEdit(parent),m_mwin(qobject_cast<MainWindow*>(mwin)){
     document()->setMaximumBlockCount(100);
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);
     p.setColor(QPalette::Text, Qt::green);
     setPalette(p);
+    
+    connect(this,&Terminal::logMessage,qobject_cast<MdiChild*>(parent),&MdiChild::logMessage);
 }
 
 void Terminal::setLocalEchoEnabled(bool set){
@@ -21,6 +23,8 @@ void Terminal::setLocalEchoEnabled(bool set){
 }
 
 void Terminal::keyPressEvent(QKeyEvent *e){
+    emit logMessage("Terminal::keyPressEvent");
+    
     switch (e->key()) {
         case Qt::Key_Backspace:
         case Qt::Key_Left:
@@ -30,6 +34,7 @@ void Terminal::keyPressEvent(QKeyEvent *e){
             break;
         default:
             if (m_localEchoEnabled){
+                emit logMessage("localEcho");
                 keyPressEvent(e);
             }
             emit getData(e->text().toLocal8Bit());
@@ -50,7 +55,7 @@ void Terminal::contextMenuEvent(QContextMenuEvent *e){
 }
     
 Console::Console(QWidget *parent, QWidget* wmin) 
-    : MdiChild(parent),m_terminal(new Terminal(this)){
+    : MdiChild(parent),m_terminal(new Terminal(this,wmin)){
     QBoxLayout *l = new QVBoxLayout();
     l->addWidget(m_terminal);
     setLayout(l);
@@ -61,3 +66,5 @@ void Console::putData(const QByteArray &data){
     QScrollBar *bar = m_terminal->verticalScrollBar();
     bar->setValue(bar->maximum());
 }
+
+void Console::settingsChanged(){}

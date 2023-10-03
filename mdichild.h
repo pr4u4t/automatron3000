@@ -14,12 +14,15 @@ class MdiChild : public QWidget{
 
 signals:
     
-    void log_message(const QString& msg, LoggerSeverity severity);
+    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
     
 public:
     MdiChild(QWidget *parent);
 
     QSettings& settings();
+    
+public slots:
+    virtual void settingsChanged() = 0;
     
 protected:
     void closeEvent(QCloseEvent *event) override;

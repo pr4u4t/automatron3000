@@ -14,10 +14,10 @@ EQ            = =
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_CORE_LIB
+DEFINES       = -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_SERIALPORT_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -Wextra -mno-direct-extern-access -D_REENTRANT $(DEFINES)
 CXXFLAGS      = -pipe -g -Wall -Wextra -mno-direct-extern-access -D_REENTRANT $(DEFINES)
-INCPATH       = -I. -I. -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I. -I/usr/lib/qt6/mkspecs/linux-g++
+INCPATH       = -I. -I. -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I. -I. -I/usr/lib/qt6/mkspecs/linux-g++
 QMAKE         = /usr/bin/qmake6
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -40,7 +40,7 @@ DISTNAME      = szpuler1.0.0
 DISTDIR = /home/prauat/projects/szpuler/.tmp/szpuler1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-rpath,/usr/lib -Wl,-rpath-link,/usr/lib
-LIBS          = $(SUBLIBS) /usr/lib/libQt6Widgets.so /usr/lib/libQt6Gui.so /usr/lib/libGLX.so /usr/lib/libOpenGL.so /usr/lib/libQt6Sql.so /usr/lib/libQt6Core.so -lpthread -lGLX -lOpenGL   
+LIBS          = $(SUBLIBS) /usr/lib/libQt6Widgets.so /usr/lib/libQt6Gui.so /usr/lib/libGLX.so /usr/lib/libOpenGL.so /usr/lib/libQt6Sql.so /usr/lib/libQt6SerialPort.so /usr/lib/libQt6Core.so -lpthread -lGLX -lOpenGL   
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -57,26 +57,34 @@ SOURCES       = main.cpp \
 		mdichild.cpp \
 		datawindow.cpp \
 		console.cpp \
-		logger.cpp qrc_szpuler.cpp \
+		logger.cpp \
+		logviewer.cpp \
+		settingsdialog.cpp qrc_szpuler.cpp \
 		moc_main.cpp \
 		moc_mainwindow.cpp \
 		moc_mdichild.cpp \
 		moc_datawindow.cpp \
 		moc_console.cpp \
-		moc_logger.cpp
+		moc_logger.cpp \
+		moc_logviewer.cpp \
+		moc_settingsdialog.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		mdichild.o \
 		datawindow.o \
 		console.o \
 		logger.o \
+		logviewer.o \
+		settingsdialog.o \
 		qrc_szpuler.o \
 		moc_main.o \
 		moc_mainwindow.o \
 		moc_mdichild.o \
 		moc_datawindow.o \
 		moc_console.o \
-		moc_logger.o
+		moc_logger.o \
+		moc_logviewer.o \
+		moc_settingsdialog.o
 DIST          = /usr/lib/qt6/mkspecs/features/spec_pre.prf \
 		/usr/lib/qt6/mkspecs/common/unix.conf \
 		/usr/lib/qt6/mkspecs/common/linux.conf \
@@ -282,12 +290,16 @@ DIST          = /usr/lib/qt6/mkspecs/features/spec_pre.prf \
 		mdichild.h \
 		datawindow.h \
 		console.h \
-		logger.h main.cpp \
+		logger.h \
+		logviewer.h \
+		settingsdialog.h main.cpp \
 		mainwindow.cpp \
 		mdichild.cpp \
 		datawindow.cpp \
 		console.cpp \
-		logger.cpp
+		logger.cpp \
+		logviewer.cpp \
+		settingsdialog.cpp
 QMAKE_TARGET  = szpuler
 DESTDIR       = 
 TARGET        = szpuler
@@ -296,7 +308,7 @@ TARGET        = szpuler
 first: all
 ####### Build rules
 
-szpuler:  $(OBJECTS)  
+szpuler: ui_settingsdialog.h $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET)  $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: szpuler.pro /usr/lib/qt6/mkspecs/linux-g++/qmake.conf /usr/lib/qt6/mkspecs/features/spec_pre.prf \
@@ -504,6 +516,7 @@ Makefile: szpuler.pro /usr/lib/qt6/mkspecs/linux-g++/qmake.conf /usr/lib/qt6/mks
 		/usr/lib/libQt6Widgets.prl \
 		/usr/lib/libQt6Gui.prl \
 		/usr/lib/libQt6Sql.prl \
+		/usr/lib/libQt6SerialPort.prl \
 		/usr/lib/libQt6Core.prl
 	$(QMAKE) -o Makefile szpuler.pro
 /usr/lib/qt6/mkspecs/features/spec_pre.prf:
@@ -711,6 +724,7 @@ szpuler.qrc:
 /usr/lib/libQt6Widgets.prl:
 /usr/lib/libQt6Gui.prl:
 /usr/lib/libQt6Sql.prl:
+/usr/lib/libQt6SerialPort.prl:
 /usr/lib/libQt6Core.prl:
 qmake: FORCE
 	@$(QMAKE) -o Makefile szpuler.pro
@@ -728,8 +742,9 @@ distdir: FORCE
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents szpuler.qrc $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/qt6/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents main.h mainwindow.h mdichild.h datawindow.h console.h logger.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp mdichild.cpp datawindow.cpp console.cpp logger.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents main.h mainwindow.h mdichild.h datawindow.h console.h logger.h logviewer.h settingsdialog.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp mdichild.cpp datawindow.cpp console.cpp logger.cpp logviewer.cpp settingsdialog.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents settingsdialog.ui $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -772,84 +787,121 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/qt6/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/qt6/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp moc_logger.cpp
+compiler_moc_header_make_all: moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp moc_logger.cpp moc_logviewer.cpp moc_settingsdialog.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp moc_logger.cpp
+	-$(DEL_FILE) moc_main.cpp moc_mainwindow.cpp moc_mdichild.cpp moc_datawindow.cpp moc_console.cpp moc_logger.cpp moc_logviewer.cpp moc_settingsdialog.cpp
 moc_main.cpp: main.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
-	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include main.h -o moc_main.cpp
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include main.h -o moc_main.cpp
 
 moc_mainwindow.cpp: mainwindow.h \
 		mdichild.h \
+		logger.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
-	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_mdichild.cpp: mdichild.h \
+		logger.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
-	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include mdichild.h -o moc_mdichild.cpp
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include mdichild.h -o moc_mdichild.cpp
 
 moc_datawindow.cpp: datawindow.h \
 		mdichild.h \
+		logger.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
-	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include datawindow.h -o moc_datawindow.cpp
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include datawindow.h -o moc_datawindow.cpp
 
 moc_console.cpp: console.h \
 		mdichild.h \
+		logger.h \
+		mainwindow.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
-	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include console.h -o moc_console.cpp
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include console.h -o moc_console.cpp
 
 moc_logger.cpp: logger.h \
 		moc_predefs.h \
 		/usr/lib/qt6/moc
-	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include logger.h -o moc_logger.cpp
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include logger.h -o moc_logger.cpp
+
+moc_logviewer.cpp: logviewer.h \
+		mdichild.h \
+		logger.h \
+		moc_predefs.h \
+		/usr/lib/qt6/moc
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include logviewer.h -o moc_logviewer.cpp
+
+moc_settingsdialog.cpp: settingsdialog.h \
+		moc_predefs.h \
+		/usr/lib/qt6/moc
+	/usr/lib/qt6/moc $(DEFINES) --include /home/prauat/projects/szpuler/moc_predefs.h -I/usr/lib/qt6/mkspecs/linux-g++ -I/home/prauat/projects/szpuler -I/home/prauat/projects/szpuler -I/usr/include/qt6 -I/usr/include/qt6/QtWidgets -I/usr/include/qt6/QtGui -I/usr/include/qt6/QtSql -I/usr/include/qt6/QtSerialPort -I/usr/include/qt6/QtCore -I/usr/include/c++/13.2.1 -I/usr/include/c++/13.2.1/x86_64-pc-linux-gnu -I/usr/include/c++/13.2.1/backward -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include -I/usr/local/include -I/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed -I/usr/include settingsdialog.h -o moc_settingsdialog.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all:
+compiler_uic_make_all: ui_settingsdialog.h
 compiler_uic_clean:
+	-$(DEL_FILE) ui_settingsdialog.h
+ui_settingsdialog.h: settingsdialog.ui \
+		/usr/lib/qt6/uic
+	/usr/lib/qt6/uic settingsdialog.ui -o ui_settingsdialog.h
+
 compiler_yacc_decl_make_all:
 compiler_yacc_decl_clean:
 compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_header_clean 
+compiler_clean: compiler_rcc_clean compiler_moc_predefs_clean compiler_moc_header_clean compiler_uic_clean 
 
 ####### Compile
 
 main.o: main.cpp main.h \
 		mainwindow.h \
 		mdichild.h \
+		logger.h \
 		datawindow.h \
 		console.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
-		mdichild.h
+		mdichild.h \
+		logger.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 mdichild.o: mdichild.cpp mdichild.h \
+		logger.h \
 		mainwindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mdichild.o mdichild.cpp
 
 datawindow.o: datawindow.cpp datawindow.h \
 		mdichild.h \
+		logger.h \
 		mainwindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o datawindow.o datawindow.cpp
 
 console.o: console.cpp console.h \
-		mdichild.h
+		mdichild.h \
+		logger.h \
+		mainwindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o console.o console.cpp
 
 logger.o: logger.cpp logger.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o logger.o logger.cpp
+
+logviewer.o: logviewer.cpp logviewer.h \
+		mdichild.h \
+		logger.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o logviewer.o logviewer.cpp
+
+settingsdialog.o: settingsdialog.cpp settingsdialog.h \
+		ui_settingsdialog.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o settingsdialog.o settingsdialog.cpp
 
 qrc_szpuler.o: qrc_szpuler.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_szpuler.o qrc_szpuler.cpp
@@ -871,6 +923,12 @@ moc_console.o: moc_console.cpp
 
 moc_logger.o: moc_logger.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_logger.o moc_logger.cpp
+
+moc_logviewer.o: moc_logviewer.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_logviewer.o moc_logviewer.cpp
+
+moc_settingsdialog.o: moc_settingsdialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_settingsdialog.o moc_settingsdialog.cpp
 
 ####### Install
 

@@ -8,10 +8,14 @@
 
 #include "datawindow.h"
 #include "console.h"
+#include "logviewer.h"
+#include "settingsdialog.h"
 
 int main(int argc, char *argv[]){
     qRegisterMetaType<DataWindow*>("DataWindow*");
     qRegisterMetaType<Console*>("Console*");
+    qRegisterMetaType<LogViewer*>("LogViewer*");
+    qRegisterMetaType<SettingsDialog*>("SettingsDialog*");
     
     Main app(argc,argv);
     MainWindow mainWin;

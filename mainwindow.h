@@ -11,6 +11,8 @@
 #include <QMdiArea>
 #include <QAction>
 #include <QString>
+#include <QSerialPort>
+
 #include "mdichild.h"
 #include "logger.h"
 
@@ -18,6 +20,9 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+signals:
+    void settingsChanged();
+    
 public:
     MainWindow();
 
@@ -25,16 +30,26 @@ public:
     
     MainWindow& operator<< (const QString& msg);
     
+    Logger* logger();
+    
+    static constexpr const char* fatalError = "Fatal error occurred please contact support";
+    
 protected:
     void closeEvent(QCloseEvent *event) override;
-
+    
+    void showStatusMessage(const QString &message);
+    
+    void showWriteError(const QString &message);
+    
 private slots:
     void about();
     void updateMenus();
     void updateWindowMenu();
     void switchLayoutDirection();
     void createOrActivate();
-
+    void openSerialPort();
+    void closeSerialPort();
+    
 private:
 
     void createActions();
@@ -50,6 +65,8 @@ private:
     static constexpr const int statusTimeOut = 2000;
     static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
                                          "document interface applications using Qt.";
+    static constexpr const char* logPath = "szpuler.log";
+    
     QMdiArea *m_mdiArea;
     QMenu *m_windowMenu;
     QAction *m_closeAct;
@@ -61,7 +78,10 @@ private:
     QAction *m_windowMenuSeparatorAct;
     QSettings m_settings;
     mutable Logger m_logger;
-    
+    QSerialPort *m_serial = nullptr;
+    QAction *m_actionConnect;
+    QAction *m_actionDisconnect;
+    QAction *m_actionConfigure;
 };
 
 #endif

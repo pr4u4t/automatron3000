@@ -16,6 +16,9 @@ public:
     
     Q_INVOKABLE DataWindow(QWidget* parent = nullptr, QWidget* mwin = nullptr);
 
+public slots:
+    void settingsChanged();
+    
 private:
     static constexpr const char* database = "./szpuler.dat";
     static constexpr const char* table = "part_shelf";

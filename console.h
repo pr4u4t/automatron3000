@@ -8,6 +8,7 @@
 #include <QPlainTextEdit>
 
 #include "mdichild.h"
+#include "mainwindow.h"
 
 class Terminal : public QPlainTextEdit{
     Q_OBJECT
@@ -15,8 +16,10 @@ class Terminal : public QPlainTextEdit{
 signals:
     void getData(const QByteArray &data);
     
+    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
+    
 public:
-    Terminal(QWidget* parent = nullptr);
+    Terminal(QWidget* parent = nullptr, QWidget* mwin = nullptr);
     
     void setLocalEchoEnabled(bool set);
         
@@ -28,6 +31,8 @@ protected:
     
 private:
     bool m_localEchoEnabled = false;
+    MainWindow* m_mwin = nullptr;
+    
 };
 
 class Console : public MdiChild{
@@ -41,6 +46,9 @@ public:
 
     void putData(const QByteArray &data);
 
+public slots:
+    void settingsChanged();
+    
 private:
     Terminal* m_terminal = nullptr;
 };
