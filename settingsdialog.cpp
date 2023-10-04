@@ -4,6 +4,7 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "mainwindow.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
@@ -13,6 +14,7 @@ static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
 SettingsDialog::SettingsDialog(QWidget* parent, QWidget* mwin) :
     MdiChild(parent),
+    m_currentSettings(qobject_cast<MainWindow*>(mwin)->settings()),
     m_ui(new Ui::SettingsDialog),
     m_intValidator(new QIntValidator(0, 4000000, this)){
     m_ui->setupUi(this);
@@ -112,8 +114,7 @@ void SettingsDialog::fillPortsParameters(){
     m_ui->flowControlBox->addItem(tr("XON/XOFF"), QSerialPort::SoftwareControl);
 }
 
-void SettingsDialog::fillPortsInfo()
-{
+void SettingsDialog::fillPortsInfo(){
     m_ui->serialPortInfoListBox->clear();
     const QString blankString = tr(::blankString);
     const auto infos = QSerialPortInfo::availablePorts();
@@ -139,8 +140,7 @@ void SettingsDialog::fillPortsInfo()
     m_ui->serialPortInfoListBox->addItem(tr("Custom"));
 }
 
-void SettingsDialog::updateSettings()
-{
+void SettingsDialog::updateSettings(){
     m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
 
     if (m_ui->baudRateBox->currentIndex() == 4) {
