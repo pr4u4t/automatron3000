@@ -89,6 +89,10 @@ public:
             localEchoEnabled = settings.value(localEchoEnabledKey, localEchoEnabledValue).toBool();
         }
         
+        void save(QSettings* settings){
+            
+        }
+        
         QString name;
         qint32 baudRate;
         QString stringBaudRate;
@@ -121,6 +125,7 @@ private:
     void fillPortsParameters();
     void fillPortsInfo();
     void updateSettings();
+    void fillFromSettings();
     
 private:
     SerialSettings m_currentSettings;

@@ -32,7 +32,8 @@ SettingsDialog::SettingsDialog(QWidget* parent, QWidget* mwin) :
 
     fillPortsParameters();
     fillPortsInfo();
-    updateSettings();
+    
+    //updateSettings();
 }
 
 SettingsDialog::~SettingsDialog(){
@@ -138,6 +139,24 @@ void SettingsDialog::fillPortsInfo(){
     }
 
     m_ui->serialPortInfoListBox->addItem(tr("Custom"));
+}
+
+void SettingsDialog::fillFromSettings(){    
+    m_ui->serialPortInfoListBox->setCurrentIndex(m_ui->serialPortInfoListBox->findText(m_currentSettings.name));
+    
+    if (m_ui->baudRateBox->currentIndex() == 4) {
+        m_currentSettings.baudRate = m_ui->baudRateBox->currentText().toInt();
+    } else {
+        const auto baudRateData = m_ui->baudRateBox->currentData();
+        m_currentSettings.baudRate = baudRateData.value<QSerialPort::BaudRate>();
+    }
+    m_currentSettings.stringBaudRate = QString::number(m_currentSettings.baudRate);
+    
+    m_ui->dataBitsBox->setCurrentIndex(m_ui->dataBitsBox->findData(m_currentSettings.dataBits));
+    m_ui->parityBox->setCurrentIndex(m_ui->parityBox->findData(m_currentSettings.parity));
+    m_ui->stopBitsBox->setCurrentIndex(m_ui->stopBitsBox->findData(m_currentSettings.stopBits));
+    m_ui->flowControlBox->setCurrentIndex(m_ui->flowControlBox->findData(m_currentSettings.flowControl));
+    m_ui->localEchoCheckBox->setChecked(m_currentSettings.localEchoEnabled);
 }
 
 void SettingsDialog::updateSettings(){

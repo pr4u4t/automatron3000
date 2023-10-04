@@ -143,7 +143,7 @@ void MainWindow::createOrActivate(){
 
 void MainWindow::createActions(){
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
-    QToolBar *fileToolBar = addToolBar(tr("File"));
+    //QToolBar *fileToolBar = addToolBar(tr("File"));
 
     QAction *database = new QAction(tr("Database"), this);
     database->setData(QVariant("DataWindow"));
