@@ -41,6 +41,8 @@ protected:
     
     void showWriteError(const QString &message);
     
+    QStringList subWindows() const;
+    
 private slots:
     void about();
     void updateMenus();
@@ -52,6 +54,7 @@ private slots:
     
 private:
 
+    bool createWindowByName(const QString& name);
     void createActions();
     void createStatusBar();
     void readSettings();
@@ -66,6 +69,7 @@ private:
     static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
                                          "document interface applications using Qt.";
     static constexpr const char* logPath = "szpuler.log";
+    //static constexpr const char* settingsPath = "szpuler.ini";
     
     QMdiArea *m_mdiArea;
     QMenu *m_windowMenu;

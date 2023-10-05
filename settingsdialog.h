@@ -33,29 +33,17 @@ public:
     static constexpr const char* bRateKey = "serial/baudRate";
     static constexpr qint32 bRateValue = 9800;
     
-    static constexpr const char* sbRateKey = "serial/stringBaudRate";
-    static constexpr const char* sbRateValue = "9800";
-    
     static constexpr const char* dataBitsKey = "serial/dataBits";
     static constexpr QSerialPort::DataBits dataBitsValue = QSerialPort::DataBits::Data5;
     
     static constexpr const char* parityKey = "serial/parity";
     static constexpr QSerialPort::Parity parityValue = QSerialPort::Parity::NoParity;
     
-    static constexpr const char* strParityKey = "serial/strParity";
-    static constexpr const char* strParityValue = "NoParity";
-    
     static constexpr const char* stopBitsKey = "serial/stopBits";
     static constexpr QSerialPort::StopBits stopBitsValue = QSerialPort::StopBits::OneStop;
     
-    static constexpr const char* strStopBitsKey = "serial/strStopBits";
-    static constexpr const char* strStopBitsValue = "OneStop";
-    
     static constexpr const char* flowControlKey = "serial/flowControl";
     static constexpr QSerialPort::FlowControl flowControlValue = QSerialPort::FlowControl::NoFlowControl;
-    
-    static constexpr const char* strFlowControlKey = "serial/strFlowControl";
-    static constexpr const char* strFlowControlValue = "NoFlowControl";
     
     static constexpr const char* localEchoEnabledKey = "serial/localEchoEnabled";
     static constexpr bool localEchoEnabledValue = true;
@@ -64,46 +52,40 @@ public:
         SerialSettings(){
             name = nameValue;
             baudRate = bRateValue;
-            stringBaudRate = sbRateValue;
             dataBits = dataBitsValue;
             parity = parityValue;
-            stringParity = strParityValue;
             stopBits = stopBitsValue;
-            stringStopBits = strStopBitsValue;
             flowControl = flowControlValue;
-            stringFlowControl = strFlowControlValue;
             localEchoEnabled = localEchoEnabledValue;
         }
         
         SerialSettings(const QSettings& settings){
+            qDebug() << "SerialSettings";
             name = settings.value(nameKey, nameValue).toString();
             baudRate = settings.value(bRateKey, bRateValue).toInt();
-            stringBaudRate = settings.value(sbRateKey, sbRateValue).toString();
             dataBits = static_cast<QSerialPort::DataBits>(settings.value(dataBitsKey, dataBitsValue).toInt());
             parity = static_cast<QSerialPort::Parity>(settings.value(parityKey, parityValue).toInt());
-            stringParity = settings.value(strParityKey, strParityValue).toString();
             stopBits = static_cast<QSerialPort::StopBits>(settings.value(stopBitsKey, stopBitsValue).toInt());
-            stringStopBits = settings.value(strStopBitsKey, strStopBitsValue).toString();
             flowControl = static_cast<QSerialPort::FlowControl>(settings.value(flowControlKey, flowControlValue).toInt());
-            stringFlowControl = settings.value(strFlowControlKey, strFlowControlValue).toString();
-            localEchoEnabled = settings.value(localEchoEnabledKey, localEchoEnabledValue).toBool();
+            localEchoEnabled = settings.value(localEchoEnabledKey, localEchoEnabledValue).toBool(); 
         }
         
-        void save(QSettings* settings){
-            
+        void save(QSettings* settings) const{
+            settings->setValue(nameKey, name);
+            settings->setValue(bRateKey, baudRate);
+            settings->setValue(dataBitsKey, dataBits);
+            settings->setValue(parityKey, parity);
+            settings->setValue(stopBitsKey, stopBits);
+            settings->setValue(flowControlKey, flowControl);
+            settings->setValue(localEchoEnabledKey, localEchoEnabled);
         }
         
         QString name;
         qint32 baudRate;
-        QString stringBaudRate;
         QSerialPort::DataBits dataBits;
-        QString stringDataBits;
         QSerialPort::Parity parity;
-        QString stringParity;
         QSerialPort::StopBits stopBits;
-        QString stringStopBits;
         QSerialPort::FlowControl flowControl;
-        QString stringFlowControl;
         bool localEchoEnabled;
     };
     
@@ -111,7 +93,7 @@ public:
     
     ~SettingsDialog();
 
-    SerialSettings settings() const;
+    SerialSettings serialSettings() const;
 
 private slots:
     void showPortInfo(int idx);

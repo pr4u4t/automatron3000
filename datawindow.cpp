@@ -4,7 +4,7 @@
 #include <QDebug>
 
 DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
-    : MdiChild(parent){
+    : MdiChild(parent,mwin){
 
     QString db = qobject_cast<MainWindow*>(mwin)->settings().value("DataWindow/database", QString(database)).toString();
     QString tbl = qobject_cast<MainWindow*>(mwin)->settings().value("DataWindow/table", QString(table)).toString();

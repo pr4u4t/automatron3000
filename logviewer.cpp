@@ -5,13 +5,13 @@
 #include <QVBoxLayout>
 
 LogViewer::LogViewer(QWidget* parent, QWidget* mwin)
-    : MdiChild(parent), m_text(new QPlainTextEdit()){
+    : MdiChild(parent,mwin), m_text(new QPlainTextEdit()){
     m_text->document()->setMaximumBlockCount(100);
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);
     p.setColor(QPalette::Text, Qt::green);
     m_text->setPalette(p);
-    
+    m_text->setReadOnly(false);
     connect(qobject_cast<MainWindow*>(mwin)->logger(),&Logger::echo,this,&LogViewer::message);
     
     QBoxLayout *l = new QVBoxLayout();

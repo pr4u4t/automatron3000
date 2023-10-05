@@ -10,14 +10,15 @@
 #include "logger.h"
 
 class MdiChild : public QWidget{
+    
     Q_OBJECT
 
 signals:
     
-    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
+    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE) const;
     
 public:
-    MdiChild(QWidget *parent);
+    MdiChild(QWidget *parent,QWidget *mwin);
 
     QSettings& settings();
     
@@ -26,7 +27,11 @@ public slots:
     
 protected:
     void closeEvent(QCloseEvent *event) override;
-
+    
+    QWidget *mainWindow();
+    
+private:
+    QWidget* m_mainWindow = nullptr;
 };
 
 #endif

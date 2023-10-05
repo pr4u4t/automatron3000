@@ -5,17 +5,23 @@
 #include "mdichild.h"
 #include "mainwindow.h"
 
-MdiChild::MdiChild(QWidget *parent)
-    : QWidget(parent){
+MdiChild::MdiChild(QWidget *parent, QWidget *mwin)
+    : QWidget(parent),
+    m_mainWindow(mwin){
     setAttribute(Qt::WA_DeleteOnClose);
 }
 
 QSettings& MdiChild::settings(){
-    return qobject_cast<MainWindow*>(parent())->settings();
+    return qobject_cast<MainWindow*>(mainWindow())->settings();
+}
+
+QWidget *MdiChild::mainWindow(){
+    return m_mainWindow;
 }
 
 void MdiChild::closeEvent(QCloseEvent *event){
     Q_UNUSED(event);
+    qDebug() << "MdiChild::closeEvent";
     /*if (maybeSave()) {
         event->accept();
     } else {

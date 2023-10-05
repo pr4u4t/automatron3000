@@ -54,8 +54,8 @@ void Terminal::contextMenuEvent(QContextMenuEvent *e){
     Q_UNUSED(e);
 }
     
-Console::Console(QWidget *parent, QWidget* wmin) 
-    : MdiChild(parent),m_terminal(new Terminal(this,wmin)){
+Console::Console(QWidget *parent, QWidget* mwin) 
+    : MdiChild(parent,mwin),m_terminal(new Terminal(this,mwin)){
     QBoxLayout *l = new QVBoxLayout();
     l->addWidget(m_terminal);
     setLayout(l);

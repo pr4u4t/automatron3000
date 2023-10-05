@@ -11,14 +11,16 @@
 MainWindow::MainWindow()
     : m_mdiArea(new QMdiArea),
     m_logger(logPath,this),
-    m_serial(new QSerialPort(this)) {
+    m_serial(new QSerialPort(this)),
+    m_settings(QSettings::IniFormat, QSettings::UserScope,
+               Main::appName, Main::org){
         
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(m_mdiArea);
     
-    //connect(mdiArea, &QMdiArea::subWindowActivated,
-    //        this, &MainWindow::updateMenus);
+    connect(m_mdiArea, &QMdiArea::subWindowActivated,
+            this, &MainWindow::updateMenus);
 
     createActions();
     createStatusBar();
@@ -59,19 +61,15 @@ void MainWindow::about(){
 }
 
 void MainWindow::updateMenus(){
-    /*
     bool hasMdiChild = (activeMdiChild() != nullptr);
-    saveAct->setEnabled(hasMdiChild);
-    saveAsAct->setEnabled(hasMdiChild);
 
-    closeAct->setEnabled(hasMdiChild);
-    closeAllAct->setEnabled(hasMdiChild);
-    tileAct->setEnabled(hasMdiChild);
-    cascadeAct->setEnabled(hasMdiChild);
-    nextAct->setEnabled(hasMdiChild);
-    previousAct->setEnabled(hasMdiChild);
-    windowMenuSeparatorAct->setVisible(hasMdiChild);
-    */
+    m_closeAct->setEnabled(hasMdiChild);
+    m_closeAllAct->setEnabled(hasMdiChild);
+    m_tileAct->setEnabled(hasMdiChild);
+    m_cascadeAct->setEnabled(hasMdiChild);
+    m_nextAct->setEnabled(hasMdiChild);
+    m_previousAct->setEnabled(hasMdiChild);
+    m_windowMenuSeparatorAct->setVisible(hasMdiChild);
 }
 
 void MainWindow::updateWindowMenu(){
@@ -113,24 +111,32 @@ void MainWindow::createOrActivate(){
     
     m_logger.message("creating new instance");
     QString name = qobject_cast<QAction*>(QObject::sender())->data().toString();
+    
+    createWindowByName(name);
+    
+    updateWindowMenu();
+}
+
+bool MainWindow::createWindowByName(const QString& name){
+    QMdiSubWindow *win;
     const QMetaObject *mo = QMetaType::metaObjectForType(QMetaType::type((name+"*").toLocal8Bit()));
     if(mo == nullptr){
         m_logger.message("failed to get metaobject for "+name);
         QMessageBox::critical(this, tr(Main::appName),
-                             tr(fatalError),
-                             QMessageBox::Ok);
-        return;
+                              tr(fatalError),
+                              QMessageBox::Ok);
+        return false;
     }
     
     QObject* child = mo->newInstance(Q_ARG(QWidget*,m_mdiArea),Q_ARG(QWidget*,this));
     if(child == nullptr){
         m_logger.message("failed to create instance");
         QMessageBox::critical(this, tr(Main::appName),
-                             tr(fatalError),
-                             QMessageBox::Ok);
-        return;
+                              tr(fatalError),
+                              QMessageBox::Ok);
+        return false;
     }
-        
+    
     MdiChild* mdi = qobject_cast<MdiChild*>(child);
     connect(mdi, &MdiChild::logMessage, &m_logger, &Logger::message);
     QWidget* mchild = qobject_cast<QWidget*>(child);
@@ -138,7 +144,7 @@ void MainWindow::createOrActivate(){
     win->setWindowTitle(name);
     mchild->show();
     
-    //updateWindowMenu();
+    return true;
 }
 
 void MainWindow::createActions(){
@@ -235,8 +241,8 @@ void MainWindow::createStatusBar(){
 }
 
 void MainWindow::readSettings(){
-    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
+    const QSettings &setts = settings();
+    const QByteArray geometry = setts.value("geometry", QByteArray()).toByteArray();
     if (geometry.isEmpty()) {
         const QRect availableGeometry = screen()->availableGeometry();
         resize(availableGeometry.width() / 3, availableGeometry.height() / 2);
@@ -245,11 +251,23 @@ void MainWindow::readSettings(){
     } else {
         restoreGeometry(geometry);
     }
+    
+    QStringList wins = setts.value("windows", QString()).toString().split(",");
+    
+    if(wins[0].isEmpty()){
+        return;
+    }
+    
+    for ( const auto& win : wins ){
+        qDebug() << win;
+        createWindowByName(win);
+    }
 }
 
 void MainWindow::writeSettings(){
-    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    settings.setValue("geometry", saveGeometry());
+    QSettings &setts = settings();
+    setts.setValue("geometry", saveGeometry());
+    setts.setValue("windows",subWindows().join(","));
 }
 
 MdiChild *MainWindow::activeMdiChild() const{
@@ -286,23 +304,23 @@ void MainWindow::switchLayoutDirection(){
 }
 
 void MainWindow::openSerialPort(){
-    /*
-    const SettingsDialog::SerialSettings p = qobject_cast<>m_settings->settings();
+    const SettingsDialog::SerialSettings p(settings());
     m_serial->setPortName(p.name);
     m_serial->setBaudRate(p.baudRate);
     m_serial->setDataBits(p.dataBits);
     m_serial->setParity(p.parity);
     m_serial->setStopBits(p.stopBits);
     m_serial->setFlowControl(p.flowControl);
-    */
+    
     if (m_serial->open(QIODevice::ReadWrite)) {
         //m_console->setLocalEchoEnabled(p.localEchoEnabled);
         m_actionConnect->setEnabled(false);
         m_actionDisconnect->setEnabled(true);
         m_actionConfigure->setEnabled(false);
+        showStatusMessage(tr("Connected to %1").arg(p.name));
         //showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
         //.arg(p.name, p.stringBaudRate, p.stringDataBits,
-        //     p.stringParity, p.stringStopBits, p.stringFlowControl));*/
+        //     p.stringParity, p.stringStopBits, p.stringFlowControl));
     } else {
         QMessageBox::critical(this, tr("Error"), m_serial->errorString());
         
@@ -326,4 +344,16 @@ void MainWindow::showStatusMessage(const QString &msg){
 
 void MainWindow::showWriteError(const QString &message){
     QMessageBox::warning(this, tr("Warning"), message);
+}
+
+QStringList MainWindow::subWindows() const{
+    QStringList ret;
+    const QList<QMdiSubWindow *> subWindows = m_mdiArea->subWindowList();
+    for (QMdiSubWindow *window : subWindows) {
+        MdiChild *mdiChild = qobject_cast<MdiChild*>(window->widget());
+        ret << mdiChild->metaObject()->metaType().name();
+        qDebug() << mdiChild->metaObject()->metaType().name();
+    }
+    qDebug() << ret;
+    return ret;
 }
