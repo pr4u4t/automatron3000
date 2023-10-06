@@ -17,7 +17,9 @@ Okno dostępne w menu górnym okna głównego file/console umożliwia bezpośred
 
 ## Baza danych (Database)
 Okno dostępne w menu górnym okna głównego file/database, służy skanowaniu części i wysyłaniu ich kodów do urządzenia podpiętego pod port szeregowy. Centralnym elementem tego okna jest kontrolka tabeli wyświetlająca podgląd bazy danych programu lub listę zeskanowanych kodów w zależności od wyboru użytkownika. 
+
 ![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/database.png?raw=true)
+
 W przeciwieństwie do oryginalnej wersji programu kody nie są tu przechowywane w plikach tekstowych a w bazie danych SQL (SQLite3). Zmiana ta pozwoliła na dodanie funkcji importu oraz eksportu bazy z programu. Pod główną kontrolką znajdują się trzy przyciski odpowiadające za import i eksport:
 - import dir
 - import csv
