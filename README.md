@@ -24,7 +24,7 @@ W przeciwieństwie do oryginalnej wersji programu kody nie są tu przechowywane 
 - export csv
 
 ### import katalogu (import dir)
-Uruchomienie tej funkcji służy importowi kodów szpul i półek z oryginalnej wersji programu. Po jej uruchomieniu wyświetla się okno dialogowe służące wyborowi katalogu w którym znajduje się baza oryginalnego szpulera w plikach *.txt. Po wybraniu katalogu i naciśnięciu przycisku "ok" import nastąpi automatycznie. Przykładowe okno dialogowe zaprezentowane poniżej. ** uwaga import spowoduje usunięcie poprzednich danych z bazy, jest to nieodwracalne **
+Uruchomienie tej funkcji służy importowi kodów szpul i półek z oryginalnej wersji programu. Po jej uruchomieniu wyświetla się okno dialogowe służące wyborowi katalogu w którym znajduje się baza oryginalnego szpulera w plikach *.txt. Po wybraniu katalogu i naciśnięciu przycisku "ok" import nastąpi automatycznie. Przykładowe okno dialogowe zaprezentowane poniżej. **uwaga import spowoduje usunięcie poprzednich danych z bazy, jest to nieodwracalne**
 ![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/dialog.png?raw=true)
 
 ### import csv (import csv) 
