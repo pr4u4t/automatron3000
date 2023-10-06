@@ -30,6 +30,10 @@ MainWindow::MainWindow()
 
     setWindowTitle(tr(winTitle));
     setUnifiedTitleAndToolBarOnMac(true);
+    
+    if(settings().value(SettingsDialog::autoConnectKey, SettingsDialog::autoConnectValue).toBool()){
+        openSerialPort();
+    }
 }
 
 Logger* MainWindow::logger(){

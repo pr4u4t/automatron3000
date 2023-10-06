@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>326</width>
-    <height>350</height>
+    <height>378</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -164,6 +164,13 @@
       <string>Additional options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QCheckBox" name="autoConnectCheckBox">
+        <property name="text">
+         <string>Auto connect</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <widget class="QCheckBox" name="localEchoCheckBox">
         <property name="text">

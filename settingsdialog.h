@@ -48,6 +48,9 @@ public:
     static constexpr const char* localEchoEnabledKey = "serial/localEchoEnabled";
     static constexpr bool localEchoEnabledValue = true;
     
+    static constexpr const char* autoConnectKey = "serial/autoConnect";
+    static constexpr bool autoConnectValue = false;
+    
     struct SerialSettings{
         SerialSettings(){
             name = nameValue;
@@ -57,17 +60,18 @@ public:
             stopBits = stopBitsValue;
             flowControl = flowControlValue;
             localEchoEnabled = localEchoEnabledValue;
+            autoConnect = autoConnectValue;
         }
         
         SerialSettings(const QSettings& settings){
-            qDebug() << "SerialSettings";
             name = settings.value(nameKey, nameValue).toString();
             baudRate = settings.value(bRateKey, bRateValue).toInt();
             dataBits = static_cast<QSerialPort::DataBits>(settings.value(dataBitsKey, dataBitsValue).toInt());
             parity = static_cast<QSerialPort::Parity>(settings.value(parityKey, parityValue).toInt());
             stopBits = static_cast<QSerialPort::StopBits>(settings.value(stopBitsKey, stopBitsValue).toInt());
             flowControl = static_cast<QSerialPort::FlowControl>(settings.value(flowControlKey, flowControlValue).toInt());
-            localEchoEnabled = settings.value(localEchoEnabledKey, localEchoEnabledValue).toBool(); 
+            localEchoEnabled = settings.value(localEchoEnabledKey, localEchoEnabledValue).toBool();
+            autoConnect = settings.value(autoConnectKey, autoConnectValue).toBool(); 
         }
         
         void save(QSettings* settings) const{
@@ -78,6 +82,7 @@ public:
             settings->setValue(stopBitsKey, stopBits);
             settings->setValue(flowControlKey, flowControl);
             settings->setValue(localEchoEnabledKey, localEchoEnabled);
+            settings->setValue(autoConnectKey, autoConnect);
         }
         
         QString name;
@@ -87,6 +92,7 @@ public:
         QSerialPort::StopBits stopBits;
         QSerialPort::FlowControl flowControl;
         bool localEchoEnabled;
+        bool autoConnect;
     };
     
     Q_INVOKABLE SettingsDialog(QWidget* parent = nullptr, QWidget* mwin = nullptr);

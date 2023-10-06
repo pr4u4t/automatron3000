@@ -150,8 +150,12 @@ void SettingsDialog::fillFromSettings(){
     int idx;
     
     if((idx = m_ui->serialPortInfoListBox->findText(m_currentSettings.name)) == -1){
-        m_ui->serialPortInfoListBox->setCurrentIndex(4);
-        m_ui->serialPortInfoListBox->setCurrentText(m_currentSettings.name);
+        if(m_currentSettings.name.isEmpty()){
+            m_ui->serialPortInfoListBox->setCurrentIndex(0);
+        }else{
+            m_ui->serialPortInfoListBox->setCurrentIndex(4);
+            m_ui->serialPortInfoListBox->setCurrentText(m_currentSettings.name);
+        }
     } else{
         m_ui->serialPortInfoListBox->setCurrentIndex(idx);
     }
@@ -168,6 +172,7 @@ void SettingsDialog::fillFromSettings(){
     m_ui->stopBitsBox->setCurrentIndex(m_ui->stopBitsBox->findData(m_currentSettings.stopBits));
     m_ui->flowControlBox->setCurrentIndex(m_ui->flowControlBox->findData(m_currentSettings.flowControl));
     m_ui->localEchoCheckBox->setChecked(m_currentSettings.localEchoEnabled);
+    m_ui->autoConnectCheckBox->setChecked(m_currentSettings.autoConnect);
 }
 
 void SettingsDialog::updateSettings(){
@@ -195,6 +200,7 @@ void SettingsDialog::updateSettings(){
     m_currentSettings.flowControl = flowControlData.value<QSerialPort::FlowControl>();
 
     m_currentSettings.localEchoEnabled = m_ui->localEchoCheckBox->isChecked();
+    m_currentSettings.autoConnect = m_ui->autoConnectCheckBox->isChecked();
     
     //place to save settings
     m_currentSettings.save(&settings());
