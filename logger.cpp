@@ -19,7 +19,7 @@ QString Logger::severityName(LoggerSeverity severity){
         case LoggerSeverity::WARNING:
             return "WARNING";
             
-        case LoggerSeverity::ERROR:
+        case LoggerSeverity::LOG_ERROR:
             return "ERROR";
             
         case LoggerSeverity::DEBUG:

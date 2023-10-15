@@ -5,10 +5,10 @@
 #include <QString>
 #include <QFile>
 
-enum LoggerSeverity{
+enum LoggerSeverity {
     NOTICE = 0,
     WARNING,
-    ERROR,
+    LOG_ERROR,
     DEBUG
 };
 

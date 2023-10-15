@@ -3,3 +3,4 @@ szpuler
 *.log
 moc_*
 *.o
+*.tlog
