@@ -9,6 +9,7 @@
 #include <QLineEdit>
 #include <QFileInfo>
 #include <QLabel>
+#include <QMessageBox>
 #include <QDebug>
 
 DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
@@ -35,12 +36,14 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     view->setShowGrid(true);
     view->setSortingEnabled(true);
     view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    
     m_model = new QSqlTableModel(view,m_db);
     m_model->setTable(tbl);
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     m_model->select();
     view->setModel(m_model);
-    
+    view->setColumnHidden(0, true);
+
     QLabel *label = new QLabel(tr("Part Number"));
     QPushButton *importCSVButton = new QPushButton(tr("Import CSV"));
     QPushButton *importDirButton = new QPushButton(tr("Import Dir"));
@@ -50,8 +53,9 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     connect(importDirButton,&QPushButton::clicked,this,&DataWindow::importFromFiles);
     connect(exportButton,&QPushButton::clicked,this,&DataWindow::exportAsCsv);
     
-    QLineEdit *edit = new QLineEdit();
-    edit->setMaxLength(12);
+    m_edit = new QLineEdit();
+    m_edit->setMaxLength(12);
+    m_edit->setClearButtonEnabled(true);
     
     QBoxLayout *buttons = new QHBoxLayout();
     buttons->addWidget(importCSVButton);
@@ -65,7 +69,7 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
 
     QBoxLayout *h = new QHBoxLayout();
     h->addWidget(label);
-    h->addWidget(edit);
+    h->addWidget(m_edit);
     h->addStretch(2);
     h->setSpacing(10);
     
@@ -86,6 +90,10 @@ void DataWindow::exportAsCsv(bool checked){
     }
     
     queryToCsv(fileName,QString(exportQuery).arg(table));
+
+    QMessageBox::information(this, tr(MainWindow::winTitle),
+        tr("Database export successful"),
+        QMessageBox::Ok);
 }
 
 void DataWindow::importFromCsv(bool checked){
@@ -98,6 +106,23 @@ void DataWindow::importFromCsv(bool checked){
         return;
     }
     
+    int ret = QMessageBox::warning(this, tr(MainWindow::winTitle),
+        tr("This will wipe all data and cannot be undone"),
+        QMessageBox::Ok | QMessageBox::Cancel
+    );
+
+    if (ret == QMessageBox::Cancel) {
+        return;
+    } 
+
+    if (!clearData()) {
+        QMessageBox::critical(this, tr(MainWindow::winTitle),
+            tr("Failed to clear existing data"),
+            QMessageBox::Ok);
+
+        return;
+    }
+
     QFile input(fileName);
     
     if (!input.open(QIODevice::ReadOnly)) {
@@ -129,8 +154,22 @@ void DataWindow::importFromFiles(bool checked){
                                                     QFileDialog::ShowDirsOnly
                                                     | QFileDialog::DontResolveSymlinks);
     
-    
-    
+    int ret = QMessageBox::warning(this, tr(MainWindow::winTitle),
+        tr("This will wipe all data and cannot be undone"),
+        QMessageBox::Ok | QMessageBox::Cancel
+    );
+
+    if (ret == QMessageBox::Cancel) {
+        return;
+    }
+
+    if (!clearData()) {
+        QMessageBox::critical(this, tr(MainWindow::winTitle),
+            tr("Failed to clear existing data"),
+            QMessageBox::Ok);
+
+        return;
+    }
     
     QDirIterator it(dir, {"*.csv", "*.txt"}, QDir::Files | QDir::NoSymLinks | QDir::Readable, QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -198,6 +237,15 @@ void DataWindow::queryToCsv(const QString& path, const QString& queryStr){
 
 void DataWindow::settingsChanged(){}
 
-void DataWindow::clearData(){
-    
+void DataWindow::prepareForFocus() {
+    m_edit->setFocus();
+}
+
+bool DataWindow::clearData(){
+    QSqlQuery query(m_db);
+    return query.exec(QString("DELETE FROM %1").arg(table));
+}
+
+void DataWindow::enterPressed() {
+
 }

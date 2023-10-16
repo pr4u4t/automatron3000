@@ -34,5 +34,4 @@ void Logger::message(const QString& msg, LoggerSeverity severity){
     emit echo(line); 
     line += LE;
     m_log.write(line.toLocal8Bit());
-    
 }

@@ -144,7 +144,15 @@ bool MainWindow::createWindowByName(const QString& name){
     MdiChild* mdi = qobject_cast<MdiChild*>(child);
     connect(mdi, &MdiChild::logMessage, &m_logger, &Logger::message);
     QWidget* mchild = qobject_cast<QWidget*>(child);
-    win = m_mdiArea->addSubWindow(mchild);
+    if (!(win = m_mdiArea->addSubWindow(mchild))) {
+        child->deleteLater();
+        return false;
+    }
+    const QMetaObject* mu = mdi->metaObject();
+    if (mdi->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
+        connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));
+    }
+
     win->setWindowTitle(name);
     mchild->show();
     
@@ -321,10 +329,10 @@ void MainWindow::openSerialPort(){
         m_actionConnect->setEnabled(false);
         m_actionDisconnect->setEnabled(true);
         m_actionConfigure->setEnabled(false);
-        showStatusMessage(tr("Connected to %1").arg(p.name));
-        //showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
-        //.arg(p.name, p.stringBaudRate, p.stringDataBits,
-        //     p.stringParity, p.stringStopBits, p.stringFlowControl));
+        
+        showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
+        .arg(p.name, QString::number(p.baudRate), QString::number(p.dataBits),
+             QString::number(p.parity), QString::number(p.stopBits), QString::number(p.flowControl)), 0);
     } else {
         QMessageBox::critical(this, tr("Error"), m_serial->errorString());
         
@@ -333,17 +341,18 @@ void MainWindow::openSerialPort(){
 }
 
 void MainWindow::closeSerialPort(){
-    if (m_serial->isOpen())
+    if (m_serial->isOpen()) {
         m_serial->close();
+    }
     //m_console->setEnabled(false);
     m_actionConnect->setEnabled(true);
     m_actionDisconnect->setEnabled(false);
     m_actionConfigure->setEnabled(true);
-    showStatusMessage(tr("Disconnected"));
+    showStatusMessage(tr("Disconnected"), 0);
 }
 
-void MainWindow::showStatusMessage(const QString &msg){
-    statusBar()->showMessage(msg, statusTimeOut);
+void MainWindow::showStatusMessage(const QString &msg, int timeout){
+    statusBar()->showMessage(msg, timeout);
 }
 
 void MainWindow::showWriteError(const QString &message){

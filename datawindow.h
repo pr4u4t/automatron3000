@@ -29,9 +29,13 @@ protected slots:
     
     void importFromFiles(bool checked  = false);
     
+    void prepareForFocus();
+
+    void enterPressed();
+
 private:
     
-    void clearData();
+    bool clearData();
     
     QString escapedCSV(QString unexc);
     
@@ -42,7 +46,8 @@ private:
     static constexpr const char* createTable = "CREATE TABLE %1 (id INTEGER PRIMARY KEY AUTOINCREMENT, part VARCHAR(255), shelf VARCHAR(255))";
     static constexpr const char* exportQuery = "SELECT * FROM %1";
     QSqlDatabase m_db;
-    QSqlTableModel* m_model; 
+    QSqlTableModel* m_model = nullptr;
+    QLineEdit* m_edit = nullptr;
 };
 
 #endif

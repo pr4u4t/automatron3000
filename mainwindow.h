@@ -24,6 +24,8 @@ signals:
     void settingsChanged();
     
 public:
+    static constexpr const char* winTitle = "szpuler";
+
     MainWindow();
 
     QSettings& settings();  
@@ -37,7 +39,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
     
-    void showStatusMessage(const QString &message);
+    void showStatusMessage(const QString &message, int timeout = statusTimeOut);
     
     void showWriteError(const QString &message);
     
@@ -64,13 +66,15 @@ private:
     MdiChild *activeMdiChild() const;
     QMdiSubWindow *findMdiChild(const QString &fileName) const;
 
-    static constexpr const char* winTitle = "szpuler";
+    
     static constexpr const int statusTimeOut = 2000;
     static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
                                          "document interface applications using Qt.";
     static constexpr const char* logPath = "szpuler.log";
     //static constexpr const char* settingsPath = "szpuler.ini";
     
+    static constexpr int QSlotInvalid = -1;
+
     QMdiArea *m_mdiArea;
     QMenu *m_windowMenu;
     QAction *m_closeAct;
