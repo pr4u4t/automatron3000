@@ -8,7 +8,7 @@
 #include <QHBoxLayout>
 
 Terminal::Terminal(QWidget* parent, QWidget* mwin)
-    : QPlainTextEdit(parent),m_mwin(qobject_cast<MainWindow*>(mwin)){
+    : QPlainTextEdit(parent){
     document()->setMaximumBlockCount(100);
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);
@@ -54,8 +54,8 @@ void Terminal::contextMenuEvent(QContextMenuEvent *e){
     Q_UNUSED(e);
 }
     
-Console::Console(QWidget *parent, QWidget* mwin) 
-    : MdiChild(parent,mwin),m_terminal(new Terminal(this,mwin)){
+Console::Console(Plugin *parent, QWidget* mwin) 
+    : MdiChild(nullptr,mwin),m_terminal(new Terminal(this,mwin)){
     QBoxLayout *l = new QVBoxLayout();
     l->addWidget(m_terminal);
     setLayout(l);

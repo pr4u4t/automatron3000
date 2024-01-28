@@ -3,17 +3,19 @@
 
 #include <QtWidgets>
 
+#include "PluginList.h"
 #include "settingsdialog.h"
 #include "mainwindow.h"
-#include "mdichild.h"
+#include "api/api.h"
 #include "main.h"
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(MLoader* plugins)
     : m_mdiArea(new QMdiArea),
     m_logger(logPath,this),
     m_serial(new QSerialPort(this)),
     m_settings(QSettings::IniFormat, QSettings::UserScope,
-               Main::appName, Main::org){
+               Main::appName, Main::org),
+    m_plugins(plugins){
         
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -36,18 +38,30 @@ MainWindow::MainWindow()
     }
 }
 
+MainWindow::~MainWindow() {
+    
+}
+
+MLoader* MainWindow::plugins() {
+    return m_plugins;
+}
+
 Logger* MainWindow::logger(){
     return &m_logger;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event){
-    m_mdiArea->closeAllSubWindows();
-    if (m_mdiArea->currentSubWindow()) {
+    QMessageBox::StandardButton resBtn = QMessageBox::question(this, /*APP_NAME*/"",
+        tr("Are you sure?\n"),
+        QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
+        QMessageBox::Yes);
+    if (resBtn != QMessageBox::Yes) {
         event->ignore();
     } else {
         writeSettings();
         event->accept();
     }
+    
 }
 
 QSettings& MainWindow::settings(){
@@ -122,7 +136,37 @@ void MainWindow::createOrActivate(){
 }
 
 bool MainWindow::createWindowByName(const QString& name){
-    QMdiSubWindow *win;
+    if (plugins() == nullptr) {
+        return false;
+    }
+
+    QSharedPointer<Plugin> plugin = plugins()->instance(name, this);
+    QMdiSubWindow* win = nullptr;
+
+    if (plugin.isNull()) {
+        m_logger.message("failed to get plugin instance of " + name);
+        QMessageBox::critical(this, tr(Main::appName),
+            tr(fatalError),
+            QMessageBox::Ok);
+        return false;
+    }
+
+    QSharedPointer<MdiChild> child = plugin->widget();
+    if (!(win = m_mdiArea->addSubWindow(child.data()))) {
+        child->deleteLater();
+        return false;
+    }
+
+    win->setWindowTitle(name);
+    win->show();
+
+    const QMetaObject* mu = child->metaObject();
+    if (child->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
+        connect(win, SIGNAL(aboutToActivate()), child.data(), SLOT(prepareForFocus()));
+    }
+
+    /*
+    QMdiSubWindow* win;
     const QMetaObject *mo = QMetaType::metaObjectForType(QMetaType::type((name+"*").toLocal8Bit()));
     if(mo == nullptr){
         m_logger.message("failed to get metaobject for "+name);
@@ -155,7 +199,8 @@ bool MainWindow::createWindowByName(const QString& name){
 
     win->setWindowTitle(name);
     mchild->show();
-    
+    */
+
     return true;
 }
 
@@ -163,16 +208,6 @@ void MainWindow::createActions(){
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     //QToolBar *fileToolBar = addToolBar(tr("File"));
 
-    QAction *database = new QAction(tr("Database"), this);
-    database->setData(QVariant("DataWindow"));
-    connect(database, &QAction::triggered, this, &MainWindow::createOrActivate);
-    fileMenu->addAction(database);
-    
-    QAction *console = new QAction(tr("Console"), this);
-    console->setData(QVariant("Console"));
-    connect(console, &QAction::triggered, this, &MainWindow::createOrActivate);
-    fileMenu->addAction(console);
-    
     QAction *logviewer = new QAction(tr("Log Viewer"), this);
     logviewer->setData(QVariant("LogViewer"));
     connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivate);
@@ -190,7 +225,7 @@ void MainWindow::createActions(){
     QMenu* serialMenu = menuBar()->addMenu(tr("&Serial"));
     m_actionConfigure = new QAction(tr("Settings"), this);
     m_actionConfigure->setData(QVariant("SettingsDialog"));
-    connect(m_actionConfigure, &QAction::triggered, this, &MainWindow::createOrActivate);
+    connect(m_actionConfigure, &QAction::triggered, this, &MainWindow::createOrActivateSettings);
     serialMenu->addAction(m_actionConfigure);
 
     m_actionConnect = new QAction(tr("Connect"), this);
@@ -239,6 +274,14 @@ void MainWindow::createActions(){
 
     menuBar()->addSeparator();
 
+    QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
+    QAction* pluginsList = new QAction(tr("Plugins"), this);
+    pluginsList->setData(QVariant("PluginsList"));
+    connect(pluginsList, &QAction::triggered, this, &MainWindow::createOrActivatePlugins);
+    settingsMenu->addAction(pluginsList);
+
+    menuBar()->addSeparator();
+
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
 
     QAction *aboutAct = helpMenu->addAction(tr("&About"), this, &MainWindow::about);
@@ -246,6 +289,44 @@ void MainWindow::createActions(){
 
     QAction *aboutQtAct = helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+}
+
+void MainWindow::createOrActivatePlugins() {
+    QMdiSubWindow* win;
+    
+    if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
+        m_logger.message("activating subwindow");
+        m_mdiArea->setActiveSubWindow(win);
+        return;
+    }
+
+    MdiChild *child = new PluginList(m_mdiArea, this, plugins());
+    if (!(win = m_mdiArea->addSubWindow(child))) {
+        child->deleteLater();
+        return;
+    }
+
+    win->setWindowTitle("Plugins");
+    child->show();
+}
+
+void MainWindow::createOrActivateSettings() {
+    QMdiSubWindow* win;
+
+    if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
+        m_logger.message("activating subwindow");
+        m_mdiArea->setActiveSubWindow(win);
+        return;
+    }
+
+    MdiChild* child = new SettingsDialog(m_mdiArea, this, plugins());
+    if (!(win = m_mdiArea->addSubWindow(child))) {
+        child->deleteLater();
+        return;
+    }
+
+    win->setWindowTitle("Plugins");
+    child->show();
 }
 
 void MainWindow::createStatusBar(){
@@ -264,6 +345,7 @@ void MainWindow::readSettings(){
         restoreGeometry(geometry);
     }
     
+    /*
     QStringList wins = setts.value("windows", QString()).toString().split(",");
     
     if(wins[0].isEmpty()){
@@ -274,12 +356,13 @@ void MainWindow::readSettings(){
         qDebug() << win;
         createWindowByName(win);
     }
+    */
 }
 
 void MainWindow::writeSettings(){
     QSettings &setts = settings();
     setts.setValue("geometry", saveGeometry());
-    setts.setValue("windows",subWindows().join(","));
+    //setts.setValue("windows",subWindows().join(","));
 }
 
 MdiChild *MainWindow::activeMdiChild() const{
@@ -296,10 +379,19 @@ QMdiSubWindow *MainWindow::findMdiChild(const QString &key) const{
     const QList<QMdiSubWindow *> subWindows = m_mdiArea->subWindowList();
     for (QMdiSubWindow *window : subWindows) {
         MdiChild *mdiChild = qobject_cast<MdiChild*>(window->widget());
-        if (mdiChild->metaObject()->metaType().name() == key){
-            m_logger.message(QString("child found: ")+mdiChild->metaObject()->metaType().name());
+        Plugin* plugin = mdiChild->plugin();
+
+        if (plugin == nullptr || plugin->name() != key) {
+            continue;
+        }
+
+        if (plugin->name() == key) {
             return window;
         }
+        //if (mdiChild->metaObject()->metaType().name() == key){
+        //    m_logger.message(QString("child found: ")+mdiChild->metaObject()->metaType().name());
+        //    return window;
+        //}
     }
     m_logger.message("child not found");
     return nullptr;
@@ -334,9 +426,21 @@ void MainWindow::openSerialPort(){
         .arg(p.name, QString::number(p.baudRate), QString::number(p.dataBits),
              QString::number(p.parity), QString::number(p.stopBits), QString::number(p.flowControl)), 0);
     } else {
-        QMessageBox::critical(this, tr("Error"), m_serial->errorString());
+        QMessageBox::critical(this, tr("Serial port open error"), m_serial->errorString());
         
         showStatusMessage(tr("Open error"));
+    }
+}
+
+void MainWindow::writeSerial(const QString& msg) {
+    if (!m_serial->isOpen()) {
+        return;
+    }
+
+    qint64 len = m_serial->write(msg.toLocal8Bit());
+
+    if (len != msg.size()) {
+    
     }
 }
 
@@ -359,7 +463,8 @@ void MainWindow::showWriteError(const QString &message){
     QMessageBox::warning(this, tr("Warning"), message);
 }
 
-QStringList MainWindow::subWindows() const{
+/*
+QStringList MainWindow::subWindows() const {
     QStringList ret;
     const QList<QMdiSubWindow *> subWindows = m_mdiArea->subWindowList();
     for (QMdiSubWindow *window : subWindows) {
@@ -370,3 +475,4 @@ QStringList MainWindow::subWindows() const{
     qDebug() << ret;
     return ret;
 }
+*/

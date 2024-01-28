@@ -7,8 +7,7 @@
 
 #include <QPlainTextEdit>
 
-#include "mdichild.h"
-#include "mainwindow.h"
+#include "../api/api.h"
 
 class Terminal : public QPlainTextEdit{
     Q_OBJECT
@@ -30,9 +29,7 @@ protected:
     void contextMenuEvent(QContextMenuEvent *e) override;
     
 private:
-    bool m_localEchoEnabled = false;
-    MainWindow* m_mwin = nullptr;
-    
+    bool m_localEchoEnabled = false;  
 };
 
 class Console : public MdiChild{
@@ -42,9 +39,17 @@ signals:
     void getData(const QByteArray &data);
 
 public:
-    Q_INVOKABLE Console(QWidget *parent = nullptr, QWidget* mwin = nullptr);
+    Console(Plugin *parent = nullptr, QWidget* mwin = nullptr);
 
     void putData(const QByteArray &data);
+
+    ~Console() {
+    
+    }
+
+    bool saveSettings() {
+        return true;
+    }
 
 public slots:
     void settingsChanged();

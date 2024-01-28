@@ -3,7 +3,7 @@
 
 #include <QPlainTextEdit>
 
-#include "mdichild.h"
+#include "api/api.h"
 
 class LogViewer : public MdiChild{
 
@@ -11,7 +11,7 @@ class LogViewer : public MdiChild{
     
 public:
     
-    Q_INVOKABLE LogViewer(QWidget* parent = nullptr, QWidget* mwin = nullptr);
+    LogViewer(QWidget* parent = nullptr, QWidget* mwin = nullptr);
     
 public slots:
     void settingsChanged();

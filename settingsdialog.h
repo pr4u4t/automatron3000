@@ -10,7 +10,8 @@
 #include <QIntValidator>
 #include <QSettings>
 
-#include "mdichild.h"
+#include "api/api.h"
+#include "ModuleLoader.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -95,11 +96,15 @@ public:
         bool autoConnect;
     };
     
-    Q_INVOKABLE SettingsDialog(QWidget* parent = nullptr, QWidget* mwin = nullptr);
+    SettingsDialog(QWidget* parent, QWidget* mwin, MLoader* loader);
     
     ~SettingsDialog();
 
     SerialSettings serialSettings() const;
+
+    bool saveSettings() {
+        return true;
+    }
 
 private slots:
     void showPortInfo(int idx);

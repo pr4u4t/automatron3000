@@ -67,6 +67,9 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile />
+    <Link>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
@@ -93,15 +96,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <QtMoc Include="console.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="datawindow.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="logger.h" />
-  </ItemGroup>
-  <ItemGroup>
     <QtMoc Include="logviewer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -111,19 +105,12 @@
     <QtMoc Include="mainwindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="mdichild.h" />
-  </ItemGroup>
-  <ItemGroup>
     <QtMoc Include="settingsdialog.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="console.cpp" />
-    <ClCompile Include="datawindow.cpp" />
-    <ClCompile Include="logger.cpp" />
     <ClCompile Include="logviewer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainwindow.cpp" />
-    <ClCompile Include="mdichild.cpp" />
     <ClCompile Include="settingsdialog.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -131,6 +118,12 @@
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="szpuler.qrc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ModuleLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="PluginList.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

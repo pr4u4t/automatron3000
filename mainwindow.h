@@ -13,11 +13,10 @@
 #include <QString>
 #include <QSerialPort>
 
-#include "mdichild.h"
-#include "logger.h"
+#include "api/api.h"
+#include "ModuleLoader.h"
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public Window {
     Q_OBJECT
 
 signals:
@@ -25,8 +24,11 @@ signals:
     
 public:
     static constexpr const char* winTitle = "szpuler";
+    static constexpr const char* fatalError = "Fatal error occurred please contact support";
 
-    MainWindow();
+    MainWindow(MLoader* loader = nullptr);
+
+    ~MainWindow();
 
     QSettings& settings();  
     
@@ -34,8 +36,12 @@ public:
     
     Logger* logger();
     
-    static constexpr const char* fatalError = "Fatal error occurred please contact support";
-    
+    MLoader* plugins();
+
+    void setPlugins(MLoader* loader) {
+        m_plugins = loader;
+    }
+
 protected:
     void closeEvent(QCloseEvent *event) override;
     
@@ -43,16 +49,25 @@ protected:
     
     void showWriteError(const QString &message);
     
-    QStringList subWindows() const;
-    
+    //QStringList subWindows() const;
+
+public slots:
+
+    void writeSerial(const QString& msg);
+
+protected slots:
+
+    void createOrActivate() override;
+
 private slots:
     void about();
     void updateMenus();
     void updateWindowMenu();
     void switchLayoutDirection();
-    void createOrActivate();
     void openSerialPort();
     void closeSerialPort();
+    void createOrActivatePlugins();
+    void createOrActivateSettings();
     
 private:
 
@@ -75,21 +90,22 @@ private:
     
     static constexpr int QSlotInvalid = -1;
 
-    QMdiArea *m_mdiArea;
-    QMenu *m_windowMenu;
-    QAction *m_closeAct;
-    QAction *m_closeAllAct;
-    QAction *m_tileAct;
-    QAction *m_cascadeAct;
-    QAction *m_nextAct;
-    QAction *m_previousAct;
-    QAction *m_windowMenuSeparatorAct;
+    QMdiArea *m_mdiArea = nullptr;
+    QMenu *m_windowMenu = nullptr;
+    QAction *m_closeAct = nullptr;
+    QAction *m_closeAllAct = nullptr;
+    QAction *m_tileAct = nullptr;
+    QAction *m_cascadeAct = nullptr;
+    QAction *m_nextAct = nullptr;
+    QAction *m_previousAct = nullptr;
+    QAction *m_windowMenuSeparatorAct = nullptr;
     QSettings m_settings;
     mutable Logger m_logger;
     QSerialPort *m_serial = nullptr;
-    QAction *m_actionConnect;
-    QAction *m_actionDisconnect;
-    QAction *m_actionConfigure;
+    QAction *m_actionConnect = nullptr;
+    QAction *m_actionDisconnect = nullptr;
+    QAction *m_actionConfigure = nullptr;
+    MLoader* m_plugins = nullptr;
 };
 
 #endif

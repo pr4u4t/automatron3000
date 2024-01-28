@@ -3,16 +3,17 @@
 
 #include <QtWidgets>
 #include "mdichild.h"
-#include "mainwindow.h"
+#include "window.h"
 
-MdiChild::MdiChild(QWidget *parent, QWidget *mwin)
-    : QWidget(parent),
+MdiChild::MdiChild(Plugin *parent, QWidget *mwin)
+    : m_plugin(parent),
+    QWidget(mwin),
     m_mainWindow(mwin){
     setAttribute(Qt::WA_DeleteOnClose);
 }
 
 QSettings& MdiChild::settings(){
-    return qobject_cast<MainWindow*>(mainWindow())->settings();
+    return dynamic_cast<Window*>(mainWindow())->settings();
 }
 
 QWidget *MdiChild::mainWindow(){

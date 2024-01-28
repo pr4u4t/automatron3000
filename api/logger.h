@@ -5,14 +5,16 @@
 #include <QString>
 #include <QFile>
 
-enum LoggerSeverity {
+#include "api_global.h"
+
+enum class API_EXPORT LoggerSeverity {
     NOTICE = 0,
     WARNING,
     LOG_ERROR,
     DEBUG
 };
 
-class Logger : public QObject{
+class API_EXPORT Logger : public QObject{
     Q_OBJECT
     
 signals:
@@ -27,7 +29,7 @@ public:
     
 public slots:
 
-    void message(const QString& msg,LoggerSeverity severity = LoggerSeverity::NOTICE);
+    void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
 
 protected:
     QString severityName(LoggerSeverity severity);

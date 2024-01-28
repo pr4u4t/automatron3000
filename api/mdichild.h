@@ -8,8 +8,11 @@
 #include <QSettings>
 
 #include "logger.h"
+#include "api_global.h"
 
-class MdiChild : public QWidget{
+class Plugin;
+
+class API_EXPORT MdiChild : public QWidget{
     
     Q_OBJECT
 
@@ -17,11 +20,19 @@ signals:
     
     void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE) const;
     
+    void serialMessage(const QString& msg);
+
 public:
-    MdiChild(QWidget *parent,QWidget *mwin);
+    MdiChild(Plugin *parent, QWidget *mwin);
 
     QSettings& settings();
     
+    Plugin* plugin() {
+        return m_plugin;
+    }
+
+    virtual bool saveSettings() = 0;
+
 public slots:
     virtual void settingsChanged() = 0;
     
@@ -32,6 +43,7 @@ protected:
     
 private:
     QWidget* m_mainWindow = nullptr;
+    Plugin* m_plugin = nullptr;
 };
 
 #endif

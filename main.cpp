@@ -1,25 +1,31 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include "main.h"
-#include "mainwindow.h"
+#include <QSplashScreen>
 #include <QDebug>
 #include <exception>
 
-#include "datawindow.h"
-#include "console.h"
+#include "main.h"
+#include "mainwindow.h"
 #include "logviewer.h"
 #include "settingsdialog.h"
+#include "ModuleLoader.h"
 
 int main(int argc, char *argv[]){
-    qRegisterMetaType<DataWindow*>("DataWindow*");
-    qRegisterMetaType<Console*>("Console*");
-    qRegisterMetaType<LogViewer*>("LogViewer*");
-    qRegisterMetaType<SettingsDialog*>("SettingsDialog*");
-    
     Main app(argc,argv);
+    
+    QPixmap pixmap(":/res/arduino.png");
+    QSplashScreen splash(pixmap);
+    splash.show();
+    app.processEvents();
+
     MainWindow mainWin;
+    MLoader ld(&mainWin);
+    mainWin.setPlugins(&ld);
     mainWin.show();
+
+    splash.finish(&mainWin);
+
     return app.exec();
 }
 

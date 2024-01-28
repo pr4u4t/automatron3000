@@ -8,7 +8,7 @@
 #include <QSqlRecord>
 #include <QSqlError>
 
-#include "mdichild.h"
+#include "../api/api.h"
 
 class DataWindow : public MdiChild{ 
 
@@ -16,7 +16,15 @@ class DataWindow : public MdiChild{
     
 public:
     
-    Q_INVOKABLE DataWindow(QWidget* parent = nullptr, QWidget* mwin = nullptr);
+    DataWindow(Plugin* parent = nullptr, QWidget* mwin = nullptr);
+
+    ~DataWindow() {
+    
+    }
+
+    bool saveSettings() {
+        return true;
+    }
 
 public slots:
     void settingsChanged();
@@ -48,6 +56,9 @@ private:
     QSqlDatabase m_db;
     QSqlTableModel* m_model = nullptr;
     QLineEdit* m_edit = nullptr;
+
+
+    static constexpr const char* title = "DataWindow";
 };
 
 #endif

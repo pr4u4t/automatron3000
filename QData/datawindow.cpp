@@ -1,5 +1,3 @@
-#include "datawindow.h"
-#include "mainwindow.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -12,13 +10,17 @@
 #include <QMessageBox>
 #include <QDebug>
 
-DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
+#include "../api/api.h"
+#include "datawindow.h"
+
+DataWindow::DataWindow(Plugin* parent, QWidget* mwin)
     : MdiChild(parent,mwin){
 
     m_db = QSqlDatabase::database();
-        
+    QSettings settings;
     if(!m_db.isValid() || !m_db.isOpen()){
-        QString db = qobject_cast<MainWindow*>(mwin)->settings().value("DataWindow/database", QString(database)).toString();
+
+        QString db = settings.value(parent->settingsPath()+"/DataWindow/database", QString(database)).toString();
         m_db = QSqlDatabase::addDatabase("QSQLITE");
         m_db.setDatabaseName(db);
         
@@ -27,7 +29,7 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
         }
     }
     
-    QString tbl = qobject_cast<MainWindow*>(mwin)->settings().value("DataWindow/table", QString(table)).toString();
+    QString tbl = settings.value(parent->settingsPath() + "/DataWindow/table", QString(table)).toString();
     if(m_db.tables().contains(tbl, Qt::CaseInsensitive) == false){
         m_db.exec(QString(createTable).arg(tbl));
     }
@@ -36,7 +38,10 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     view->setShowGrid(true);
     view->setSortingEnabled(true);
     view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    
+    view->setAlternatingRowColors(true);
+    view->setGridStyle(Qt::SolidLine);
+    view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     m_model = new QSqlTableModel(view,m_db);
     m_model->setTable(tbl);
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -54,8 +59,9 @@ DataWindow::DataWindow(QWidget* parent, QWidget* mwin)
     connect(exportButton,&QPushButton::clicked,this,&DataWindow::exportAsCsv);
     
     m_edit = new QLineEdit();
-    m_edit->setMaxLength(12);
+    m_edit->setMaxLength(24);
     m_edit->setClearButtonEnabled(true);
+    connect(m_edit, &QLineEdit::returnPressed, this, &DataWindow::enterPressed);
     
     QBoxLayout *buttons = new QHBoxLayout();
     buttons->addWidget(importCSVButton);
@@ -91,7 +97,7 @@ void DataWindow::exportAsCsv(bool checked){
     
     queryToCsv(fileName,QString(exportQuery).arg(table));
 
-    QMessageBox::information(this, tr(MainWindow::winTitle),
+    QMessageBox::information(this, tr(title),
         tr("Database export successful"),
         QMessageBox::Ok);
 }
@@ -106,7 +112,7 @@ void DataWindow::importFromCsv(bool checked){
         return;
     }
     
-    int ret = QMessageBox::warning(this, tr(MainWindow::winTitle),
+    int ret = QMessageBox::warning(this, tr(title),
         tr("This will wipe all data and cannot be undone"),
         QMessageBox::Ok | QMessageBox::Cancel
     );
@@ -116,7 +122,7 @@ void DataWindow::importFromCsv(bool checked){
     } 
 
     if (!clearData()) {
-        QMessageBox::critical(this, tr(MainWindow::winTitle),
+        QMessageBox::critical(this, tr(title),
             tr("Failed to clear existing data"),
             QMessageBox::Ok);
 
@@ -154,7 +160,7 @@ void DataWindow::importFromFiles(bool checked){
                                                     QFileDialog::ShowDirsOnly
                                                     | QFileDialog::DontResolveSymlinks);
     
-    int ret = QMessageBox::warning(this, tr(MainWindow::winTitle),
+    int ret = QMessageBox::warning(this, tr(title),
         tr("This will wipe all data and cannot be undone"),
         QMessageBox::Ok | QMessageBox::Cancel
     );
@@ -164,7 +170,7 @@ void DataWindow::importFromFiles(bool checked){
     }
 
     if (!clearData()) {
-        QMessageBox::critical(this, tr(MainWindow::winTitle),
+        QMessageBox::critical(this, tr(title),
             tr("Failed to clear existing data"),
             QMessageBox::Ok);
 

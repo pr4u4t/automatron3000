@@ -1,11 +1,11 @@
 #include "logviewer.h"
-#include "logger.h"
+#include "api/api.h"
 #include "mainwindow.h"
 
 #include <QVBoxLayout>
 
 LogViewer::LogViewer(QWidget* parent, QWidget* mwin)
-    : MdiChild(parent,mwin), m_text(new QPlainTextEdit()){
+    : MdiChild(nullptr,mwin), m_text(new QPlainTextEdit()){
     m_text->document()->setMaximumBlockCount(100);
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);
