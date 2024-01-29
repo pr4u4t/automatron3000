@@ -151,9 +151,13 @@ bool MainWindow::createWindowByName(const QString& name){
         return false;
     }
 
-    QSharedPointer<MdiChild> child = plugin->widget();
-    if (!(win = m_mdiArea->addSubWindow(child.data()))) {
-        child->deleteLater();
+    MdiChild* child = plugin.dynamicCast<MdiChild>().data();
+    if (child == nullptr) {
+        return false;
+    }
+
+    if (!(win = m_mdiArea->addSubWindow(child))) {
+        //child->deleteLater();
         return false;
     }
 
@@ -162,7 +166,7 @@ bool MainWindow::createWindowByName(const QString& name){
 
     const QMetaObject* mu = child->metaObject();
     if (child->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
-        connect(win, SIGNAL(aboutToActivate()), child.data(), SLOT(prepareForFocus()));
+        connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));
     }
 
     /*
@@ -319,7 +323,7 @@ void MainWindow::createOrActivateSettings() {
         return;
     }
 
-    MdiChild* child = new SettingsDialog(m_mdiArea, this, plugins());
+    MdiChild* child = new SettingsDialog(this, plugins());
     if (!(win = m_mdiArea->addSubWindow(child))) {
         child->deleteLater();
         return;

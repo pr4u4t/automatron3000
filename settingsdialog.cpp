@@ -12,8 +12,8 @@
 
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
-SettingsDialog::SettingsDialog(QWidget* parent, QWidget* mwin, MLoader* loader) :
-    MdiChild(nullptr,mwin),
+SettingsDialog::SettingsDialog(QWidget* mwin, MLoader* loader) :
+    MdiChild(mwin),
     m_currentSettings(settings()),
     m_ui(new Ui::SettingsDialog),
     m_intValidator(new QIntValidator(0, 4000000, this)){

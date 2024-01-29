@@ -23,7 +23,7 @@ signals:
     void serialMessage(const QString& msg);
 
 public:
-    MdiChild(Plugin *parent, QWidget *mwin);
+    MdiChild(/*Plugin* parent,*/ QWidget* mwin);
 
     QSettings& settings();
     

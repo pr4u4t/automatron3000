@@ -2,6 +2,7 @@
 #define PLUGIN_H
 
 #include <functional>
+#include <type_traits>
 
 #include <QObject>
 #include <QSharedPointer>
@@ -21,16 +22,17 @@ public:
 
 	enum class Type {
 		INVALID		= 0,
-		WIDGET		= 1 << 0 
+		EXTENSION	= 1 << 0,
+		WIDGET		= 1 << 1 
 	};
 
 	static constexpr qint64 InvalidUUID = -1;
 	static constexpr const char* const settings_path = "plugins/";
 
-	Plugin(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
+	Plugin(const Loader* ld, PluginsLoader* plugins/*, QObject* parent*/, const QString& path = QString())
 		: m_loader(ld),
 		m_plugins(plugins),
-		m_settingsPath(path),
+		m_settingsPath(path)//,
 		/*m_parentWidget(parent)*/ {
 		int idx;
 
@@ -62,8 +64,6 @@ public:
 		return m_settingsPath;
 	}
 
-	virtual QSharedPointer<MdiChild> widget() = 0;
-
 protected:
 
 	//QWidget* parentWidget() const;
@@ -78,13 +78,23 @@ private:
 	//QWidget* m_parentWidget = nullptr;
 };
 
-class API_EXPORT PluginWidget : public MdiChild, Plugin {
+class API_EXPORT Extension : public QObject, public Plugin {
+	Q_OBJECT
+
+public:
+	Extension(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
+		: Plugin(ld, plugins/*, QObject* parent*/, path) {
+	}
+
+};
+
+class API_EXPORT Widget : public MdiChild, public Plugin {
 	Q_OBJECT
 
 public:
 
-	PluginWidget(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString()) {
-		: 
+	Widget(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
+		: Plugin(ld, plugins/*, QObject* parent*/, path), MdiChild(parent){
 	}
 
 };
@@ -120,7 +130,7 @@ public:
 		return m_description;
 	}
 
-	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QWidget* parent, const QString& settingsPath = QString()) const = 0;
+	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
 
 	bool registerPlugin(Window* win) {
 		return (m_register) ? m_register(win) : false;
@@ -151,8 +161,13 @@ public:
 		Loader::RegHandler reg, Loader::RegHandler unreg)
 		: Loader(name, type, version, author, description, reg, unreg) {}
 
-	QSharedPointer<Plugin> load(PluginsLoader* plugins, QWidget* parent, const QString& settingsPath = QString()) const {
-		return QSharedPointer<Plugin>(new T(this, plugins, parent, settingsPath));
+	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const {
+		return QSharedPointer<T>(new T(
+			this,
+			plugins, 
+			qobject_cast<std::conditional<std::is_base_of<Widget, T>::value, QWidget*, QObject*>::type>(parent),
+			settingsPath
+		),&QObject::deleteLater).staticCast<Plugin>();
 	}
 };
 

@@ -97,10 +97,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <QtMoc Include="console.h" />
     <ClInclude Include="qkonsole_global.h" />
     <QtMoc Include="QKonsole.h" />
-    <ClCompile Include="console.cpp" />
     <ClCompile Include="QKonsole.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

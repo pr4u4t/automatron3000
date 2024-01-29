@@ -96,7 +96,7 @@ public:
         bool autoConnect;
     };
     
-    SettingsDialog(QWidget* parent, QWidget* mwin, MLoader* loader);
+    SettingsDialog(QWidget* mwin, MLoader* loader);
     
     ~SettingsDialog();
 

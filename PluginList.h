@@ -14,7 +14,7 @@ class PluginList : public MdiChild {
 public:
 
 	PluginList(QWidget* parent, QWidget* mwin, MLoader* loader) 
-		: MdiChild(nullptr, mwin){
+		: MdiChild(mwin){
 		QStandardItemModel* model = new QStandardItemModel(0, 4);
 		
 		if (loader != nullptr) {

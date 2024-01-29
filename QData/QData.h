@@ -1,32 +1,68 @@
 #ifndef QDATA_H
 #define QDATA_H
 
+#include <QTableView>
+#include <QSqlDatabase>
+#include <QSqlTableModel>
+#include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlError>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QHeaderView>
+#include <QMessageBox>
+#include <QLabel>
+#include <QFileDialog>
+
 #include "qdata_global.h"
 #include "../ModuleLoader.h"
-#include "datawindow.h"
 
-class QDATA_EXPORT QData : public Plugin
-{
+class QDATA_EXPORT QData : public Widget{
+    
     Q_OBJECT
 
 public:
-    QData(const Loader* ld, PluginsLoader* plugins, QWidget *parent, const QString& settingsPath)
-        : Plugin(ld, plugins, parent, settingsPath) {}
+    QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
-    /*bool saveSettings() const {
+    bool saveSettings() {
         return true;
-    }*/
-
-    QSharedPointer<MdiChild> widget() override {
-        if (m_datawindow == nullptr) {
-            m_datawindow = QSharedPointer<DataWindow>(new DataWindow(this, nullptr));
-        }
-
-        return m_datawindow;
     }
 
+public slots:
+    void settingsChanged();
+
+protected slots:
+
+    void exportAsCsv(bool checked = false);
+
+    void importFromCsv(bool checked = false);
+
+    void importFromFiles(bool checked = false);
+
+    void prepareForFocus();
+
+    void enterPressed();
+
 private:
-    QSharedPointer<DataWindow> m_datawindow;
+
+    bool clearData();
+
+    QString escapedCSV(QString unexc);
+
+    void queryToCsv(const QString& path, const QString& queryStr);
+
+    static constexpr const char* database = "./szpuler.dat";
+    static constexpr const char* table = "part_shelf";
+    static constexpr const char* createTable = "CREATE TABLE %1 (id INTEGER PRIMARY KEY AUTOINCREMENT, part VARCHAR(255), shelf VARCHAR(255))";
+    static constexpr const char* exportQuery = "SELECT * FROM %1";
+    QSqlDatabase m_db;
+    QSqlTableModel* m_model = nullptr;
+    QLineEdit* m_edit = nullptr;
+
+
+    static constexpr const char* title = "DataWindow";
 };
 
 #endif

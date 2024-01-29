@@ -12,11 +12,9 @@
 template<typename T, typename W>
 class ModuleLoader : PluginsLoader{
 public:
-	ModuleLoader(W* mWin, const QString& dir = QString()) 
+	ModuleLoader(W* mWin = nullptr,const QString& dir = QString()) 
 	: m_path(dir.isEmpty() ? QDir::currentPath() + "/plugins" : dir),
-	m_win(mWin){
-		loadPlugins();
-	}
+	m_win(mWin){}
 
 	~ModuleLoader() {
 		for (auto it = m_instances.begin(), end = m_instances.end(); it != end; ++it) {
@@ -63,9 +61,7 @@ public:
 		}
 
 		return ret;
-	};
-
-protected:
+	}
 
 	qint32 loadPlugins() {
 		qint32 ret = 0;
@@ -104,6 +100,14 @@ protected:
 		}
 
 		return ret;
+	}
+
+	W* window() {
+		return m_win;
+	}
+
+	void setWindow(W* win) {
+		m_win = win;
 	}
 
 private:

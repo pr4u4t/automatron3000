@@ -4,8 +4,8 @@
 
 #include <QVBoxLayout>
 
-LogViewer::LogViewer(QWidget* parent, QWidget* mwin)
-    : MdiChild(nullptr,mwin), m_text(new QPlainTextEdit()){
+LogViewer::LogViewer(QWidget* mwin)
+    : MdiChild(mwin), m_text(new QPlainTextEdit()){
     m_text->document()->setMaximumBlockCount(100);
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);

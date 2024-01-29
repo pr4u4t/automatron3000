@@ -5,8 +5,8 @@
 #include "mdichild.h"
 #include "window.h"
 
-MdiChild::MdiChild(Plugin *parent, QWidget *mwin)
-    : m_plugin(parent),
+MdiChild::MdiChild(/*Plugin* parent,*/ QWidget* mwin)
+    : //m_plugin(parent),
     QWidget(mwin),
     m_mainWindow(mwin){
     setAttribute(Qt::WA_DeleteOnClose);

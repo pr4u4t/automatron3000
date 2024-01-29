@@ -33,14 +33,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="console.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-  </ItemGroup>
 </Project>

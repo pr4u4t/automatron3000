@@ -34,13 +34,5 @@
     <QtMoc Include="QData.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="datawindow.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="datawindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

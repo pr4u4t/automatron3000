@@ -19,8 +19,11 @@ int main(int argc, char *argv[]){
     splash.show();
     app.processEvents();
 
-    MainWindow mainWin;
-    MLoader ld(&mainWin);
+    MLoader ld;
+    MainWindow mainWin(&ld);
+    ld.setWindow(&mainWin);
+    ld.loadPlugins();
+
     mainWin.setPlugins(&ld);
     mainWin.show();
 

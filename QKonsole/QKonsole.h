@@ -1,31 +1,58 @@
 #ifndef QKONSOLE_H
 #define QKONSOLE_H
 
+#include <QPlainTextEdit>
+#include <QScrollBar>
+#include <QHBoxLayout>
+
 #include "qkonsole_global.h"
 #include "../ModuleLoader.h"
-#include "console.h"
 
-class QKONSOLE_EXPORT QKonsole : public Plugin
+class Terminal : public QPlainTextEdit {
+    Q_OBJECT
+
+signals:
+    void getData(const QByteArray& data);
+
+    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
+
+public:
+    Terminal(QWidget* parent = nullptr);
+
+    void setLocalEchoEnabled(bool set);
+
+protected:
+    void keyPressEvent(QKeyEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseDoubleClickEvent(QMouseEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
+
+private:
+    bool m_localEchoEnabled = false;
+};
+
+
+class QKONSOLE_EXPORT QKonsole : public Widget
 {
     Q_OBJECT
 
+signals:
+    void getData(const QByteArray& data);
+
 public:
-    QKonsole(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-        : Plugin(ld, plugins, parent, settingsPath) {}
+    QKonsole(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
-    /*bool saveSettings() const {
+    void putData(const QByteArray& data);
+
+    bool saveSettings() {
         return true;
-    }*/
-
-    QSharedPointer<MdiChild> widget() override {
-        if (m_console == nullptr) {
-            m_console = QSharedPointer<Console>(new Console(this, nullptr));
-        }
-
-        return m_console;
     }
+
+public slots:
+    void settingsChanged();
+
 private:
-    QSharedPointer<Console> m_console;
+    Terminal* m_terminal = nullptr;
 };
 
 #endif

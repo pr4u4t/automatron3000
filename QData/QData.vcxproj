@@ -97,10 +97,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <QtMoc Include="datawindow.h" />
     <ClInclude Include="qdata_global.h" />
     <QtMoc Include="QData.h" />
-    <ClCompile Include="datawindow.cpp" />
     <ClCompile Include="QData.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
