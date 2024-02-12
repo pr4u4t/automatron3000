@@ -11,8 +11,12 @@ class LogViewer : public MdiChild{
     
 public:
     
-    LogViewer(QWidget* mwin = nullptr);
+    LogViewer(QWidget* paremt = nullptr, QWidget* mwin = nullptr);
     
+    bool saveSettings() {
+        return true;
+    }
+
 public slots:
     void settingsChanged();
     

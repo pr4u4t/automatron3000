@@ -32,10 +32,10 @@
     <QtMoc Include="mainwindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="settingsdialog.h">
+    <QtMoc Include="PluginList.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="PluginList.h">
+    <QtMoc Include="Instances.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -49,14 +49,6 @@
     <ClCompile Include="mainwindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="settingsdialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <QtUic Include="settingsdialog.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="szpuler.qrc">
@@ -67,5 +59,10 @@
     <ClInclude Include="ModuleLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="Translation_pl_PL.ts">
+      <Filter>Translation Files</Filter>
+    </QtTranslation>
   </ItemGroup>
 </Project>

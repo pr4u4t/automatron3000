@@ -4,6 +4,20 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QProxyStyle>
+#include <QTranslator>
+
+class ProxyStyle : public QProxyStyle{
+public:
+    int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
+        const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override {
+        if (hint == QStyle::SH_UnderlineShortcut) {
+            return 1;
+        }
+
+        return QProxyStyle::styleHint(hint, option, widget, returnData);
+    }
+};
 
 class Main : public QApplication{
     
@@ -19,6 +33,11 @@ public:
 protected:
     
     void parseArgumnets();
+
+private:
+    QTranslator m_translator;
+    QTranslator m_qtTranslator;
+    QTranslator m_qtBaseTranslator;
 };
 
 #endif

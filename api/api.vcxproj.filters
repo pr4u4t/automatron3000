@@ -26,9 +26,9 @@
     <ClInclude Include="api_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <QtMoc Include="api.h">
+    <ClInclude Include="api.h">
       <Filter>Header Files</Filter>
-    </QtMoc>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="logger.cpp">
@@ -52,6 +52,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="window.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="iodevice.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

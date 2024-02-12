@@ -6,7 +6,9 @@
 #include <QHBoxLayout>
 
 #include "qkonsole_global.h"
-#include "../ModuleLoader.h"
+#include "../api/api.h"
+
+class QKonsole;
 
 class Terminal : public QPlainTextEdit {
     Q_OBJECT
@@ -16,8 +18,10 @@ signals:
 
     void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
 
+    void enterPressed();
+
 public:
-    Terminal(QWidget* parent = nullptr);
+    Terminal(QKonsole* parent = nullptr);
 
     void setLocalEchoEnabled(bool set);
 
@@ -48,11 +52,26 @@ public:
         return true;
     }
 
+    QString prompt() const {
+        return m_prompt;
+    }
+
+    void setPrompt(const QString& prompt) {
+        m_prompt = prompt;
+    }
+
 public slots:
     void settingsChanged();
 
+    void enterPressed();
+
+protected:
+
+    void putPrompt(const QString& prompt);
+
 private:
     Terminal* m_terminal = nullptr;
+    QString m_prompt = "#> ";
 };
 
 #endif

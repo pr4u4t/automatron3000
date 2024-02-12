@@ -3,8 +3,9 @@
 
 #include <QtWidgets>
 
+#include "logviewer.h"
+#include "Instances.h"
 #include "PluginList.h"
-#include "settingsdialog.h"
 #include "mainwindow.h"
 #include "api/api.h"
 #include "main.h"
@@ -12,11 +13,9 @@
 MainWindow::MainWindow(MLoader* plugins)
     : m_mdiArea(new QMdiArea),
     m_logger(logPath,this),
-    m_serial(new QSerialPort(this)),
-    m_settings(QSettings::IniFormat, QSettings::UserScope,
-               Main::appName, Main::org),
+    m_settings("configuration.ini", QSettings::IniFormat),
     m_plugins(plugins){
-        
+    qDebug().noquote() << "Using configuration: " << m_settings.fileName();
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(m_mdiArea);
@@ -33,13 +32,13 @@ MainWindow::MainWindow(MLoader* plugins)
     setWindowTitle(tr(winTitle));
     setUnifiedTitleAndToolBarOnMac(true);
     
-    if(settings().value(SettingsDialog::autoConnectKey, SettingsDialog::autoConnectValue).toBool()){
-        openSerialPort();
-    }
+   // if(settings().value(SettingsDialog::autoConnectKey, SettingsDialog::autoConnectValue).toBool()){
+   //     openSerialPort();
+   // }
 }
 
 MainWindow::~MainWindow() {
-    
+    saveSession();
 }
 
 MLoader* MainWindow::plugins() {
@@ -53,8 +52,7 @@ Logger* MainWindow::logger(){
 void MainWindow::closeEvent(QCloseEvent *event){
     QMessageBox::StandardButton resBtn = QMessageBox::question(this, /*APP_NAME*/"",
         tr("Are you sure?\n"),
-        QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
-        QMessageBox::Yes);
+        QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes);
     if (resBtn != QMessageBox::Yes) {
         event->ignore();
     } else {
@@ -208,13 +206,27 @@ bool MainWindow::createWindowByName(const QString& name){
     return true;
 }
 
+bool MainWindow::addSubWindow(QWidget* widget) {
+    QMdiSubWindow* win = nullptr;
+
+    if (!(win = m_mdiArea->addSubWindow(widget))) {
+        //child->deleteLater();
+        return false;
+    }
+
+    win->setWindowTitle("");
+    win->show();
+
+    return true;
+}
+
 void MainWindow::createActions(){
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     //QToolBar *fileToolBar = addToolBar(tr("File"));
 
     QAction *logviewer = new QAction(tr("Log Viewer"), this);
     logviewer->setData(QVariant("LogViewer"));
-    connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivate);
+    connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivateLogViewer);
     fileMenu->addAction(logviewer);
     
     fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
@@ -225,20 +237,6 @@ void MainWindow::createActions(){
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     fileMenu->addAction(exitAct);
-
-    QMenu* serialMenu = menuBar()->addMenu(tr("&Serial"));
-    m_actionConfigure = new QAction(tr("Settings"), this);
-    m_actionConfigure->setData(QVariant("SettingsDialog"));
-    connect(m_actionConfigure, &QAction::triggered, this, &MainWindow::createOrActivateSettings);
-    serialMenu->addAction(m_actionConfigure);
-
-    m_actionConnect = new QAction(tr("Connect"), this);
-    connect(m_actionConnect, &QAction::triggered, this, &MainWindow::openSerialPort);
-    serialMenu->addAction(m_actionConnect);
-
-    m_actionDisconnect = new QAction(tr("Disconnect"), this);
-    connect(m_actionDisconnect, &QAction::triggered, this, &MainWindow::closeSerialPort);
-    serialMenu->addAction(m_actionDisconnect);
     
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
     connect(m_windowMenu, &QMenu::aboutToShow, this, &MainWindow::updateWindowMenu);
@@ -284,6 +282,11 @@ void MainWindow::createActions(){
     connect(pluginsList, &QAction::triggered, this, &MainWindow::createOrActivatePlugins);
     settingsMenu->addAction(pluginsList);
 
+    QAction* instances = new QAction(tr("Instances"), this);
+    instances->setData(QVariant("Instances"));
+    connect(instances, &QAction::triggered, this, &MainWindow::createOrActivateInstances);
+    settingsMenu->addAction(instances);
+
     menuBar()->addSeparator();
 
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -314,6 +317,45 @@ void MainWindow::createOrActivatePlugins() {
     child->show();
 }
 
+void MainWindow::createOrActivateInstances() {
+    QMdiSubWindow* win;
+
+    if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
+        m_logger.message("activating subwindow");
+        m_mdiArea->setActiveSubWindow(win);
+        return;
+    }
+
+    MdiChild* child = new Instances(m_mdiArea, this, plugins());
+    if (!(win = m_mdiArea->addSubWindow(child))) {
+        child->deleteLater();
+        return;
+    }
+
+    win->setWindowTitle("Instances");
+    child->show();
+}
+
+void MainWindow::createOrActivateLogViewer() {
+    QMdiSubWindow* win;
+
+    if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
+        m_logger.message("activating subwindow");
+        m_mdiArea->setActiveSubWindow(win);
+        return;
+    }
+
+    MdiChild* child = new LogViewer(m_mdiArea, this);
+    if (!(win = m_mdiArea->addSubWindow(child))) {
+        child->deleteLater();
+        return;
+    }
+
+    win->setWindowTitle("LogViewer");
+    child->show();
+}
+
+/*
 void MainWindow::createOrActivateSettings() {
     QMdiSubWindow* win;
 
@@ -332,6 +374,7 @@ void MainWindow::createOrActivateSettings() {
     win->setWindowTitle("Plugins");
     child->show();
 }
+*/
 
 void MainWindow::createStatusBar(){
     statusBar()->showMessage(tr("Ready"));
@@ -411,7 +454,7 @@ void MainWindow::switchLayoutDirection(){
     }
 }
 
-void MainWindow::openSerialPort(){
+/*void MainWindow::openSerialPort() {
     const SettingsDialog::SerialSettings p(settings());
     m_serial->setPortName(p.name);
     m_serial->setBaudRate(p.baudRate);
@@ -458,14 +501,15 @@ void MainWindow::closeSerialPort(){
     m_actionConfigure->setEnabled(true);
     showStatusMessage(tr("Disconnected"), 0);
 }
+*/
 
 void MainWindow::showStatusMessage(const QString &msg, int timeout){
     statusBar()->showMessage(msg, timeout);
 }
 
-void MainWindow::showWriteError(const QString &message){
-    QMessageBox::warning(this, tr("Warning"), message);
-}
+//void MainWindow::showWriteError(const QString &message){
+//   QMessageBox::warning(this, tr("Warning"), message);
+//}
 
 /*
 QStringList MainWindow::subWindows() const {

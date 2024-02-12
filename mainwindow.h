@@ -11,7 +11,7 @@
 #include <QMdiArea>
 #include <QAction>
 #include <QString>
-#include <QSerialPort>
+#include <QRegExp>
 
 #include "api/api.h"
 #include "ModuleLoader.h"
@@ -42,20 +42,61 @@ public:
         m_plugins = loader;
     }
 
+    bool addSubWindow(QWidget* widget);
+
+    qint64 restoreSession() {
+        QString session = settings().value("session/plugins").toString();
+        QStringList list = session.split(" ", Qt::SkipEmptyParts);
+        qint64 ret = 0;
+        QRegExp rx("^([A-Za-z0-9]+)");
+        
+        for (auto it = list.begin(), end = list.end(); it != end; ++it, ++ret) {
+            qDebug() << *it;
+            if (rx.indexIn(*it) != -1) {
+                QString name = rx.cap(1);
+                qDebug() << name;
+                plugins()->instance(name, this, *it);
+            }
+            //
+        }
+
+        
+
+        return ret;
+    }
+
 protected:
+    qint64 saveSession() {
+        auto instances = plugins()->instances();
+        QString value;
+
+        for (auto it = instances.begin(), end = instances.end(); it != end; ++it) {
+            value += (*it)->name() + "-" + (*it)->uuid() + " ";
+
+            if ((*it)->type() == Plugin::Type::WIDGET) {
+                qDebug() << "HOYT";
+            
+            }
+        }
+
+        settings().setValue("session/plugins", value);
+
+        return 0;
+    }
+
     void closeEvent(QCloseEvent *event) override;
     
     void showStatusMessage(const QString &message, int timeout = statusTimeOut);
     
-    void showWriteError(const QString &message);
+    //void showWriteError(const QString &message);
     
     //QStringList subWindows() const;
 
+//public slots:
+
+//    void writeSerial(const QString& msg);
+
 public slots:
-
-    void writeSerial(const QString& msg);
-
-protected slots:
 
     void createOrActivate() override;
 
@@ -64,10 +105,12 @@ private slots:
     void updateMenus();
     void updateWindowMenu();
     void switchLayoutDirection();
-    void openSerialPort();
-    void closeSerialPort();
+    //void openSerialPort();
+    //void closeSerialPort();
     void createOrActivatePlugins();
-    void createOrActivateSettings();
+    void createOrActivateInstances();
+    void createOrActivateLogViewer();
+    //void createOrActivateSettings();
     
 private:
 
@@ -101,7 +144,7 @@ private:
     QAction *m_windowMenuSeparatorAct = nullptr;
     QSettings m_settings;
     mutable Logger m_logger;
-    QSerialPort *m_serial = nullptr;
+    //QSerialPort *m_serial = nullptr;
     QAction *m_actionConnect = nullptr;
     QAction *m_actionDisconnect = nullptr;
     QAction *m_actionConfigure = nullptr;

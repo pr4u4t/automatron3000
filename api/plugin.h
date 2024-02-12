@@ -7,7 +7,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QUuid>
-#include <QRegularExpression>
+#include <QRegExp>
 
 #include "api_global.h"
 #include "window.h"
@@ -23,7 +23,8 @@ public:
 	enum class Type {
 		INVALID		= 0,
 		EXTENSION	= 1 << 0,
-		WIDGET		= 1 << 1 
+		WIDGET		= 1 << 1,
+		IODEVICE	= 1 << 2
 	};
 
 	static constexpr qint64 InvalidUUID = -1;
@@ -34,13 +35,15 @@ public:
 		m_plugins(plugins),
 		m_settingsPath(path)//,
 		/*m_parentWidget(parent)*/ {
+		QRegExp rx("([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})");
 		int idx;
 
 		if (settingsPath().isEmpty()) {
 			m_uuid = QUuid::createUuid().toString();
 			m_settingsPath = QString(settings_path) + name() + "-" + m_uuid;
-		} else if ((idx = settingsPath().indexOf(QRegularExpression(name() + "-[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$"))) != -1) {
-			m_uuid = settingsPath().right(idx);
+		} else if ((idx = rx.indexIn(path)) != -1) {
+			m_uuid = "{"+rx.cap(1)+"}";
+			m_settingsPath = QString(settings_path) + path;
 		}
 	}
 
@@ -82,7 +85,7 @@ class API_EXPORT Extension : public QObject, public Plugin {
 	Q_OBJECT
 
 public:
-	Extension(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
+	Extension(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
 		: Plugin(ld, plugins/*, QObject* parent*/, path) {
 	}
 
@@ -99,9 +102,11 @@ public:
 
 };
 
+class PluginsLoader;
+
 class API_EXPORT Loader {
 public:
-	using RegHandler = std::function<bool(Window*)>;
+	using RegHandler = std::function<bool(Window*, PluginsLoader* ld)>;
 
 	Loader(const QString& name, Plugin::Type type, const QString& version,
 		const QString& author, const QString& description, RegHandler reg,
@@ -132,12 +137,12 @@ public:
 
 	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
 
-	bool registerPlugin(Window* win) {
-		return (m_register) ? m_register(win) : false;
+	bool registerPlugin(Window* win, PluginsLoader* ld) {
+		return (m_register) ? m_register(win, ld) : false;
 	}
 
-	bool unregisterPlugin(Window* win) {
-		return (m_unregister) ? m_unregister(win) : false;
+	bool unregisterPlugin(Window* win, PluginsLoader *ld) {
+		return (m_unregister) ? m_unregister(win, ld) : false;
 	}
 
 	virtual ~Loader() = default;
@@ -178,9 +183,9 @@ class API_EXPORT PluginsLoader : public QObject{
 public:
 	PluginsLoader() = default;
 
-	virtual auto instance(const QString& name, QWidget* parent) -> decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr)) = 0;
+	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr)) = 0;
 
-	virtual auto newInstance(const QString& name, QWidget* parent) -> decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr)) = 0;
+	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr)) = 0;
 
 	virtual ~PluginsLoader() = default;
 

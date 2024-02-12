@@ -10,8 +10,7 @@
 #include <QIntValidator>
 #include <QSettings>
 
-#include "api/api.h"
-#include "ModuleLoader.h"
+#include "../api/api.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -64,26 +63,26 @@ public:
             autoConnect = autoConnectValue;
         }
         
-        SerialSettings(const QSettings& settings){
-            name = settings.value(nameKey, nameValue).toString();
-            baudRate = settings.value(bRateKey, bRateValue).toInt();
-            dataBits = static_cast<QSerialPort::DataBits>(settings.value(dataBitsKey, dataBitsValue).toInt());
-            parity = static_cast<QSerialPort::Parity>(settings.value(parityKey, parityValue).toInt());
-            stopBits = static_cast<QSerialPort::StopBits>(settings.value(stopBitsKey, stopBitsValue).toInt());
-            flowControl = static_cast<QSerialPort::FlowControl>(settings.value(flowControlKey, flowControlValue).toInt());
-            localEchoEnabled = settings.value(localEchoEnabledKey, localEchoEnabledValue).toBool();
-            autoConnect = settings.value(autoConnectKey, autoConnectValue).toBool(); 
+        SerialSettings(const QSettings& settings, const QString& settingsPath){
+            name = settings.value(settingsPath + "/" + nameKey, nameValue).toString();
+            baudRate = settings.value(settingsPath + "/" + bRateKey, bRateValue).toInt();
+            dataBits = static_cast<QSerialPort::DataBits>(settings.value(settingsPath + "/" + dataBitsKey, dataBitsValue).toInt());
+            parity = static_cast<QSerialPort::Parity>(settings.value(settingsPath + "/" + parityKey, parityValue).toInt());
+            stopBits = static_cast<QSerialPort::StopBits>(settings.value(settingsPath + "/" + stopBitsKey, stopBitsValue).toInt());
+            flowControl = static_cast<QSerialPort::FlowControl>(settings.value(settingsPath + "/" + flowControlKey, flowControlValue).toInt());
+            localEchoEnabled = settings.value(settingsPath + "/" + localEchoEnabledKey, localEchoEnabledValue).toBool();
+            autoConnect = settings.value(settingsPath + "/" + autoConnectKey, autoConnectValue).toBool();
         }
         
-        void save(QSettings* settings) const{
-            settings->setValue(nameKey, name);
-            settings->setValue(bRateKey, baudRate);
-            settings->setValue(dataBitsKey, dataBits);
-            settings->setValue(parityKey, parity);
-            settings->setValue(stopBitsKey, stopBits);
-            settings->setValue(flowControlKey, flowControl);
-            settings->setValue(localEchoEnabledKey, localEchoEnabled);
-            settings->setValue(autoConnectKey, autoConnect);
+        void save(QSettings* settings, const QString& settingsPath) const{
+            settings->setValue(settingsPath + "/" + nameKey, name);
+            settings->setValue(settingsPath + "/" + bRateKey, baudRate);
+            settings->setValue(settingsPath + "/" + dataBitsKey, dataBits);
+            settings->setValue(settingsPath + "/" + parityKey, parity);
+            settings->setValue(settingsPath + "/" + stopBitsKey, stopBits);
+            settings->setValue(settingsPath + "/" + flowControlKey, flowControl);
+            settings->setValue(settingsPath + "/" + localEchoEnabledKey, localEchoEnabled);
+            settings->setValue(settingsPath + "/" + autoConnectKey, autoConnect);
         }
         
         QString name;
@@ -96,7 +95,7 @@ public:
         bool autoConnect;
     };
     
-    SettingsDialog(QWidget* mwin, MLoader* loader);
+    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
     
     ~SettingsDialog();
 
@@ -104,6 +103,10 @@ public:
 
     bool saveSettings() {
         return true;
+    }
+
+    QString settingsPath() const {
+        return m_settingsPath;
     }
 
 private slots:
@@ -124,6 +127,7 @@ private:
     SerialSettings m_currentSettings;
     Ui::SettingsDialog *m_ui = nullptr;
     QIntValidator *m_intValidator = nullptr;
+    QString m_settingsPath;
 };
 
 #endif // SETTINGSDIALOG_H

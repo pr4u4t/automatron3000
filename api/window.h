@@ -21,9 +21,9 @@ public:
 
 	virtual Logger* logger() = 0;
 
-	virtual ~Window() {
-	
-	}
+	virtual ~Window() {}
+
+	virtual bool addSubWindow(QWidget* widget) = 0;
 
 	QMenu* findMenu(const QString& title) {
 		QList<QMenu*> menus = menuBar()->findChildren<QMenu*>(Qt::FindDirectChildrenOnly);

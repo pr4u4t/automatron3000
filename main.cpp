@@ -3,12 +3,12 @@
 
 #include <QSplashScreen>
 #include <QDebug>
+#include <QLibraryInfo>
 #include <exception>
 
 #include "main.h"
 #include "mainwindow.h"
 #include "logviewer.h"
-#include "settingsdialog.h"
 #include "ModuleLoader.h"
 
 int main(int argc, char *argv[]){
@@ -23,8 +23,8 @@ int main(int argc, char *argv[]){
     MainWindow mainWin(&ld);
     ld.setWindow(&mainWin);
     ld.loadPlugins();
-
     mainWin.setPlugins(&ld);
+    mainWin.restoreSession();
     mainWin.show();
 
     splash.finish(&mainWin);
@@ -41,6 +41,25 @@ Main::Main(int& argc, char *argv[])
     QCoreApplication::setOrganizationName(Main::org);
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
     
+    setStyle(new ProxyStyle());
+
+    if (m_translator.load(QLocale::system(), "Translation", "_")) { //set directory of ts
+        installTranslator(&m_translator);
+    }
+
+    if (m_qtTranslator.load(QLocale::system(),
+        "qt", "_",
+        QLibraryInfo::location(QLibraryInfo::TranslationsPath))){
+        installTranslator(&m_qtTranslator);
+    }
+
+    
+    if (m_qtBaseTranslator.load("qtbase_" + QLocale::system().name(),
+        QLibraryInfo::location(QLibraryInfo::TranslationsPath))){
+        qDebug() << "qtBaseTranslator ok";
+        installTranslator(&m_qtBaseTranslator);
+    }
+
     parseArgumnets();
 }
 

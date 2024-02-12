@@ -4,14 +4,10 @@
 
 #include <QVBoxLayout>
 
-LogViewer::LogViewer(QWidget* mwin)
+LogViewer::LogViewer(QWidget* parent, QWidget* mwin)
     : MdiChild(mwin), m_text(new QPlainTextEdit()){
     m_text->document()->setMaximumBlockCount(100);
-    QPalette p = palette();
-    p.setColor(QPalette::Base, Qt::black);
-    p.setColor(QPalette::Text, Qt::green);
-    m_text->setPalette(p);
-    m_text->setReadOnly(false);
+    m_text->setReadOnly(true);
     connect(qobject_cast<MainWindow*>(mwin)->logger(),&Logger::echo,this,&LogViewer::message);
     
     QBoxLayout *l = new QVBoxLayout();

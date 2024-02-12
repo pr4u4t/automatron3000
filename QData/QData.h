@@ -15,9 +15,13 @@
 #include <QMessageBox>
 #include <QLabel>
 #include <QFileDialog>
+#include <QTimer>
+#include <QListView>
+#include <QStandardItemModel>
+#include <QDirIterator>
 
 #include "qdata_global.h"
-#include "../ModuleLoader.h"
+#include "../api/api.h"
 
 class QDATA_EXPORT QData : public Widget{
     
@@ -28,6 +32,20 @@ public:
 
     bool saveSettings() {
         return true;
+    }
+
+protected:
+
+    int findByPart(QSqlTableModel* model, const QString& part){
+        int col = model->fieldIndex(tr("part"));
+        for (int row = 0; row < model->rowCount(); ++row){
+            QVariant data = model->data(model->index(row, col));
+            if (data.toString() == part){
+                return row;
+            }
+        }
+
+        return -1;
     }
 
 public slots:
@@ -45,6 +63,10 @@ protected slots:
 
     void enterPressed();
 
+    void activated(const QModelIndex& idx);
+
+    void timeout();
+
 private:
 
     bool clearData();
@@ -57,12 +79,17 @@ private:
     static constexpr const char* table = "part_shelf";
     static constexpr const char* createTable = "CREATE TABLE %1 (id INTEGER PRIMARY KEY AUTOINCREMENT, part VARCHAR(255), shelf VARCHAR(255))";
     static constexpr const char* exportQuery = "SELECT * FROM %1";
+    static constexpr const char* title = "DataWindow";
+    static constexpr int interval = 100;
+
     QSqlDatabase m_db;
     QSqlTableModel* m_model = nullptr;
     QLineEdit* m_edit = nullptr;
-
-
-    static constexpr const char* title = "DataWindow";
+    QTableView* m_view = nullptr;
+    QString m_selected;
+    QTimer m_timer;
+    QListView* m_list = nullptr;
+    QStandardItemModel* m_lmodel = nullptr;
 };
 
 #endif

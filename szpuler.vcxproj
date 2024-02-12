@@ -38,7 +38,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.5.3_msvc2019_64</QtInstall>
-    <QtModules>core;gui;widgets;serialbus;serialport;sql</QtModules>
+    <QtModules>core;gui;widgets;core5compat;serialbus;serialport;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -70,6 +70,10 @@
     <Link>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <QtTranslation>
+      <QmOutputDir>$(SolutionDir)translations</QmOutputDir>
+      <BuildAction>lrelease</BuildAction>
+    </QtTranslation>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
@@ -105,25 +109,22 @@
     <QtMoc Include="mainwindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="settingsdialog.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="logviewer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainwindow.cpp" />
-    <ClCompile Include="settingsdialog.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtUic Include="settingsdialog.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="szpuler.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Instances.h" />
     <ClInclude Include="ModuleLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="PluginList.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="Translation_pl_PL.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -1,17 +1,27 @@
 #include "QData.h"
 #include "../api/api.h"
+#include <QApplication>
+#include <QTranslator>
 
-bool QData_register(Window* win) {
+bool QData_register(Window* win, PluginsLoader* ld) {
 	if (win == nullptr) {
 		return false;
 	}
 
+    QCoreApplication* app = QApplication::instance();
+
+    QTranslator* translator = new QTranslator();
+    if (translator->load(QLocale::system(), "QData", "_")) { //set directory of ts
+        app->installTranslator(translator);
+    }
+
 	QAction* database = new QAction(Window::tr("Database"), win);
 	database->setData(QVariant("QData"));
 	QObject::connect(database, &QAction::triggered, win, &Window::createOrActivate);
-	QMenu* menu = win->findMenu("&File");
+  
+    QMenu* menu = win->findMenu(QApplication::translate("MainWindow", "&File"));
 	if (menu == nullptr) {
-		if ((menu = win->menuBar()->addMenu("&File")) == nullptr) {
+		if ((menu = win->menuBar()->addMenu(QApplication::translate("MainWindow","&File"))) == nullptr) {
 			return false;
 		}
 	}
@@ -21,7 +31,7 @@ bool QData_register(Window* win) {
 	return true;
 }
 
-bool QData_unregister(Window* win) {
+bool QData_unregister(Window* win, PluginsLoader* ld) {
 	return true;
 }
 
@@ -38,10 +48,10 @@ REGISTER_PLUGIN(
 QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
     : Widget(ld, plugins, parent, settingsPath) {
     m_db = QSqlDatabase::database();
-    QSettings settings;
+
     if (!m_db.isValid() || !m_db.isOpen()) {
 
-        QString db = settings.value(this->settingsPath() + "/DataWindow/database", QString(database)).toString();
+        QString db = settings().value(this->settingsPath() + "/DataWindow/database", QString(database)).toString();
         m_db = QSqlDatabase::addDatabase("QSQLITE");
         m_db.setDatabaseName(db);
 
@@ -50,34 +60,37 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
         }
     }
 
-    QString tbl = settings.value(this->settingsPath() + "/DataWindow/table", QString(table)).toString();
+    QString tbl = settings().value(this->settingsPath() + "/DataWindow/table", QString(table)).toString();
     if (m_db.tables().contains(tbl, Qt::CaseInsensitive) == false) {
         m_db.exec(QString(createTable).arg(tbl));
     }
 
-    QTableView* view = new QTableView();
-    view->setShowGrid(true);
-    view->setSortingEnabled(true);
-    view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    view->setAlternatingRowColors(true);
-    view->setGridStyle(Qt::SolidLine);
-    view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_view = new QTableView();
+    m_view->setShowGrid(true);
+    m_view->setSortingEnabled(true);
+    m_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_view->setAlternatingRowColors(true);
+    m_view->setGridStyle(Qt::SolidLine);
+    m_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_view->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    m_model = new QSqlTableModel(view, m_db);
+    m_model = new QSqlTableModel(m_view, m_db);
     m_model->setTable(tbl);
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     m_model->select();
-    view->setModel(m_model);
-    view->setColumnHidden(0, true);
+    m_view->setModel(m_model);
+    m_view->setColumnHidden(0, true);
 
     QLabel* label = new QLabel(tr("Part Number"));
-    QPushButton* importCSVButton = new QPushButton(tr("Import CSV"));
-    QPushButton* importDirButton = new QPushButton(tr("Import Dir"));
-    QPushButton* exportButton = new QPushButton(tr("Export CSV"));
+    QPushButton* importCSVButton = new QPushButton(tr("Import &CSV"));
+    QPushButton* importDirButton = new QPushButton(tr("Import &Dir"));
+    QPushButton* exportButton = new QPushButton(tr("&Export CSV"));
 
     connect(importCSVButton, &QPushButton::clicked, this, &QData::importFromCsv);
     connect(importDirButton, &QPushButton::clicked, this, &QData::importFromFiles);
     connect(exportButton, &QPushButton::clicked, this, &QData::exportAsCsv);
+    connect(m_view, &QTableView::activated, this, &QData::activated);
 
     m_edit = new QLineEdit();
     m_edit->setMaxLength(24);
@@ -92,7 +105,8 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     buttons->setSpacing(10);
 
     QBoxLayout* l = new QVBoxLayout();
-    l->addWidget(view);
+    l->addWidget(new QLabel(tr("Database")));
+    l->addWidget(m_view);
 
     QBoxLayout* h = new QHBoxLayout();
     h->addWidget(label);
@@ -101,9 +115,34 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     h->setSpacing(10);
 
     l->addItem(h);
-    l->addItem(buttons);
+    
+    m_lmodel = new QStandardItemModel(0, 1);
+    m_list = new QListView();
+    m_list->setModel(m_lmodel);
+    m_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_list->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    setLayout(l);
+    QBoxLayout* w = new QHBoxLayout();
+    w->setSpacing(10);
+    QBoxLayout* y = new QVBoxLayout();
+    y->addWidget(new QLabel(tr("History")));
+    y->addWidget(m_list);
+    w->addItem(y);
+    w->addItem(l);
+
+    QBoxLayout* z = new QVBoxLayout();
+    z->addItem(w);
+    z->addItem(buttons);
+
+    setLayout(z);
+    m_timer.setInterval(interval);
+    connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
+}
+
+void QData::timeout() {
+    if (m_selected.isEmpty() != false) {
+        //Window* win = qobject_cast<>(window()) 
+    }
 }
 
 void QData::exportAsCsv(bool checked) {
@@ -273,6 +312,28 @@ bool QData::clearData() {
     return query.exec(QString("DELETE FROM %1").arg(table));
 }
 
-void QData::enterPressed() {
+void QData::activated(const QModelIndex& idx) {
+    QModelIndex didx = idx.siblingAtColumn(2);
+    QVariant data = didx.data();
 
+    if (data.toString().isEmpty() == false) {
+        m_selected = data.toString();
+        m_timer.start();
+
+        m_lmodel->appendRow(new QStandardItem(idx.siblingAtColumn(1).data().toString()));
+    }
+}
+
+void QData::enterPressed() {
+    QString str = m_edit->text();
+    int row = findByPart(m_model, str);
+    if (row != -1) {
+        QModelIndex idx = m_model->index(row, 2);
+        m_view->scrollTo(idx);
+        m_view->selectRow(row);
+        m_selected = idx.data().toString();
+        m_timer.start();
+
+        m_lmodel->appendRow(new QStandardItem(m_model->index(row, 1).data().toString()));
+    }
 }

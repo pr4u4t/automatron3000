@@ -4,7 +4,6 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
-#include "mainwindow.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
@@ -12,11 +11,12 @@
 
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
-SettingsDialog::SettingsDialog(QWidget* mwin, MLoader* loader) :
+SettingsDialog::SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath) :
     MdiChild(mwin),
-    m_currentSettings(settings()),
+    m_currentSettings(settings(), settingsPath),
     m_ui(new Ui::SettingsDialog),
-    m_intValidator(new QIntValidator(0, 4000000, this)){
+    m_intValidator(new QIntValidator(0, 4000000, this)),
+    m_settingsPath(settingsPath){
     emit logMessage("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -203,7 +203,7 @@ void SettingsDialog::updateSettings(){
     m_currentSettings.autoConnect = m_ui->autoConnectCheckBox->isChecked();
     
     //place to save settings
-    m_currentSettings.save(&settings());
+    m_currentSettings.save(&settings(), settingsPath());
 }
 
 void SettingsDialog::settingsChanged(){

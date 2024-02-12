@@ -35,16 +35,16 @@ public:
 		return m_path;
 	}
 
-	auto instance(const QString& name, QWidget *parent) -> decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr)) {
-		return (m_instances.contains(name) == true) ? m_instances[name] : newInstance(name, parent);
+	auto instance(const QString& name, QWidget *parent, const QString& settingsPath = QString()) -> decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr)) {
+		return (m_instances.contains(name) == true) ? m_instances[name] : newInstance(name, parent, settingsPath);
 	}
 
-	auto newInstance(const QString& name, QWidget *parent) -> decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr)) {
+	auto newInstance(const QString& name, QWidget *parent, const QString& settingsPath = QString()) -> decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr)) {
 		if (m_loaders.contains(name) == false) {
 			return nullptr;
 		}
 
-		auto ret = m_loaders[name]->load(this, parent);
+		auto ret = m_loaders[name]->load(this, parent, settingsPath);
 		if (ret == nullptr) {
 			return nullptr;
 		}
@@ -96,7 +96,7 @@ public:
 			m_loaders[ld->name()] = ld;
 			++ret;
 
-			ld->registerPlugin(m_win);
+			ld->registerPlugin(m_win, this);
 		}
 
 		return ret;
@@ -108,6 +108,14 @@ public:
 
 	void setWindow(W* win) {
 		m_win = win;
+	}
+
+	QList<decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> instances() const {
+		QList<decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> ret;
+		for (auto it = m_instances.begin(), end = m_instances.end(); it != end; ++it) {
+			ret << it.value();
+		}
+		return ret;
 	}
 
 private:

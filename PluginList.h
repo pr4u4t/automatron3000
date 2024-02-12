@@ -4,6 +4,7 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
+#include <QHeaderView>
 #include "api/api.h"
 #include "ModuleLoader.h"
 
@@ -29,13 +30,19 @@ public:
 			}
 		}
 
-		model->setHeaderData(0, Qt::Horizontal, "name");
-		model->setHeaderData(1, Qt::Horizontal, "version");
-		model->setHeaderData(2, Qt::Horizontal, "description");
-		model->setHeaderData(3, Qt::Horizontal, "author");
+		model->setHeaderData(0, Qt::Horizontal, tr("name"));
+		model->setHeaderData(1, Qt::Horizontal, tr("version"));
+		model->setHeaderData(2, Qt::Horizontal, tr("description"));
+		model->setHeaderData(3, Qt::Horizontal, tr("author"));
 
 		QTableView* view = new QTableView();
+		view->setShowGrid(true);
 		view->setModel(model);
+		view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		view->setAlternatingRowColors(true);
+		view->setSelectionMode(QAbstractItemView::SingleSelection);
+		view->setSelectionBehavior(QAbstractItemView::SelectRows);
+		view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
 		QBoxLayout* lay = new QVBoxLayout();
 		setLayout(lay);
