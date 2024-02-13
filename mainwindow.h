@@ -15,6 +15,7 @@
 
 #include "api/api.h"
 #include "ModuleLoader.h"
+#include "MdiWindow.h"
 
 class MainWindow : public Window {
     Q_OBJECT
@@ -42,7 +43,7 @@ public:
         m_plugins = loader;
     }
 
-    bool addSubWindow(QWidget* widget);
+    bool addSubWindow(QWidget* widget, const QString& title = QString()) override;
 
     qint64 restoreSession() {
         QString session = settings().value("session/plugins").toString();
@@ -55,18 +56,65 @@ public:
             if (rx.indexIn(*it) != -1) {
                 QString name = rx.cap(1);
                 qDebug() << name;
-                plugins()->instance(name, this, *it);
+                auto plugin = plugins()->instance(name, this, *it);
+                if (plugin->type() == Plugin::Type::WIDGET) {
+                    MdiWindow* win = new MdiWindow(nullptr, dynamic_cast<Widget*>(plugin.data()));
+                    win->setWindowTitle(plugin->name());
+                    m_mdiArea->addSubWindow(win);
+
+                    const QByteArray geometry = settings().value("session/" + plugin->name() + "-" + plugin->uuid() + "/geometry", QByteArray()).toByteArray();
+                    if (geometry.isEmpty() == false) {
+                        win->restoreGeometry(geometry);
+                    }
+                }
             }
             //
         }
 
-        
+        QString active = settings().value("session/active", QString()).toString();
+        if (active.isEmpty() == false) {
+            m_mdiArea->setActiveSubWindow(findMdiChild(active));
+        }
 
         return ret;
     }
 
 protected:
     qint64 saveSession() {
+        QSettings& setts = settings();
+        QString value;
+        
+        const QList<QMdiSubWindow*> subWindows = m_mdiArea->subWindowList();
+
+        if (m_current) {
+            Widget* current = qobject_cast<Widget*>(m_current->widget());
+            if (current) {
+                setts.setValue("session/active", current->name());
+            }
+        }
+
+        for (QMdiSubWindow* window : subWindows) {
+            MdiChild* mdiChild = qobject_cast<MdiChild*>(window->widget());
+            Widget* plugin = qobject_cast<Widget*>(mdiChild);
+
+            if (plugin == nullptr) {
+                continue;
+            }
+
+            value += plugin->name() + "-" + plugin->uuid() + " ";
+            
+            setts.setValue("session/"+plugin->name() + "-" + plugin->uuid() + "/geometry", window->saveGeometry());
+            window->setWidget(nullptr);
+
+            //if (mdiChild->metaObject()->metaType().name() == key){
+            //    m_logger.message(QString("child found: ")+mdiChild->metaObject()->metaType().name());
+            //    return window;
+            //}
+        }
+
+        settings().setValue("session/plugins", value);
+
+        /*
         auto instances = plugins()->instances();
         QString value;
 
@@ -79,7 +127,9 @@ protected:
             }
         }
 
-        settings().setValue("session/plugins", value);
+        
+        */
+       
 
         return 0;
     }
@@ -111,7 +161,12 @@ private slots:
     void createOrActivateInstances();
     void createOrActivateLogViewer();
     //void createOrActivateSettings();
-    
+    void subWindowActivated(QMdiSubWindow* window) {
+        if (window) {
+            m_current = window;
+        }
+    }
+
 private:
 
     bool createWindowByName(const QString& name);
@@ -149,6 +204,7 @@ private:
     QAction *m_actionDisconnect = nullptr;
     QAction *m_actionConfigure = nullptr;
     MLoader* m_plugins = nullptr;
+    QMdiSubWindow* m_current = nullptr;
 };
 
 #endif

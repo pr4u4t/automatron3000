@@ -20,7 +20,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QVBoxLayout>
-#include "api/api.h"
+#include "../api/api.h"
 
 QT_BEGIN_NAMESPACE
 

@@ -4,8 +4,13 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QKonsole.cpp" line="8"/>
-        <location filename="QKonsole.cpp" line="10"/>
+        <location filename="QKonsole.cpp" line="13"/>
+        <source>Console</source>
+        <translation type="unfinished">Konsola</translation>
+    </message>
+    <message>
+        <location filename="QKonsole.cpp" line="16"/>
+        <location filename="QKonsole.cpp" line="18"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
@@ -13,9 +18,8 @@
 <context>
     <name>Window</name>
     <message>
-        <location filename="QKonsole.cpp" line="5"/>
         <source>Console</source>
-        <translation>Konsola</translation>
+        <translation type="vanished">Konsola</translation>
     </message>
 </context>
 </TS>

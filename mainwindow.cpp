@@ -35,6 +35,8 @@ MainWindow::MainWindow(MLoader* plugins)
    // if(settings().value(SettingsDialog::autoConnectKey, SettingsDialog::autoConnectValue).toBool()){
    //     openSerialPort();
    // }
+
+    connect(m_mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::subWindowActivated);
 }
 
 MainWindow::~MainWindow() {
@@ -121,6 +123,7 @@ void MainWindow::createOrActivate(){
     
     if((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))){
         m_logger.message("activating subwindow");
+        win->show();
         m_mdiArea->setActiveSubWindow(win);
         return;
     }
@@ -154,7 +157,7 @@ bool MainWindow::createWindowByName(const QString& name){
         return false;
     }
 
-    if (!(win = m_mdiArea->addSubWindow(child))) {
+    if (!(win = m_mdiArea->addSubWindow(new MdiWindow(nullptr, child)))) {
         //child->deleteLater();
         return false;
     }
@@ -206,7 +209,7 @@ bool MainWindow::createWindowByName(const QString& name){
     return true;
 }
 
-bool MainWindow::addSubWindow(QWidget* widget) {
+bool MainWindow::addSubWindow(QWidget* widget, const QString& title) {
     QMdiSubWindow* win = nullptr;
 
     if (!(win = m_mdiArea->addSubWindow(widget))) {
@@ -214,29 +217,38 @@ bool MainWindow::addSubWindow(QWidget* widget) {
         return false;
     }
 
-    win->setWindowTitle("");
+    win->setWindowTitle(title);
     win->show();
 
     return true;
 }
 
 void MainWindow::createActions(){
-    QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
+
+    QMenu* fileMenu = findMenu(tr("&File"));
+    if (fileMenu == nullptr) {
+        fileMenu = menuBar()->addMenu(tr("&File"));
+    }
+
+    if (fileMenu) {
+        QAction* logviewer = new QAction(tr("Log Viewer"), this);
+        logviewer->setData(QVariant("LogViewer"));
+        connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivateLogViewer);
+        fileMenu->addAction(logviewer);
+
+        fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
+        fileMenu->addSeparator();
+
+        const QIcon exitIcon = QIcon::fromTheme("application-exit");
+        QAction* exitAct = fileMenu->addAction(exitIcon, tr("E&xit"), qApp, &QApplication::quit);
+        exitAct->setShortcuts(QKeySequence::Quit);
+        exitAct->setStatusTip(tr("Exit the application"));
+        fileMenu->addAction(exitAct);
+    }
+
     //QToolBar *fileToolBar = addToolBar(tr("File"));
 
-    QAction *logviewer = new QAction(tr("Log Viewer"), this);
-    logviewer->setData(QVariant("LogViewer"));
-    connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivateLogViewer);
-    fileMenu->addAction(logviewer);
     
-    fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
-    fileMenu->addSeparator();
-
-    const QIcon exitIcon = QIcon::fromTheme("application-exit");
-    QAction *exitAct = fileMenu->addAction(exitIcon, tr("E&xit"), qApp, &QApplication::quit);
-    exitAct->setShortcuts(QKeySequence::Quit);
-    exitAct->setStatusTip(tr("Exit the application"));
-    fileMenu->addAction(exitAct);
     
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
     connect(m_windowMenu, &QMenu::aboutToShow, this, &MainWindow::updateWindowMenu);
@@ -423,10 +435,10 @@ MdiChild *MainWindow::activeMdiChild() const{
 QMdiSubWindow *MainWindow::findMdiChild(const QString &key) const{
     m_logger.message("findMdiChild("+key+")");
     
-    const QList<QMdiSubWindow *> subWindows = m_mdiArea->subWindowList();
+    const QList<QMdiSubWindow*> subWindows = m_mdiArea->subWindowList();
     for (QMdiSubWindow *window : subWindows) {
         MdiChild *mdiChild = qobject_cast<MdiChild*>(window->widget());
-        Plugin* plugin = mdiChild->plugin();
+        Widget* plugin = qobject_cast<Widget*>(mdiChild);
 
         if (plugin == nullptr || plugin->name() != key) {
             continue;

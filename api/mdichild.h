@@ -26,10 +26,6 @@ public:
     MdiChild(/*Plugin* parent,*/ QWidget* mwin);
 
     QSettings& settings();
-    
-    Plugin* plugin() {
-        return m_plugin;
-    }
 
     virtual bool saveSettings() = 0;
 

@@ -6,11 +6,11 @@ bool QKonsole_register(Window* win, PluginsLoader* ld) {
     QCoreApplication* app = QApplication::instance();
 
     QTranslator* translator = new QTranslator();
-    if (translator->load(QLocale::system(), "QKonsole", "_")) { //set directory of ts
+    if (translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
         app->installTranslator(translator);
     }
     
-    QAction* console = new QAction(Window::tr("Console"), win);
+    QAction* console = new QAction(QApplication::translate("MainWindow", "Console"), win);
 	console->setData(QVariant("QKonsole"));
 	QObject::connect(console, &QAction::triggered, win, &Window::createOrActivate);
 	QMenu* menu = win->findMenu(QApplication::translate("MainWindow", "&File"));

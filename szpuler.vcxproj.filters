@@ -38,6 +38,9 @@
     <QtMoc Include="Instances.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="MdiWindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="logviewer.cpp">

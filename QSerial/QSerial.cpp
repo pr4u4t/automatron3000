@@ -2,6 +2,7 @@
 #include "settingsdialog.h"
 #include <QApplication>
 #include <QCoreApplication>
+#include <QTranslator>
 
 bool QSerial_register(Window* win, PluginsLoader* ld) {
 	if (win == nullptr) {
@@ -10,17 +11,22 @@ bool QSerial_register(Window* win, PluginsLoader* ld) {
 
 	QCoreApplication* app = QApplication::instance();
 
-	QMenu* serialMenu = win->menuBar()->addMenu(QApplication::translate("MainWindow", "&Serial"));
-	QAction* m_actionConfigure = new QAction(QApplication::translate("MainWindow","Settings"), win);
+	QTranslator* translator = new QTranslator();
+	if (translator->load(QLocale::system(), "QSerial", "_", "translations")) { //set directory of ts
+		app->installTranslator(translator);
+	}
+
+	QMenu* serialMenu = win->menuBar()->addMenu(app->translate("MainWindow", "&Serial"));
+	QAction* m_actionConfigure = new QAction(app->translate("MainWindow","Settings"), win);
 	m_actionConfigure->setData(QVariant("QSerial"));
-	QObject::connect(m_actionConfigure, &QAction::triggered, [ld, win] {
+	QObject::connect(m_actionConfigure, &QAction::triggered, [ld, win, app] {
 		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
 		SettingsDialog* dialog = new SettingsDialog(win, nullptr, serial->settingsPath());
-		win->addSubWindow(dialog);
+		win->addSubWindow(dialog, app->translate("MainWindow", "Serial Port-Settings"));
 	});
 	serialMenu->addAction(m_actionConfigure);
 
-	QAction* m_actionConnect = new QAction(QApplication::translate("MainWindow", "Connect"), win);
+	QAction* m_actionConnect = new QAction(app->translate("MainWindow", "Connect"), win);
 	QObject::connect(m_actionConnect, &QAction::triggered, [ld, win] {
 		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
 		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
@@ -29,7 +35,7 @@ bool QSerial_register(Window* win, PluginsLoader* ld) {
 	});
 	serialMenu->addAction(m_actionConnect);
 
-	QAction* m_actionDisconnect = new QAction(QApplication::translate("MainWindow", "Disconnect"), win);
+	QAction* m_actionDisconnect = new QAction(app->translate("MainWindow", "Disconnect"), win);
 	QObject::connect(m_actionDisconnect, &QAction::triggered, [ld, win] {
 		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
 		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
@@ -75,22 +81,30 @@ REGISTER_PLUGIN(
 QSerial::QSerial(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
 	: IODevice(ld, plugins, parent, path),
 	  m_serial(new QSerialPort(this)){
+
+	Window* win = qobject_cast<Window*>(parent);
+
+	const SettingsDialog::SerialSettings p(win->settings(), settingsPath());
+	m_serial->setPortName(p.name);
+	m_serial->setBaudRate(p.baudRate);
+	m_serial->setDataBits(p.dataBits);
+	m_serial->setParity(p.parity);
+	m_serial->setStopBits(p.stopBits);
+	m_serial->setFlowControl(p.flowControl);
+
+	if (p.autoConnect) {
+		qDebug() << open(QString());
+	}
 }
 
 bool QSerial::open(const QString& url) {
 	if (m_serial == nullptr) {
 		return false;
 	}
-    
-    Window* win = qobject_cast<Window*>(parent());
 
-    const SettingsDialog::SerialSettings p(win->settings(), settingsPath());
-    m_serial->setPortName(p.name);
-    m_serial->setBaudRate(p.baudRate);
-    m_serial->setDataBits(p.dataBits);
-    m_serial->setParity(p.parity);
-    m_serial->setStopBits(p.stopBits);
-    m_serial->setFlowControl(p.flowControl);
+	if (m_serial->isOpen()) {
+		return true;
+	}
 
     if (m_serial->open(QIODevice::ReadWrite)) {
         //m_console->setLocalEchoEnabled(p.localEchoEnabled);

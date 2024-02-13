@@ -37,9 +37,9 @@ public:
 protected:
 
     int findByPart(QSqlTableModel* model, const QString& part){
-        int col = model->fieldIndex(tr("part"));
+        //int col = model->fieldIndex(tr("Part"));
         for (int row = 0; row < model->rowCount(); ++row){
-            QVariant data = model->data(model->index(row, col));
+            QVariant data = model->data(model->index(row, 1));
             if (data.toString() == part){
                 return row;
             }

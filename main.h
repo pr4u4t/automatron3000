@@ -32,12 +32,7 @@ public:
     
 protected:
     
-    void parseArgumnets();
-
-private:
-    QTranslator m_translator;
-    QTranslator m_qtTranslator;
-    QTranslator m_qtBaseTranslator;
+    void parseArgumnets();    
 };
 
 #endif

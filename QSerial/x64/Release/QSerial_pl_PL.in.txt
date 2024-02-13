@@ -1,0 +1,6 @@
+settingsdialog.cpp
+QSerial.cpp
+qserial_global.h
+settingsdialog.h
+QSerial.h
+settingsdialog.ui

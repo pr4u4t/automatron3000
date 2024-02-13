@@ -1,1 +1,13 @@
+C:\Users\pawel\Documents\szpuler\x64\Debug\szpuler.vcxproj.CopyComplete
 C:\Users\pawel\Documents\szpuler\x64\Debug\szpuler.exe
+C:\Users\pawel\Documents\szpuler\x64\Debug\concrt140.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\msvcp140.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\msvcp140_1.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\msvcp140_2.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\msvcp140_atomic_wait.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\msvcp140_codecvt_ids.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\vccorlib140.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\vcruntime140.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\vcruntime140_1.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\vcamp140.dll
+C:\Users\pawel\Documents\szpuler\x64\Debug\vcomp140.dll

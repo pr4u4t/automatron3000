@@ -190,7 +190,7 @@
   <customwidget>
    <class>MdiChild</class>
    <extends>QWidget</extends>
-   <header>mdichild.h</header>
+   <header>../api/api.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -8,6 +8,7 @@
 #include <QSharedPointer>
 #include <QUuid>
 #include <QRegExp>
+#include <QCloseEvent>
 
 #include "api_global.h"
 #include "window.h"
@@ -99,7 +100,6 @@ public:
 	Widget(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
 		: Plugin(ld, plugins/*, QObject* parent*/, path), MdiChild(parent){
 	}
-
 };
 
 class PluginsLoader;
@@ -172,7 +172,7 @@ public:
 			plugins, 
 			qobject_cast<std::conditional<std::is_base_of<Widget, T>::value, QWidget*, QObject*>::type>(parent),
 			settingsPath
-		),&QObject::deleteLater).staticCast<Plugin>();
+		)).staticCast<Plugin>();
 	}
 };
 

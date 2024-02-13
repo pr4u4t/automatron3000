@@ -43,21 +43,25 @@ Main::Main(int& argc, char *argv[])
     
     setStyle(new ProxyStyle());
 
-    if (m_translator.load(QLocale::system(), "Translation", "_")) { //set directory of ts
-        installTranslator(&m_translator);
+    QTranslator* m_translator = new QTranslator();
+    QTranslator* m_qtTranslator = new QTranslator();
+    QTranslator* m_qtBaseTranslator = new QTranslator();
+
+    if (m_translator->load(QLocale::system(), "Translation", "_", "translations")) { //set directory of ts
+        installTranslator(m_translator);
     }
 
-    if (m_qtTranslator.load(QLocale::system(),
+    if (m_qtTranslator->load(QLocale::system(),
         "qt", "_",
         QLibraryInfo::location(QLibraryInfo::TranslationsPath))){
-        installTranslator(&m_qtTranslator);
+        installTranslator(m_qtTranslator);
     }
 
     
-    if (m_qtBaseTranslator.load("qtbase_" + QLocale::system().name(),
+    if (m_qtBaseTranslator->load("qtbase_" + QLocale::system().name(),
         QLibraryInfo::location(QLibraryInfo::TranslationsPath))){
         qDebug() << "qtBaseTranslator ok";
-        installTranslator(&m_qtBaseTranslator);
+        installTranslator(m_qtBaseTranslator);
     }
 
     parseArgumnets();

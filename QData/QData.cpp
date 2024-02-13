@@ -11,17 +11,17 @@ bool QData_register(Window* win, PluginsLoader* ld) {
     QCoreApplication* app = QApplication::instance();
 
     QTranslator* translator = new QTranslator();
-    if (translator->load(QLocale::system(), "QData", "_")) { //set directory of ts
+    if (translator->load(QLocale::system(), "QData", "_","translations")) { //set directory of ts
         app->installTranslator(translator);
     }
 
-	QAction* database = new QAction(Window::tr("Database"), win);
+	QAction* database = new QAction(app->translate("MainWindow", "Database"), win);
 	database->setData(QVariant("QData"));
 	QObject::connect(database, &QAction::triggered, win, &Window::createOrActivate);
   
-    QMenu* menu = win->findMenu(QApplication::translate("MainWindow", "&File"));
+    QMenu* menu = win->findMenu(app->translate("MainWindow", "&File"));
 	if (menu == nullptr) {
-		if ((menu = win->menuBar()->addMenu(QApplication::translate("MainWindow","&File"))) == nullptr) {
+		if ((menu = win->menuBar()->addMenu(app->translate("MainWindow", "&File"))) == nullptr) {
 			return false;
 		}
 	}
@@ -79,6 +79,8 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     m_model->setTable(tbl);
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     m_model->select();
+    m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
+    m_model->setHeaderData(2, Qt::Horizontal, tr("Shelf"));
     m_view->setModel(m_model);
     m_view->setColumnHidden(0, true);
 
@@ -114,6 +116,10 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     h->addStretch(2);
     h->setSpacing(10);
 
+    QPushButton* search = new QPushButton(tr("&Search"));
+    connect(search, &QPushButton::pressed, this, &QData::enterPressed);
+    h->addWidget(search);
+
     l->addItem(h);
     
     m_lmodel = new QStandardItemModel(0, 1);
@@ -137,11 +143,19 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     setLayout(z);
     m_timer.setInterval(interval);
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
+
+    //ugly
+    while (m_model->canFetchMore()) {
+        m_model->fetchMore();
+    }
 }
 
 void QData::timeout() {
     if (m_selected.isEmpty() != false) {
-        //Window* win = qobject_cast<>(window()) 
+        auto serial = plugins()->instance("QSerial", nullptr);
+        auto io = serial.dynamicCast<IODevice>();
+
+        io->write(m_selected+'\n');
     }
 }
 
@@ -211,6 +225,7 @@ void QData::importFromCsv(bool checked) {
     }
 
     input.close();
+    m_model->select();
 }
 
 void QData::importFromFiles(bool checked) {
