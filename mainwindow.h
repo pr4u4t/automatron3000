@@ -112,6 +112,14 @@ protected:
             //}
         }
 
+        for (auto extension : plugins()->instances()) {
+            if (extension->type() == Plugin::Type::WIDGET) {
+                continue;
+            }
+
+            value += extension->name() + "-" + extension->uuid() + " ";
+        }
+
         settings().setValue("session/plugins", value);
 
         /*
