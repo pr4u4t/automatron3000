@@ -2,6 +2,10 @@
 #include "../api/api.h"
 #include <QApplication>
 #include <QTranslator>
+#include <QSplitter>
+#include <QGridLayout>
+#include <QGroupBox>
+#include <QProgressDialog>
 
 bool QData_register(Window* win, PluginsLoader* ld) {
 	if (win == nullptr) {
@@ -80,7 +84,7 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     m_model->select();
     m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
-    m_model->setHeaderData(2, Qt::Horizontal, tr("Shelf"));
+    m_model->setHeaderData(2, Qt::Horizontal, tr("Cell"));
     m_view->setModel(m_model);
     m_view->setColumnHidden(0, true);
 
@@ -107,7 +111,6 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     buttons->setSpacing(10);
 
     QBoxLayout* l = new QVBoxLayout();
-    l->addWidget(new QLabel(tr("Database")));
     l->addWidget(m_view);
 
     QBoxLayout* h = new QHBoxLayout();
@@ -120,6 +123,10 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     connect(search, &QPushButton::pressed, this, &QData::enterPressed);
     h->addWidget(search);
 
+    QPushButton* clear = new QPushButton(tr("C&lear"));
+    connect(clear, &QPushButton::pressed, this, &QData::clearForm);
+    h->addWidget(clear);
+
     l->addItem(h);
     
     m_lmodel = new QStandardItemModel(0, 1);
@@ -128,19 +135,42 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     m_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_list->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    QBoxLayout* w = new QHBoxLayout();
-    w->setSpacing(10);
-    QBoxLayout* y = new QVBoxLayout();
-    y->addWidget(new QLabel(tr("History")));
-    y->addWidget(m_list);
-    w->addItem(y);
-    w->addItem(l);
+    QBoxLayout* r = new QVBoxLayout();
+    r->addWidget(m_list);
+
+    QGridLayout* g = new QGridLayout();
+    m_rack = new QLabel();
+    m_shelf = new QLabel();
+    m_side = new QLabel();
+
+    g->addWidget(new QLabel(tr("Rack:")), 0, 0);
+    g->addWidget(m_rack, 0, 1);
+
+    g->addWidget(new QLabel(tr("Shelf:")), 1, 0);
+    g->addWidget(m_shelf, 1, 1);
+
+    g->addWidget(new QLabel(tr("Side:")), 2, 0);
+    g->addWidget(m_side, 2, 1);
+
+    r->addItem(g);
+
+    QSplitter* split = new QSplitter();
+    QGroupBox* left = new QGroupBox(tr("Database"));
+    QGroupBox* right = new QGroupBox(tr("History"));
+    split->addWidget(left);
+    split->addWidget(right);
+
+    left->setLayout(l);
+    right->setLayout(r);
 
     QBoxLayout* z = new QVBoxLayout();
-    z->addItem(w);
+    z->addWidget(split);
     z->addItem(buttons);
 
     setLayout(z);
+
+
+
     m_timer.setInterval(interval);
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
 
@@ -210,9 +240,20 @@ void QData::importFromCsv(bool checked) {
     }
 
     QTextStream in(&input);
+    QProgressDialog progress(tr("Importing database from CSV"), tr("Cancel"), 0, 100);
+    progress.setWindowModality(Qt::WindowModal);
+    qint64 size = input.size();
+    qint64 i = 0;
 
     while (!in.atEnd()) {
+        progress.setValue((100*i)/size);
+
+        if (progress.wasCanceled()) {
+            break;
+        }
+
         QString line = in.readLine();
+        i += line.size();
         const QStringList columns = line.split(",");
 
         QSqlQuery query;
@@ -223,7 +264,7 @@ void QData::importFromCsv(bool checked) {
             qDebug() << "Insert error: " << query.lastError().text();
         }
     }
-
+    progress.setValue(100);
     input.close();
     m_model->select();
 }
@@ -252,8 +293,19 @@ void QData::importFromFiles(bool checked) {
         return;
     }
 
+    qsizetype count = QDir(dir).entryList({ "*.csv", "*.txt" }, QDir::Files | QDir::NoSymLinks | QDir::Readable).count();
+    QProgressDialog progress(tr("Importing database from directory"), tr("Cancel"), 0, count);
+    progress.setWindowModality(Qt::WindowModal);
+
     QDirIterator it(dir, { "*.csv", "*.txt" }, QDir::Files | QDir::NoSymLinks | QDir::Readable, QDirIterator::Subdirectories);
+    qsizetype i = 0;
     while (it.hasNext()) {
+        progress.setValue(i++);
+
+        if (progress.wasCanceled()) {
+            break;
+        }
+
         QString path = it.next();
         QFile file(path);
 
@@ -275,7 +327,7 @@ void QData::importFromFiles(bool checked) {
             qDebug() << "Insert error: " << query.lastError().text();
         }
     }
-
+    progress.setValue(count);
     m_model->select();
 }
 
@@ -302,8 +354,18 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
 
     QTextStream outStream(&csvFile);
     outStream.setEncoding(QStringConverter::Utf8);
+    int count = query.numRowsAffected();
+    QProgressDialog progress(tr("Exporting database to CSV"), tr("Cancel"), 0, count);
+    progress.setWindowModality(Qt::WindowModal);
+    int i = 0;
 
     while (query.next()) {
+        progress.setValue(i++);
+
+        if (progress.wasCanceled()) {
+            break;
+        }
+
         const QSqlRecord record = query.record();
         for (int i = 0, recCount = record.count(); i < recCount; ++i) {
             if (i > 0) {
@@ -314,6 +376,8 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
         }
         outStream << '\n';
     }
+
+    progress.setValue(count);
 }
 
 void QData::settingsChanged() {}
@@ -336,6 +400,7 @@ void QData::activated(const QModelIndex& idx) {
         m_timer.start();
 
         m_lmodel->appendRow(new QStandardItem(idx.siblingAtColumn(1).data().toString()));
+        fillInfo();
     }
 }
 
@@ -350,5 +415,6 @@ void QData::enterPressed() {
         m_timer.start();
 
         m_lmodel->appendRow(new QStandardItem(m_model->index(row, 1).data().toString()));
+        fillInfo();
     }
 }

@@ -1,10 +1,12 @@
 logviewer.cpp
 main.cpp
 mainwindow.cpp
+resource.h
 ModuleLoader.h
 logviewer.h
 main.h
 mainwindow.h
+Tray.h
 Instances.h
 MdiWindow.h
 PluginList.h

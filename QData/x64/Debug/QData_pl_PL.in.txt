@@ -1,3 +1,0 @@
-QData.cpp
-qdata_global.h
-QData.h

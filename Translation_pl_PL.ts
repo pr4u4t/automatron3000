@@ -367,4 +367,17 @@
         <translation type="vanished">XON/XOFF</translation>
     </message>
 </context>
+<context>
+    <name>Tray</name>
+    <message>
+        <location filename="Tray.h" line="18"/>
+        <source>Window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Tray.h" line="21"/>
+        <source>Quit</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 </TS>

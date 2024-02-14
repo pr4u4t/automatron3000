@@ -10,10 +10,11 @@
 #include "mainwindow.h"
 #include "logviewer.h"
 #include "ModuleLoader.h"
+#include "Tray.h"
 
 int main(int argc, char *argv[]){
     Main app(argc,argv);
-    
+   
     QPixmap pixmap(":/res/arduino.png");
     QSplashScreen splash(pixmap);
     splash.show();
@@ -21,6 +22,7 @@ int main(int argc, char *argv[]){
 
     MLoader ld;
     MainWindow mainWin(&ld);
+    Tray tray(&mainWin);
     ld.setWindow(&mainWin);
     ld.loadPlugins();
     mainWin.setPlugins(&ld);
@@ -28,7 +30,7 @@ int main(int argc, char *argv[]){
     mainWin.show();
 
     splash.finish(&mainWin);
-
+    tray.show();
     return app.exec();
 }
 
@@ -42,7 +44,7 @@ Main::Main(int& argc, char *argv[])
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
     
     setStyle(new ProxyStyle());
-
+    setWindowIcon(QIcon(":/res/arduino.png"));
     QTranslator* m_translator = new QTranslator();
     QTranslator* m_qtTranslator = new QTranslator();
     QTranslator* m_qtBaseTranslator = new QTranslator();
