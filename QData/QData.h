@@ -75,6 +75,15 @@ protected slots:
         m_rack->setText(QString());
         m_shelf->setText(QString());
         m_side->setText(QString());
+        m_model->setFilter(QString());
+        m_model->select();
+    }
+
+    void textChanged(const QString& text) {
+        if (text.isEmpty()) {
+            m_model->setFilter(QString());
+            m_model->select();
+        }
     }
 
     void fillInfo() {
@@ -93,15 +102,15 @@ protected slots:
         } 
         
         if (cell >= 1 && cell <= 119 || cell >= 1800 && cell <= 1919 || cell >= 2768 && cell <= 2859 || cell >= 600 && cell <= 719 || cell >= 1200 && cell <= 1319 || cell >= 2860 && cell <= 2951) {
-            m_shelf->setText(tr("First"));
+            m_shelf->setText(tr("First","shelf"));
         } else if (cell >= 120 && cell <= 239 || cell >= 1920 && cell <= 2039 || cell >= 2676 && cell <= 2767 || cell >= 720 && cell <= 839 || cell >= 1320 && cell <= 1439 || cell >= 2952 && cell <= 3043) {
-            m_shelf->setText(tr("Second"));
+            m_shelf->setText(tr("Second", "shelf"));
         } else if (cell >= 240 && cell <= 359 || cell >= 2040 && cell <= 2159 || cell >= 2584 && cell <= 2675 || cell >= 840 && cell <= 959 || cell >= 1440 && cell <= 1559 || cell >= 3044 && cell <= 3135) {
-            m_shelf->setText(tr("Third"));
+            m_shelf->setText(tr("Third", "shelf"));
         } else if (cell >= 360 && cell <= 479 || cell >= 2160 && cell <= 2279 || cell >= 2492 && cell <= 2583 || cell >= 960 && cell <= 1079 || cell >= 1560 && cell <= 1679 || cell >= 3136 && cell <= 3227) {
-            m_shelf->setText(tr("Fourth"));
+            m_shelf->setText(tr("Fourth", "shelf"));
         } if (cell >= 480 && cell <= 599 || cell >= 2280 && cell <= 2399 || cell >= 2400 && cell <= 2491 || cell >= 1080 && cell <= 1199 || cell >= 1680 && cell <= 1799 || cell >= 3228 && cell <= 3319) {
-            m_shelf->setText(tr("Fifth"));
+            m_shelf->setText(tr("Fifth", "shelf"));
         }
 
         if (cell >= 1 && cell <= 2499){

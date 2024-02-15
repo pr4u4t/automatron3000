@@ -15,8 +15,10 @@ bool QSerial_register(Window* win, PluginsLoader* ld) {
 	if (translator->load(QLocale::system(), "QSerial", "_", "translations")) { //set directory of ts
 		app->installTranslator(translator);
 	}
-
-	QMenu* serialMenu = win->menuBar()->addMenu(app->translate("MainWindow", "&Serial"));
+	
+	QMenu* help = win->findMenu(app->translate("MainWindow", "&Window"));
+	QMenu* serialMenu = new QMenu(app->translate("MainWindow", "&Serial"));
+	win->menuBar()->insertMenu(help->menuAction(), serialMenu);
 	QAction* m_actionConfigure = new QAction(app->translate("MainWindow","Settings"), win);
 	m_actionConfigure->setData(QVariant("QSerial"));
 	QObject::connect(m_actionConfigure, &QAction::triggered, [ld, win, app] {

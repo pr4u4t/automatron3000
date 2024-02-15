@@ -80,9 +80,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon1.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\arduino.ico">
       <Filter>Resource Files</Filter>
     </Image>

@@ -1,0 +1,5 @@
+BuiltContentOutput	C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Debug\en-US\cab1.cab
+BuiltPdbOutput	C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Debug\en-US\MSInstaller.wixpdb
+BuiltTargetOutput	C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Debug\en-US\MSInstaller.msi
+Input	ExampleComponents.wxs
+Intermediate	C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Debug\en-US\cab1.cab

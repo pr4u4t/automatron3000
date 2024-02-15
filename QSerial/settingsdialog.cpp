@@ -24,6 +24,8 @@ SettingsDialog::SettingsDialog(QWidget* mwin, Loader* loader, const QString& set
 
     connect(m_ui->applyButton, &QPushButton::clicked,
             this, &SettingsDialog::apply);
+    connect(m_ui->cancelButton, &QPushButton::clicked,
+        this, &SettingsDialog::cancel);
     connect(m_ui->serialPortInfoListBox, &QComboBox::currentIndexChanged,
             this, &SettingsDialog::showPortInfo);
     connect(m_ui->baudRateBox,  &QComboBox::currentIndexChanged,
@@ -65,6 +67,10 @@ void SettingsDialog::showPortInfo(int idx){
 void SettingsDialog::apply(){
     emit logMessage("SettingsDialog::apply");
     updateSettings();
+    parent()->deleteLater();
+}
+
+void SettingsDialog::cancel() {
     parent()->deleteLater();
 }
 

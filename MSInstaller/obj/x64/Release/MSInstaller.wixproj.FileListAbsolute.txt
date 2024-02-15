@@ -1,0 +1,8 @@
+C:\Users\pawel\Documents\szpuler\MSInstaller\bin\x64\Release\en-US\MSInstaller.msi
+C:\Users\pawel\Documents\szpuler\MSInstaller\bin\x64\Release\en-US\cab1.cab
+C:\Users\pawel\Documents\szpuler\MSInstaller\bin\x64\Release\en-US\MSInstaller.wixpdb
+C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Release\MSInstaller.wixproj.CoreCompileInputs.cache
+C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Release\en-US\cab1.cab
+C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Release\en-US\MSInstaller.msi
+C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Release\en-US\MSInstaller.wixpdb
+C:\Users\pawel\Documents\szpuler\MSInstaller\obj\x64\Release\MSInstaller.wixproj.BindTracking-en-US.txt

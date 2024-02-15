@@ -6,6 +6,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QProgressDialog>
+#include <QRegularExpression>
 
 bool QData_register(Window* win, PluginsLoader* ld) {
 	if (win == nullptr) {
@@ -102,6 +103,7 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     m_edit->setMaxLength(24);
     m_edit->setClearButtonEnabled(true);
     connect(m_edit, &QLineEdit::returnPressed, this, &QData::enterPressed);
+    connect(m_edit, &QLineEdit::textChanged, this, &QData::textChanged);
 
     QBoxLayout* buttons = new QHBoxLayout();
     buttons->addWidget(importCSVButton);
@@ -169,15 +171,8 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
 
     setLayout(z);
 
-
-
     m_timer.setInterval(interval);
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
-
-    //ugly
-    while (m_model->canFetchMore()) {
-        m_model->fetchMore();
-    }
 }
 
 void QData::timeout() {
@@ -406,6 +401,23 @@ void QData::activated(const QModelIndex& idx) {
 
 void QData::enterPressed() {
     QString str = m_edit->text();
+
+    if (str.isEmpty()) {
+        return;
+    }
+
+    QRegularExpression regex("^[0-9]+[\\\\\\/]([0-9\\.]+).+$");
+    auto match = regex.match(str);
+
+    if (match.hasMatch() && match.capturedLength() > 2) {
+        auto res = match.captured(1);
+        m_edit->setText(res);
+        str = res;
+    }
+
+    m_model->setFilter("part LIKE '%" + str + "%'");
+    m_model->select();
+
     int row = findByPart(m_model, str);
     if (row != -1) {
         QModelIndex idx = m_model->index(row, 2);
