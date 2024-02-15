@@ -411,6 +411,7 @@ void QData::enterPressed() {
 
     if (match.hasMatch() && match.capturedLength() > 2) {
         auto res = match.captured(1);
+        res.remove('.');
         m_edit->setText(res);
         str = res;
     }
