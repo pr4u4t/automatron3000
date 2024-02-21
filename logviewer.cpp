@@ -3,16 +3,29 @@
 #include "mainwindow.h"
 
 #include <QVBoxLayout>
+#include <QApplication>
+#include <QAction>
 
-LogViewer::LogViewer(QWidget* parent, QWidget* mwin)
-    : MdiChild(mwin), m_text(new QPlainTextEdit()){
+#include "MainWindow.h"
+
+LogViewer::LogViewer(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
+    : Widget(ld, plugins, parent, settingsPath)
+    , m_text(new QPlainTextEdit()){
     m_text->document()->setMaximumBlockCount(100);
     m_text->setReadOnly(true);
-    connect(qobject_cast<MainWindow*>(mwin)->logger(),&Logger::echo,this,&LogViewer::message);
+    
+    MLoader* p = reinterpret_cast<MLoader*>(plugins);
+
+    connect(p->logger(),&Logger::echo,this,&LogViewer::message);
     
     QBoxLayout *l = new QVBoxLayout();
     l->addWidget(m_text);
     setLayout(l);
+
+    QContiguousCache<QString> cache = p->logger()->cache();
+    for (int i = 0; i < cache.size(); ++i) {
+        message(cache.at(i));
+    }
 }
 
 void LogViewer::settingsChanged(){}
@@ -20,3 +33,47 @@ void LogViewer::settingsChanged(){}
 void LogViewer::message(const QString& msg){
     m_text->appendPlainText(msg);
 }
+
+struct LogViewerMenu {
+    LogViewerMenu(QCoreApplication* app) 
+        : m_app(app){
+        if (app != nullptr) {
+            m_logviewer = new QAction("Log Viewer");
+            m_logviewer->setData(QVariant("LogViewer"));
+        }
+    }
+
+    QAction* m_logviewer = nullptr;
+    QCoreApplication* m_app = nullptr;
+};
+
+static bool LogViewer_register(Window* win, PluginsLoader* ld, LogViewerMenu* ctx, Logger* log) {
+
+    ctx->m_app = QCoreApplication::instance();
+    ctx->m_logviewer = new QAction("Log Viewer");
+    ctx->m_logviewer->setData(QVariant("LogViewer"));
+    ctx->m_logviewer->setText(ctx->m_app->translate("MainWindow", "Log Viewer"));
+
+    QMenu* menu = win->findMenu(ctx->m_app->translate("MainWindow", "&File"));
+    ctx->m_logviewer->setParent(menu);
+    QObject::connect(ctx->m_logviewer, &QAction::triggered, win, &Window::createOrActivate);
+    menu->addAction(ctx->m_logviewer);
+    
+    return true;
+}
+
+static bool LogViewer_unregister(Window* win, PluginsLoader* ld, LogViewerMenu* ctx, Logger* log) {
+
+    return true;
+}
+
+REGISTER_STATIC_PLUGIN(
+    LogViewer, 
+    Plugin::Type::WIDGET, 
+    "0.0.1", 
+    "pawel.ciejka@gmail.com", 
+    "Log Viewer", 
+    LogViewer_register, 
+    LogViewer_unregister, 
+    LogViewerMenu
+)

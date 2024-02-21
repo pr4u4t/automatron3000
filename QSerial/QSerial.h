@@ -25,6 +25,8 @@ public:
 
 	void close();
 
+	bool isOpen() const;
+
 private:
 
 	QSerialPort* m_serial = nullptr;

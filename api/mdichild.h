@@ -18,7 +18,7 @@ class API_EXPORT MdiChild : public QWidget{
 
 signals:
     
-    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE) const;
+    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
     
     void serialMessage(const QString& msg);
 

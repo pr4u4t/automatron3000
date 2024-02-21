@@ -10,12 +10,13 @@
 #include "api/api.h"
 #include "main.h"
 
-MainWindow::MainWindow(MLoader* plugins)
-    : m_mdiArea(new QMdiArea),
-    m_logger(logPath,this),
-    m_settings("configuration.ini", QSettings::IniFormat),
-    m_plugins(plugins){
-    qDebug().noquote() << "Using configuration: " << m_settings.fileName();
+MainWindow::MainWindow(MLoader* plugins, Logger* log)
+    : m_mdiArea(new QMdiArea)
+    , m_logger(log)
+    , m_settings("configuration.ini", QSettings::IniFormat)
+    , m_plugins(plugins){
+
+    log->message(QString("MainWindow::MainWindow: Using configuration: %1").arg(m_settings.fileName()));
     m_mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setCentralWidget(m_mdiArea);
@@ -31,15 +32,12 @@ MainWindow::MainWindow(MLoader* plugins)
 
     setWindowTitle(tr(winTitle));
     setUnifiedTitleAndToolBarOnMac(true);
-    
-   // if(settings().value(SettingsDialog::autoConnectKey, SettingsDialog::autoConnectValue).toBool()){
-   //     openSerialPort();
-   // }
 
     connect(m_mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::subWindowActivated);
 }
 
 MainWindow::~MainWindow() {
+    m_logger->message("MainWindow::~MainWindow", LoggerSeverity::LOG_DEBUG);
     saveSession();
 }
 
@@ -48,20 +46,23 @@ MLoader* MainWindow::plugins() {
 }
 
 Logger* MainWindow::logger(){
-    return &m_logger;
+    return m_logger;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event){
+    m_logger->message("MainWindow::closeEvent()", LoggerSeverity::LOG_DEBUG);
+
     QMessageBox::StandardButton resBtn = QMessageBox::question(this, /*APP_NAME*/"",
         tr("Are you sure?\n"),
         QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes);
     if (resBtn != QMessageBox::Yes) {
+        m_logger->message("MainWindow::closeEvent: event inored", LoggerSeverity::LOG_DEBUG);
         event->ignore();
     } else {
+        m_logger->message("MainWindow::closeEvent: event accepted", LoggerSeverity::LOG_DEBUG);
         writeSettings();
         event->accept();
     }
-    
 }
 
 QSettings& MainWindow::settings(){
@@ -79,6 +80,7 @@ void MainWindow::about(){
 }
 
 void MainWindow::updateMenus(){
+    m_logger->message("MainWindow::updateMenus()", LoggerSeverity::LOG_DEBUG);
     bool hasMdiChild = (activeMdiChild() != nullptr);
 
     m_closeAct->setEnabled(hasMdiChild);
@@ -91,6 +93,7 @@ void MainWindow::updateMenus(){
 }
 
 void MainWindow::updateWindowMenu(){
+    m_logger->message("MainWindow::updateWindowMenu()", LoggerSeverity::LOG_DEBUG);
     m_windowMenu->clear();
     m_windowMenu->addAction(m_closeAct);
     m_windowMenu->addAction(m_closeAllAct);
@@ -117,27 +120,28 @@ void MainWindow::updateWindowMenu(){
 }
 
 void MainWindow::createOrActivate(){
-    m_logger.message("MainWindow::createOrActivate()");
+    m_logger->message(QString("MainWindow::createOrActivate()"));
     
-    QMdiSubWindow *win;
-    
-    if((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))){
-        m_logger.message("activating subwindow");
+    QMdiSubWindow *win = nullptr;
+    QString name = qobject_cast<QAction*>(QObject::sender())->data().toString();
+
+    if((win = findMdiChild(name))){
+        m_logger->message(QString("MainWindow::activating subwindow: %1").arg(name));
         win->show();
         m_mdiArea->setActiveSubWindow(win);
         return;
     }
     
-    m_logger.message("creating new instance");
-    QString name = qobject_cast<QAction*>(QObject::sender())->data().toString();
-    
+    m_logger->message("creating new instance: "+name);
     createWindowByName(name);
     
     updateWindowMenu();
 }
 
 bool MainWindow::createWindowByName(const QString& name){
+    m_logger->message("MainWindow::createWindowByName("+name+")");
     if (plugins() == nullptr) {
+        m_logger->message("MainWindow::createWindowByName: plugins are null");
         return false;
     }
 
@@ -145,7 +149,7 @@ bool MainWindow::createWindowByName(const QString& name){
     QMdiSubWindow* win = nullptr;
 
     if (plugin.isNull()) {
-        m_logger.message("failed to get plugin instance of " + name);
+        m_logger->message(QString("MainWindow::createWindowByName: failed to get plugin instance of %1").arg(name));
         QMessageBox::critical(this, tr(Main::appName),
             tr(fatalError),
             QMessageBox::Ok);
@@ -154,10 +158,12 @@ bool MainWindow::createWindowByName(const QString& name){
 
     MdiChild* child = plugin.dynamicCast<MdiChild>().data();
     if (child == nullptr) {
+        m_logger->message("MainWindow::createWindowByName: plugin is not widget");
         return false;
     }
 
     if (!(win = m_mdiArea->addSubWindow(new MdiWindow(nullptr, child)))) {
+        m_logger->message("MainWindow::createWindowByName: failed to add subwindow");
         //child->deleteLater();
         return false;
     }
@@ -170,50 +176,15 @@ bool MainWindow::createWindowByName(const QString& name){
         connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));
     }
 
-    /*
-    QMdiSubWindow* win;
-    const QMetaObject *mo = QMetaType::metaObjectForType(QMetaType::type((name+"*").toLocal8Bit()));
-    if(mo == nullptr){
-        m_logger.message("failed to get metaobject for "+name);
-        QMessageBox::critical(this, tr(Main::appName),
-                              tr(fatalError),
-                              QMessageBox::Ok);
-        return false;
-    }
-    
-    QObject* child = mo->newInstance(Q_ARG(QWidget*,m_mdiArea),Q_ARG(QWidget*,this));
-    if(child == nullptr){
-        m_logger.message("failed to create instance");
-        QMessageBox::critical(this, tr(Main::appName),
-                              tr(fatalError),
-                              QMessageBox::Ok);
-        return false;
-    }
-    
-    MdiChild* mdi = qobject_cast<MdiChild*>(child);
-    connect(mdi, &MdiChild::logMessage, &m_logger, &Logger::message);
-    QWidget* mchild = qobject_cast<QWidget*>(child);
-    if (!(win = m_mdiArea->addSubWindow(mchild))) {
-        child->deleteLater();
-        return false;
-    }
-    const QMetaObject* mu = mdi->metaObject();
-    if (mdi->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
-        connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));
-    }
-
-    win->setWindowTitle(name);
-    mchild->show();
-    */
-
     return true;
 }
 
 bool MainWindow::addSubWindow(QWidget* widget, const QString& title) {
     QMdiSubWindow* win = nullptr;
+    m_logger->message(QString("MainWindow::addSubWindow(%1, %2)").arg((long long)widget,0,16).arg(title), LoggerSeverity::LOG_DEBUG);
 
     if (!(win = m_mdiArea->addSubWindow(widget))) {
-        //child->deleteLater();
+        m_logger->message("MainWindow::addSubWindow: failed to add subwindow");
         return false;
     }
 
@@ -224,6 +195,7 @@ bool MainWindow::addSubWindow(QWidget* widget, const QString& title) {
 }
 
 void MainWindow::createActions(){
+    m_logger->message("MainWindow::createActions()", LoggerSeverity::LOG_DEBUG);
 
     QMenu* fileMenu = findMenu(tr("&File"));
     if (fileMenu == nullptr) {
@@ -231,11 +203,6 @@ void MainWindow::createActions(){
     }
 
     if (fileMenu) {
-        QAction* logviewer = new QAction(tr("Log Viewer"), this);
-        logviewer->setData(QVariant("LogViewer"));
-        connect(logviewer, &QAction::triggered, this, &MainWindow::createOrActivateLogViewer);
-        fileMenu->addAction(logviewer);
-
         fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
         fileMenu->addSeparator();
 
@@ -246,10 +213,6 @@ void MainWindow::createActions(){
         fileMenu->addAction(exitAct);
     }
 
-    //QToolBar *fileToolBar = addToolBar(tr("File"));
-
-    
-    
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
     connect(m_windowMenu, &QMenu::aboutToShow, this, &MainWindow::updateWindowMenu);
 
@@ -312,59 +275,56 @@ void MainWindow::createActions(){
 
 void MainWindow::createOrActivatePlugins() {
     QMdiSubWindow* win;
-    
+    m_logger->message("MainWindow::createOrActivatePlugins()", LoggerSeverity::LOG_DEBUG);
+
     if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
-        m_logger.message("activating subwindow");
+        m_logger->message("MainWindow::createOrActivatePlugins: activating plugins subwindow", LoggerSeverity::LOG_DEBUG);
         m_mdiArea->setActiveSubWindow(win);
         return;
     }
 
     MdiChild *child = new PluginList(m_mdiArea, this, plugins());
+    addSubWindow(child, tr("Plugins"));
+
+    /*
     if (!(win = m_mdiArea->addSubWindow(child))) {
+        m_logger->message("MainWindow::createOrActivatePlugins: failed to add subwindow");
         child->deleteLater();
         return;
     }
 
     win->setWindowTitle("Plugins");
     child->show();
+    */
 }
 
 void MainWindow::createOrActivateInstances() {
     QMdiSubWindow* win;
+    m_logger->message("MainWindow::createOrActivateInstances()");
 
     if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
-        m_logger.message("activating subwindow");
+        m_logger->message("MainWindow::createOrActivateInstances: activating subwindow");
         m_mdiArea->setActiveSubWindow(win);
         return;
     }
 
     MdiChild* child = new Instances(m_mdiArea, this, plugins());
-    if (!(win = m_mdiArea->addSubWindow(child))) {
+    if (child == nullptr) {
+        m_logger->message("MainWindow::createOrActivateInstances: failed to create instance");
+        return;
+    }
+
+    addSubWindow(child, tr("Instances"));
+
+    /*if (!(win = m_mdiArea->addSubWindow(child))) {
+        m_logger->message("MainWindow::createOrActivateInstances: failed to add subwindow");
         child->deleteLater();
         return;
     }
 
     win->setWindowTitle("Instances");
     child->show();
-}
-
-void MainWindow::createOrActivateLogViewer() {
-    QMdiSubWindow* win;
-
-    if ((win = findMdiChild(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
-        m_logger.message("activating subwindow");
-        m_mdiArea->setActiveSubWindow(win);
-        return;
-    }
-
-    MdiChild* child = new LogViewer(m_mdiArea, this);
-    if (!(win = m_mdiArea->addSubWindow(child))) {
-        child->deleteLater();
-        return;
-    }
-
-    win->setWindowTitle("LogViewer");
-    child->show();
+    */
 }
 
 /*
@@ -389,51 +349,44 @@ void MainWindow::createOrActivateSettings() {
 */
 
 void MainWindow::createStatusBar(){
+    m_logger->message("MainWindow::createStatusBar()", LoggerSeverity::LOG_DEBUG);
     statusBar()->showMessage(tr("Ready"));
 }
 
 void MainWindow::readSettings(){
+    m_logger->message("MainWindow::readSettings()", LoggerSeverity::LOG_DEBUG);
+
     const QSettings &setts = settings();
     const QByteArray geometry = setts.value("geometry", QByteArray()).toByteArray();
     if (geometry.isEmpty()) {
+        m_logger->message("MainWindow::readSettings(): new geometry");
         const QRect availableGeometry = screen()->availableGeometry();
         resize(availableGeometry.width() / 3, availableGeometry.height() / 2);
         move((availableGeometry.width() - width()) / 2,
              (availableGeometry.height() - height()) / 2);
     } else {
+        m_logger->message("MainWindow::readSettings(): restoring geometry");
         restoreGeometry(geometry);
     }
-    
-    /*
-    QStringList wins = setts.value("windows", QString()).toString().split(",");
-    
-    if(wins[0].isEmpty()){
-        return;
-    }
-    
-    for ( const auto& win : wins ){
-        qDebug() << win;
-        createWindowByName(win);
-    }
-    */
 }
 
 void MainWindow::writeSettings(){
+    m_logger->message("MainWindow::writeSettings()", LoggerSeverity::LOG_DEBUG);
     QSettings &setts = settings();
     setts.setValue("geometry", saveGeometry());
-    //setts.setValue("windows",subWindows().join(","));
 }
 
 MdiChild *MainWindow::activeMdiChild() const{
-    m_logger.message("activeMdiChild()");
+    m_logger->message("MainWindow::activeMdiChild()", LoggerSeverity::LOG_DEBUG);
     if (QMdiSubWindow *activeSubWindow = m_mdiArea->activeSubWindow()){
         return qobject_cast<MdiChild*>(activeSubWindow->widget());
     }
+    m_logger->message("MainWindow::activeMdiChild: no windows found", LoggerSeverity::LOG_DEBUG);
     return nullptr;
 }
 
 QMdiSubWindow *MainWindow::findMdiChild(const QString &key) const{
-    m_logger.message("findMdiChild("+key+")");
+    m_logger->message(QString("MainWindow::findMdiChild(%1)").arg(key));
     
     const QList<QMdiSubWindow*> subWindows = m_mdiArea->subWindowList();
     for (QMdiSubWindow *window : subWindows) {
@@ -445,19 +398,16 @@ QMdiSubWindow *MainWindow::findMdiChild(const QString &key) const{
         }
 
         if (plugin->name() == key) {
+            m_logger->message("MainWindow::findMdiChild: child found");
             return window;
         }
-        //if (mdiChild->metaObject()->metaType().name() == key){
-        //    m_logger.message(QString("child found: ")+mdiChild->metaObject()->metaType().name());
-        //    return window;
-        //}
     }
-    m_logger.message("child not found");
+    m_logger->message("MainWindow::findMdiChild: child not found");
     return nullptr;
 }
 
 void MainWindow::switchLayoutDirection(){
-    m_logger.message("switchLayoutDirection");
+    m_logger->message(QString("MainWindow::switchLayoutDirection()"), LoggerSeverity::LOG_DEBUG);
     
     if (layoutDirection() == Qt::LeftToRight){
         QGuiApplication::setLayoutDirection(Qt::RightToLeft);
@@ -516,23 +466,9 @@ void MainWindow::closeSerialPort(){
 */
 
 void MainWindow::showStatusMessage(const QString &msg, int timeout){
-    statusBar()->showMessage(msg, timeout);
-}
-
-//void MainWindow::showWriteError(const QString &message){
-//   QMessageBox::warning(this, tr("Warning"), message);
-//}
-
-/*
-QStringList MainWindow::subWindows() const {
-    QStringList ret;
-    const QList<QMdiSubWindow *> subWindows = m_mdiArea->subWindowList();
-    for (QMdiSubWindow *window : subWindows) {
-        MdiChild *mdiChild = qobject_cast<MdiChild*>(window->widget());
-        ret << mdiChild->metaObject()->metaType().name();
-        qDebug() << mdiChild->metaObject()->metaType().name();
+    m_logger->message(QString("MainWindow::showStatusMessage(%1, %2)").arg(msg).arg(timeout), LoggerSeverity::LOG_DEBUG);
+    QStatusBar* bar = statusBar();
+    if (bar != nullptr) {
+        bar->showMessage(msg, timeout);
     }
-    qDebug() << ret;
-    return ret;
 }
-*/

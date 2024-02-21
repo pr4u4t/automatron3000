@@ -8,36 +8,44 @@
 #include <QProgressDialog>
 #include <QRegularExpression>
 
-bool QData_register(Window* win, PluginsLoader* ld) {
+struct QDataMenu {
+    QDataMenu(QCoreApplication* app)
+    : m_app(app){
+        m_translator = new QTranslator();
+        if (m_translator->load(QLocale::system(), "QData", "_", "translations")) { //set directory of ts
+            m_app->installTranslator(m_translator);
+        }
+
+        m_database = new QAction(m_app->translate("MainWindow", "Database"), nullptr);
+        m_database->setData(QVariant("QData"));
+    }
+
+    QAction* m_database = nullptr;
+    QCoreApplication* m_app = nullptr;
+    QTranslator* m_translator = nullptr;
+};
+
+static bool QData_register(Window* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
+    log->message("QData_register()");
+
 	if (win == nullptr) {
 		return false;
 	}
 
-    QCoreApplication* app = QApplication::instance();
-
-    QTranslator* translator = new QTranslator();
-    if (translator->load(QLocale::system(), "QData", "_","translations")) { //set directory of ts
-        app->installTranslator(translator);
-    }
-
-	QAction* database = new QAction(app->translate("MainWindow", "Database"), win);
-	database->setData(QVariant("QData"));
-	QObject::connect(database, &QAction::triggered, win, &Window::createOrActivate);
+    QMenu* fileMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&File"));
+    ctx->m_database->setParent(fileMenu);
+	
+	QObject::connect(ctx->m_database, &QAction::triggered, win, &Window::createOrActivate);
   
-    QMenu* menu = win->findMenu(app->translate("MainWindow", "&File"));
-	if (menu == nullptr) {
-		if ((menu = win->menuBar()->addMenu(app->translate("MainWindow", "&File"))) == nullptr) {
-			return false;
-		}
-	}
+	QList<QAction*> actions = fileMenu->findChildren<QAction*>(Qt::FindDirectChildrenOnly);
+	fileMenu->insertAction(actions.size() > 0 ? actions[1] : nullptr, ctx->m_database);
 
-	QList<QAction*> actions = menu->findChildren<QAction*>(Qt::FindDirectChildrenOnly);
-	menu->insertAction(actions[1], database);
 	return true;
 }
 
-bool QData_unregister(Window* win, PluginsLoader* ld) {
-	return true;
+static bool QData_unregister(Window* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
+    log->message("QData_unregister()");
+    return true;
 }
 
 REGISTER_PLUGIN(
@@ -47,7 +55,8 @@ REGISTER_PLUGIN(
 	"pawel.ciejka@gmail.com",
 	"example plugin",
 	QData_register,
-	QData_unregister
+	QData_unregister,
+    QDataMenu
 )
 
 QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
@@ -60,14 +69,14 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
         m_db = QSqlDatabase::addDatabase("QSQLITE");
         m_db.setDatabaseName(db);
 
-        if (!m_db.open()) {
-            qDebug() << "Error: connection with database failed";
-        }
+        emit message(QString("QData::QData: connection to database: %1").arg(m_db.open() ? tr("success") : tr("failed")));
     }
 
     QString tbl = settings().value(this->settingsPath() + "/DataWindow/table", QString(table)).toString();
     if (m_db.tables().contains(tbl, Qt::CaseInsensitive) == false) {
         m_db.exec(QString(createTable).arg(tbl));
+    } else {
+        emit message("QData::QData: creating database");
     }
 
     m_view = new QTableView();
@@ -176,21 +185,38 @@ QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
 }
 
 void QData::timeout() {
-    if (m_selected.isEmpty() != false) {
-        auto serial = plugins()->instance("QSerial", nullptr);
-        auto io = serial.dynamicCast<IODevice>();
+    emit message("QData::timeout()", LoggerSeverity::LOG_DEBUG);
 
-        io->write(m_selected+'\n');
+    if (m_selected.isEmpty() == true) {
+        emit message("QData::timeout: selected barcode empty");
+        return;
     }
+        
+    auto serial = plugins()->instance("QSerial", nullptr);
+    auto io = serial.dynamicCast<IODevice>();
+
+    if (io->isOpen() == false) {
+        emit message("QData::timeout: serial port not open");
+        return;
+    }
+
+    auto res = io->write(m_selected + '\n');
+    emit message(QString("QData::timeout: write %1").arg(res));
 }
 
 void QData::exportAsCsv(bool checked) {
     Q_UNUSED(checked)
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
-            "./output.csv",
-            tr("Text files (*.csv *.txt)"));
+        
+    emit message("QData::exportAsCsv()", LoggerSeverity::LOG_DEBUG);
+
+    QString fileName = QFileDialog::getSaveFileName(this, 
+        tr("Save File"),
+        "./output.csv",
+        tr("Text files (*.csv *.txt)")
+    );
 
     if (fileName.isEmpty()) {
+        emit message("QData::exportAsCsv: export cancelled");
         return;
     }
 
@@ -199,15 +225,23 @@ void QData::exportAsCsv(bool checked) {
     QMessageBox::information(this, tr(title),
         tr("Database export successful"),
         QMessageBox::Ok);
+
+    emit message("QData::exportAsCsv: Database export successful");
 }
 
 void QData::importFromCsv(bool checked) {
     Q_UNUSED(checked)
-        QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
+    
+    emit message("QData::importfromCsv()");
+
+    QString fileName = QFileDialog::getOpenFileName(this, 
+            tr("Open File"),
             "./",
-            tr("Text files (*.csv *.txt)"));
+            tr("Text files (*.csv *.txt)")
+    );
 
     if (fileName.isEmpty()) {
+        emit message("QData::importfromCsv: import cancelled");
         return;
     }
 
@@ -217,6 +251,7 @@ void QData::importFromCsv(bool checked) {
     );
 
     if (ret == QMessageBox::Cancel) {
+        emit message("QData::importfromCsv: import cancelled");
         return;
     }
 
@@ -224,14 +259,15 @@ void QData::importFromCsv(bool checked) {
         QMessageBox::critical(this, tr(title),
             tr("Failed to clear existing data"),
             QMessageBox::Ok);
-
+        emit message(QString("QData::importfromCsv: failed to clear existing data"));
         return;
     }
 
     QFile input(fileName);
 
     if (!input.open(QIODevice::ReadOnly)) {
-        qDebug() << input.errorString();
+        emit message(QString("QData::importFromCsv: %1").arg(input.errorString()));
+        return;
     }
 
     QTextStream in(&input);
@@ -244,6 +280,7 @@ void QData::importFromCsv(bool checked) {
         progress.setValue((100*i)/size);
 
         if (progress.wasCanceled()) {
+            emit message("QData::importFromCsv: operation cancelled");
             break;
         }
 
@@ -256,7 +293,7 @@ void QData::importFromCsv(bool checked) {
             .arg(table).arg(columns[0]).arg(columns[1]).arg(columns[2]));
 
         if (!query.exec()) {
-            qDebug() << "Insert error: " << query.lastError().text();
+            emit message(QString("QData::importFromcsv: insert error: %1").arg(query.lastError().text()));
         }
     }
     progress.setValue(100);
@@ -266,10 +303,19 @@ void QData::importFromCsv(bool checked) {
 
 void QData::importFromFiles(bool checked) {
     Q_UNUSED(checked)
-        QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-            "./",
-            QFileDialog::ShowDirsOnly
-            | QFileDialog::DontResolveSymlinks);
+    
+    emit message("QData::importFromFiles", LoggerSeverity::LOG_DEBUG);
+    
+    QString dir = QFileDialog::getExistingDirectory(this, 
+        tr("Open Directory"),
+        "./",
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+
+    if (dir.isEmpty()) {
+        emit message("QData::importFromFiles: operation cancelled");
+        return;
+    }
 
     int ret = QMessageBox::warning(this, tr(title),
         tr("This will wipe all data and cannot be undone"),
@@ -277,6 +323,7 @@ void QData::importFromFiles(bool checked) {
     );
 
     if (ret == QMessageBox::Cancel) {
+        emit message("QData::importFromFiles: operation cancelled");
         return;
     }
 
@@ -284,7 +331,7 @@ void QData::importFromFiles(bool checked) {
         QMessageBox::critical(this, tr(title),
             tr("Failed to clear existing data"),
             QMessageBox::Ok);
-
+        emit message("QData::importFromCsv: failed to clear existing data");
         return;
     }
 
@@ -298,6 +345,7 @@ void QData::importFromFiles(bool checked) {
         progress.setValue(i++);
 
         if (progress.wasCanceled()) {
+            emit message("QData::importFromCsv: operation cancelled");
             break;
         }
 
@@ -305,7 +353,7 @@ void QData::importFromFiles(bool checked) {
         QFile file(path);
 
         if (!file.open(QIODevice::ReadOnly)) {
-            qDebug() << "error";
+            emit message(QString("QData::importFromCsv: failed to open %1").arg(path));
             continue;
         }
 
@@ -314,12 +362,11 @@ void QData::importFromFiles(bool checked) {
         QString part = info.baseName();
         QString shelf(contents);
 
-        qDebug() << part << shelf;
         QSqlQuery query;
         query.prepare(QString("INSERT INTO %1 (part, shelf) VALUES (%2, %3)").arg(table).arg(part).arg(shelf));
 
         if (!query.exec()) {
-            qDebug() << "Insert error: " << query.lastError().text();
+            emit message(QString("QData::importFromCsv: insert error: ").arg(query.lastError().text()));
         }
     }
     progress.setValue(count);
@@ -327,23 +374,26 @@ void QData::importFromFiles(bool checked) {
 }
 
 QString QData::escapedCSV(QString unexc) {
-    if (!unexc.contains(QLatin1Char(',')))
+    if (!unexc.contains(QLatin1Char(','))) {
         return unexc;
+    }
+
     return '\"' + unexc.replace(QLatin1Char('\"'), QStringLiteral("\"\"")) + '\"';
 }
 
 void QData::queryToCsv(const QString& path, const QString& queryStr) {
+    emit message("QData::queryToCsv()", LoggerSeverity::LOG_DEBUG);
     QSqlQuery query(m_db);
     query.prepare(queryStr);
     QFile csvFile(path);
 
     if (!csvFile.open(QFile::WriteOnly | QFile::Text)) {
-        qDebug("failed to open csv file");
+        emit message("QData::queryToCsv: failed to open output csv file");
         return;
     }
 
     if (!query.exec()) {
-        qDebug("failed to run query");
+        emit message("QData::queryToCsv: failed to run query");
         return;
     }
 
@@ -358,6 +408,7 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
         progress.setValue(i++);
 
         if (progress.wasCanceled()) {
+            emit message("QData::queryToCsv: operation cancelled");
             break;
         }
 
@@ -378,31 +429,48 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
 void QData::settingsChanged() {}
 
 void QData::prepareForFocus() {
+    emit message("QData::QData::prepareForFocus()");
     m_edit->setFocus();
 }
 
 bool QData::clearData() {
+    emit message("QData::clearData()", LoggerSeverity::LOG_DEBUG);
+
     QSqlQuery query(m_db);
-    return query.exec(QString("DELETE FROM %1").arg(table));
+    if (query.exec(QString("DELETE FROM %1").arg(table)) == true) {
+        emit message(QString("QData::clearData(): rows affected %1").arg(query.numRowsAffected()));
+        return true;
+    }
+    
+    emit message("QData::clearData(): query failed");
+    return false;
 }
 
 void QData::activated(const QModelIndex& idx) {
+    emit message("QData::activated()");
+
     QModelIndex didx = idx.siblingAtColumn(2);
     QVariant data = didx.data();
 
     if (data.toString().isEmpty() == false) {
+        emit message(QString("QData::activated: data %1 found").arg(data.toString()));
         m_selected = data.toString();
-        m_timer.start();
 
         m_lmodel->appendRow(new QStandardItem(idx.siblingAtColumn(1).data().toString()));
         fillInfo();
+
+        m_timer.start();
+
+        emit message("QData::enterPressed(): timer started");
     }
 }
 
 void QData::enterPressed() {
+    emit message("QData::enterPressed()", LoggerSeverity::LOG_DEBUG);
     QString str = m_edit->text();
 
     if (str.isEmpty()) {
+        emit message("QData::enterPressed(): input is empty");
         return;
     }
 
@@ -410,6 +478,7 @@ void QData::enterPressed() {
     auto match = regex.match(str);
 
     if (match.hasMatch() && match.capturedLength() > 2) {
+        emit message("QData::enterPressed(): input from barcode reader");
         auto res = match.captured(1);
         res.remove('.');
         m_edit->setText(res);
@@ -420,14 +489,18 @@ void QData::enterPressed() {
     m_model->select();
 
     int row = findByPart(m_model, str);
+    emit message(QString("QData::enterPressed(): find by part: %1").arg(row));
+
     if (row != -1) {
         QModelIndex idx = m_model->index(row, 2);
         m_view->scrollTo(idx);
         m_view->selectRow(row);
         m_selected = idx.data().toString();
-        m_timer.start();
 
         m_lmodel->appendRow(new QStandardItem(m_model->index(row, 1).data().toString()));
         fillInfo();
+
+        m_timer.start();
+        emit message("QData::enterPressed(): timer started");
     }
 }

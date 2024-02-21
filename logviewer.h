@@ -4,14 +4,15 @@
 #include <QPlainTextEdit>
 
 #include "api/api.h"
+#include "ModuleLoader.h"
 
-class LogViewer : public MdiChild{
+class LogViewer : public Widget{
 
     Q_OBJECT
     
 public:
     
-    LogViewer(QWidget* paremt = nullptr, QWidget* mwin = nullptr);
+    LogViewer(const Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
     
     bool saveSettings() {
         return true;

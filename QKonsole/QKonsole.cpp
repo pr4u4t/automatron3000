@@ -2,31 +2,36 @@
 #include <QApplication>
 #include <QTranslator>
 
-bool QKonsole_register(Window* win, PluginsLoader* ld) {
-    QCoreApplication* app = QApplication::instance();
+struct QKonsoleMenu {
+    QKonsoleMenu(QCoreApplication* app) 
+    : m_app(app){
+        m_translator = new QTranslator();
+        if (m_translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
+            m_app->installTranslator(m_translator);
+        }
 
-    QTranslator* translator = new QTranslator();
-    if (translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
-        app->installTranslator(translator);
+        m_console = new QAction(QApplication::translate("MainWindow", "Console"), nullptr);
+        m_console->setData(QVariant("QKonsole"));
     }
-    
-    QAction* console = new QAction(QApplication::translate("MainWindow", "Console"), win);
-	console->setData(QVariant("QKonsole"));
-	QObject::connect(console, &QAction::triggered, win, &Window::createOrActivate);
-	QMenu* menu = win->findMenu(QApplication::translate("MainWindow", "&File"));
-	if (menu == nullptr) {
-		if ((menu = win->menuBar()->addMenu(QApplication::translate("MainWindow","&File"))) == nullptr) {
-			return false;
-		}
-	}
 
+    QAction* m_console = nullptr;
+
+    QCoreApplication* m_app = nullptr;
+    QTranslator* m_translator = nullptr;
+};
+
+static bool QKonsole_register(Window* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
+
+	QObject::connect(ctx->m_console, &QAction::triggered, win, &Window::createOrActivate);
+	QMenu* menu = win->findMenu(QApplication::translate("MainWindow", "&File"));
 	QList<QAction*> actions = menu->findChildren<QAction*>(Qt::FindDirectChildrenOnly);
-	menu->insertAction(actions[1], console);
+	menu->insertAction(actions.size() > 0 ? actions[1] : nullptr, ctx->m_console);
+
 	return true;
 }
 
-bool QKonsole_unregister(Window* win, PluginsLoader* ld) {
-	return true;
+static bool QKonsole_unregister(Window* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
+    return true;
 }
 
 REGISTER_PLUGIN(
@@ -36,7 +41,8 @@ REGISTER_PLUGIN(
 	"pawel.ciejka@gmail.com", 
 	"example plugin",
 	QKonsole_register,
-	QKonsole_unregister
+	QKonsole_unregister,
+    QKonsoleMenu
 )
 
 Terminal::Terminal(QKonsole* parent)
@@ -46,12 +52,6 @@ Terminal::Terminal(QKonsole* parent)
     if (win != nullptr) {
         setLocalEchoEnabled(win->settings().value("serial/localEchoEnabled", false).toBool());
     }
-    /*
-    QPalette p = palette();
-    p.setColor(QPalette::Base, Qt::black);
-    p.setColor(QPalette::Text, Qt::green);
-    setPalette(p);
-    */
  
     connect(this, &Terminal::logMessage, qobject_cast<MdiChild*>(parent), &MdiChild::logMessage);
 }

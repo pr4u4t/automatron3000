@@ -4,13 +4,12 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QData.cpp" line="23"/>
+        <location filename="QData.cpp" line="19"/>
         <source>Database</source>
         <translation>Baza danych</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="27"/>
-        <location filename="QData.cpp" line="29"/>
+        <location filename="QData.cpp" line="35"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
@@ -18,130 +17,140 @@
 <context>
     <name>QData</name>
     <message>
-        <location filename="QData.cpp" line="87"/>
+        <location filename="QData.cpp" line="96"/>
         <source>Part</source>
         <translation>Część</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="151"/>
+        <location filename="QData.cpp" line="160"/>
         <source>Shelf:</source>
         <oldsource>Shelf</oldsource>
         <translation>Półka:</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="92"/>
+        <location filename="QData.cpp" line="101"/>
         <source>Part Number</source>
         <translation>Numer części</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="88"/>
+        <location filename="QData.cpp" line="97"/>
         <source>Cell</source>
         <translation>Komórka</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="93"/>
+        <location filename="QData.cpp" line="102"/>
         <source>Import &amp;CSV</source>
         <translation>Importuj &amp;CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="94"/>
+        <location filename="QData.cpp" line="103"/>
         <source>Import &amp;Dir</source>
         <translation>Importuj z &amp;katalogu</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="95"/>
+        <location filename="QData.cpp" line="104"/>
         <source>&amp;Export CSV</source>
         <translation>&amp;Eksportuj CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="160"/>
+        <location filename="QData.cpp" line="169"/>
         <source>Database</source>
         <translation>Baza danych</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="124"/>
+        <location filename="QData.cpp" line="133"/>
         <source>&amp;Search</source>
         <translation>&amp;Szukaj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="128"/>
+        <location filename="QData.cpp" line="137"/>
         <source>C&amp;lear</source>
         <translation>&amp;Wyczyść</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="161"/>
+        <location filename="QData.cpp" line="170"/>
         <source>History</source>
         <translation>Historia</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="148"/>
+        <location filename="QData.cpp" line="157"/>
         <source>Rack:</source>
         <oldsource>Rack</oldsource>
         <translation>Regał:</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="154"/>
+        <location filename="QData.cpp" line="72"/>
+        <source>success</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QData.cpp" line="72"/>
+        <source>failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QData.cpp" line="163"/>
         <source>Side:</source>
         <oldsource>Side</oldsource>
         <translation>Strona:</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="189"/>
+        <location filename="QData.cpp" line="213"/>
         <source>Save File</source>
         <translation>Zapisz plik</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="191"/>
-        <location filename="QData.cpp" line="208"/>
+        <location filename="QData.cpp" line="215"/>
+        <location filename="QData.cpp" line="240"/>
         <source>Text files (*.csv *.txt)</source>
         <translation>Pliki tekstowe (*.csv *.txt)</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="200"/>
+        <location filename="QData.cpp" line="226"/>
         <source>Database export successful</source>
         <translation>Eksport bazy danych zakończony sukcesem</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="206"/>
+        <location filename="QData.cpp" line="238"/>
         <source>Open File</source>
         <translation>Otwórz plik</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="215"/>
-        <location filename="QData.cpp" line="275"/>
+        <location filename="QData.cpp" line="249"/>
+        <location filename="QData.cpp" line="321"/>
         <source>This will wipe all data and cannot be undone</source>
         <translation>Ta operacja wymaże dane w bazie i nie może zostać cofnięta</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="225"/>
-        <location filename="QData.cpp" line="285"/>
+        <location filename="QData.cpp" line="260"/>
+        <location filename="QData.cpp" line="332"/>
         <source>Failed to clear existing data</source>
         <translation>Nie udało się usunąć danych</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="238"/>
+        <location filename="QData.cpp" line="274"/>
         <source>Importing database from CSV</source>
         <translation>Importowanie bazy danych z pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="238"/>
-        <location filename="QData.cpp" line="292"/>
-        <location filename="QData.cpp" line="353"/>
+        <location filename="QData.cpp" line="274"/>
+        <location filename="QData.cpp" line="339"/>
+        <location filename="QData.cpp" line="403"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="269"/>
+        <location filename="QData.cpp" line="310"/>
         <source>Open Directory</source>
         <translation>Otwórz katalog</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="292"/>
+        <location filename="QData.cpp" line="339"/>
         <source>Importing database from directory</source>
         <translation>Importowanie bazy danych z katalogu</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="353"/>
+        <location filename="QData.cpp" line="403"/>
         <source>Exporting database to CSV</source>
         <translation>Eksportowanie bazy danych do pliku CSV</translation>
     </message>

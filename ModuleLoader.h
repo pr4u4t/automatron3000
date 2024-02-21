@@ -12,9 +12,10 @@
 template<typename T, typename W>
 class ModuleLoader : PluginsLoader{
 public:
-	ModuleLoader(W* mWin = nullptr,const QString& dir = QString()) 
-	: m_path(dir.isEmpty() ? QDir::currentPath() + "/plugins" : dir),
-	m_win(mWin){}
+	ModuleLoader(W* mWin = nullptr,const QString& dir = QString(), Logger* log = nullptr) 
+	: m_path(dir.isEmpty() ? QDir::currentPath() + "/plugins" : dir)
+	, m_win(mWin)
+	, m_logger(log){}
 
 	~ModuleLoader() {
 		for (auto it = m_instances.begin(), end = m_instances.end(); it != end; ++it) {
@@ -24,15 +25,19 @@ public:
 		m_instances.clear();
 		m_loaders.clear();
 
-		for (auto it = m_libraries.begin(), end = m_libraries.end(); it != end; ++it) {
-			it.value()->unload();
-		}
+		//for (auto it = m_libraries.begin(), end = m_libraries.end(); it != end; ++it) {
+		//	it.value()->unload();
+		//}
 
 		m_libraries.clear();
 	}
 
 	QString path() const {
 		return m_path;
+	}
+
+	bool hasInstance(const QString& name, const QString& settingsPath = QString()) {
+		return m_instances.contains(name);
 	}
 
 	auto instance(const QString& name, QWidget *parent, const QString& settingsPath = QString()) -> decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr)) {
@@ -50,6 +55,9 @@ public:
 		}
 
 		m_instances[name] = ret;
+
+		connect(dynamic_cast<QObject*>(ret.data()),SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
+
 		return ret;
 	}
 
@@ -91,12 +99,14 @@ public:
 				continue;
 			}
 
-			qDebug().noquote() << "ModuleLoader::ModuleLoader loaded plugin name: " << ld->name() << " type: " << static_cast<qint64>(ld->type()) << " version: " << ld->version();
+			logger()->message(QString("ModuleLoader::loadPlugins() loaded plugin name: %1 type: %2 version: %3").arg(ld->name()).arg(static_cast<qint64>(ld->type())).arg(ld->version()));
 			m_libraries[ld->name()] = lib;
 			m_loaders[ld->name()] = ld;
 			++ret;
+		}
 
-			ld->registerPlugin(m_win, this);
+		for (auto it = m_loaders.begin(), end = m_loaders.end(); it != end; ++it) {
+			it.value()->registerPlugin(m_win, this, logger());
 		}
 
 		return ret;
@@ -118,14 +128,47 @@ public:
 		return ret;
 	}
 
+	static bool registerStaticLoader(T* loader) {
+		if (loader == nullptr) {
+			return false;
+		}
+
+		if (m_loaders.contains(loader->name())) {
+			return false;
+		}
+
+		m_loaders[loader->name()] = loader;
+
+		return true;
+	}
+
+	Logger* logger() const {
+		return m_logger;
+	}
+
+
 private:
 	QHash<QString, QLibrary*> m_libraries;
 	QHash<QString, decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> m_instances;
-	QHash<QString, T*> m_loaders;
+	static QHash<QString, T*> m_loaders;
 	QString m_path;
-	W* m_win;
+	W* m_win = nullptr;
+	Logger* m_logger = nullptr;
 };
 
 typedef ModuleLoader<Loader, Window> MLoader;
+template<typename T, typename W>
+QHash<QString, T*> ModuleLoader<T,W>::m_loaders = QHash<QString, T*>();
+
+#define REGISTER_STATIC_PLUGIN(name, type, version, author, description, reg, unreg, data) \
+	PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg); \
+	RegisterStaticPlugin name##RegisterLoader(&name##Loader);
+
+class RegisterStaticPlugin {
+public:
+	RegisterStaticPlugin(Loader* ld) {
+		MLoader::registerStaticLoader(ld);
+	}
+};
 
 #endif

@@ -37,9 +37,13 @@ public:
 		return nullptr;
 	}
 
+
+
 public slots:
 
 	virtual void createOrActivate() = 0;
+
+	virtual void showStatusMessage(const QString& msg, int timeout = 0) = 0;
 
 };
 

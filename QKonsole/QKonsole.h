@@ -16,7 +16,7 @@ class Terminal : public QPlainTextEdit {
 signals:
     void getData(const QByteArray& data);
 
-    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::NOTICE);
+    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE);
 
     void enterPressed();
 

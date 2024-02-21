@@ -7,6 +7,8 @@
 #include <QProxyStyle>
 #include <QTranslator>
 
+#include "api/api.h"
+
 class ProxyStyle : public QProxyStyle{
 public:
     int styleHint(StyleHint hint, const QStyleOption* option = nullptr,
@@ -24,7 +26,7 @@ class Main : public QApplication{
     Q_OBJECT
 
 public:  
-    Main(int& argc, char* argv[]);
+    Main(int& argc, char* argv[], Logger* log);
     
     static constexpr const char* appName = "Szpuler";
     static constexpr const char* org = "Pawel Ciejka";
@@ -32,7 +34,11 @@ public:
     
 protected:
     
-    void parseArgumnets();    
+    void parseArgumnets();
+
+private:
+
+    Logger* m_logger = nullptr;
 };
 
 #endif

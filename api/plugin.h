@@ -31,11 +31,10 @@ public:
 	static constexpr qint64 InvalidUUID = -1;
 	static constexpr const char* const settings_path = "plugins/";
 
-	Plugin(const Loader* ld, PluginsLoader* plugins/*, QObject* parent*/, const QString& path = QString())
-		: m_loader(ld),
-		m_plugins(plugins),
-		m_settingsPath(path)//,
-		/*m_parentWidget(parent)*/ {
+	Plugin(const Loader* ld, PluginsLoader* plugins, const QString& path = QString())
+		: m_loader(ld)
+		, m_plugins(plugins)
+		, m_settingsPath(path) {
 		QRegExp rx("([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})");
 		int idx;
 
@@ -79,7 +78,6 @@ private:
 	PluginsLoader* const m_plugins = nullptr;
 	QString m_uuid = 0;
 	QString m_settingsPath;
-	//QWidget* m_parentWidget = nullptr;
 };
 
 class API_EXPORT Extension : public QObject, public Plugin {
@@ -87,9 +85,16 @@ class API_EXPORT Extension : public QObject, public Plugin {
 
 public:
 	Extension(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
-		: Plugin(ld, plugins/*, QObject* parent*/, path) {
+		: Plugin(ld, plugins, path) {
 	}
 
+	virtual ~Extension() {}
+
+signals:
+
+	void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
+
+	void status(const QString& msg) const;
 };
 
 class API_EXPORT Widget : public MdiChild, public Plugin {
@@ -98,22 +103,31 @@ class API_EXPORT Widget : public MdiChild, public Plugin {
 public:
 
 	Widget(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
-		: Plugin(ld, plugins/*, QObject* parent*/, path), MdiChild(parent){
+		: Plugin(ld, plugins, path), MdiChild(parent){
 	}
+
+	virtual ~Widget() {}
+
+signals:
+
+	void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
+
+	void status(const QString& msg) const;
 };
 
 class PluginsLoader;
 
 class API_EXPORT Loader {
-public:
-	using RegHandler = std::function<bool(Window*, PluginsLoader* ld)>;
 
+public:
 	Loader(const QString& name, Plugin::Type type, const QString& version,
-		const QString& author, const QString& description, RegHandler reg,
-		RegHandler unreg)
-		: m_name(name), m_type(type), m_version(version),
-		m_author(author), m_description(description),
-		m_register(reg), m_unregister(unreg){}
+		const QString& author, const QString& description)
+		: m_name(name)
+		, m_type(type)
+		, m_version(version)
+		, m_author(author)
+		, m_description(description){
+	}
 
 	QString name() const {
 		return m_name;
@@ -137,13 +151,9 @@ public:
 
 	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
 
-	bool registerPlugin(Window* win, PluginsLoader* ld) {
-		return (m_register) ? m_register(win, ld) : false;
-	}
+	virtual bool registerPlugin(Window* win, PluginsLoader* ld, Logger* log) = 0;
 
-	bool unregisterPlugin(Window* win, PluginsLoader *ld) {
-		return (m_unregister) ? m_unregister(win, ld) : false;
-	}
+	virtual bool unregisterPlugin(Window* win, PluginsLoader* ld, Logger* log) = 0;
 
 	virtual ~Loader() = default;
 
@@ -154,26 +164,42 @@ private:
 	QString m_version;
 	QString m_author;
 	QString m_description;
-	RegHandler m_register;
-	RegHandler m_unregister;
-
 };
 
-template<typename T>
+template<typename T, typename D>
 class PluginLoader : public Loader {
+	using RegHandler = std::function<bool(Window*, PluginsLoader* ld, D* ctx, Logger* log)>;
+
 public:
 	PluginLoader(const QString& name, Plugin::Type type, const QString& version, const QString& author, const QString& description,
-		Loader::RegHandler reg, Loader::RegHandler unreg)
-		: Loader(name, type, version, author, description, reg, unreg) {}
+		RegHandler reg, RegHandler unreg)
+		: Loader(name, type, version, author, description)
+		, m_register(reg)
+		, m_unregister(unreg)
+		, m_data(D(QCoreApplication::instance())){
+	}
 
-	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const {
+	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const override {
 		return QSharedPointer<T>(new T(
 			this,
 			plugins, 
 			qobject_cast<std::conditional<std::is_base_of<Widget, T>::value, QWidget*, QObject*>::type>(parent),
 			settingsPath
-		)).staticCast<Plugin>();
+		),&QObject::deleteLater).staticCast<Plugin>();
 	}
+
+	bool registerPlugin(Window* win, PluginsLoader* ld, Logger* log) override {
+		return (m_register) ? m_register(win, ld, &m_data, log) : false;
+	}
+
+	bool unregisterPlugin(Window* win, PluginsLoader* ld, Logger* log) override {
+		return (m_unregister) ? m_unregister(win, ld, &m_data, log) : false;
+	}
+
+private:
+	RegHandler m_register;
+	RegHandler m_unregister;
+	D m_data;
 };
 
 class API_EXPORT PluginsLoader : public QObject{
@@ -181,7 +207,10 @@ class API_EXPORT PluginsLoader : public QObject{
 	Q_OBJECT
 
 public:
+
 	PluginsLoader() = default;
+	
+	virtual bool hasInstance(const QString& name, const QString& settingsPath = QString()) = 0;
 
 	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr)) = 0;
 
@@ -193,6 +222,6 @@ signals:
 	void loaded(const QString& name);
 };
 
-#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg) extern "C" { __declspec(dllexport) PluginLoader<name> name##Loader(#name, type, version, author, description, reg, unreg); }
+#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data) extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg); }
 
 #endif

@@ -12,6 +12,8 @@
 #include <QAction>
 #include <QString>
 #include <QRegExp>
+#include <QHash>
+#include <functional>
 
 #include "api/api.h"
 #include "ModuleLoader.h"
@@ -27,7 +29,7 @@ public:
     static constexpr const char* winTitle = "szpuler";
     static constexpr const char* fatalError = "Fatal error occurred please contact support";
 
-    MainWindow(MLoader* loader = nullptr);
+    MainWindow(MLoader* plugins = nullptr, Logger* log = nullptr);
 
     ~MainWindow();
 
@@ -57,6 +59,11 @@ public:
                 QString name = rx.cap(1);
                 qDebug() << name;
                 auto plugin = plugins()->instance(name, this, *it);
+
+                if (plugin.isNull()) {
+                    continue;
+                }
+
                 if (plugin->type() == Plugin::Type::WIDGET) {
                     MdiWindow* win = new MdiWindow(nullptr, dynamic_cast<Widget*>(plugin.data()));
                     win->setWindowTitle(plugin->name());
@@ -68,7 +75,6 @@ public:
                     }
                 }
             }
-            //
         }
 
         QString active = settings().value("session/active", QString()).toString();
@@ -78,6 +84,7 @@ public:
 
         return ret;
     }
+    
 
 protected:
     qint64 saveSession() {
@@ -122,53 +129,25 @@ protected:
 
         settings().setValue("session/plugins", value);
 
-        /*
-        auto instances = plugins()->instances();
-        QString value;
-
-        for (auto it = instances.begin(), end = instances.end(); it != end; ++it) {
-            value += (*it)->name() + "-" + (*it)->uuid() + " ";
-
-            if ((*it)->type() == Plugin::Type::WIDGET) {
-                qDebug() << "HOYT";
-            
-            }
-        }
-
-        
-        */
-       
-
         return 0;
     }
 
     void closeEvent(QCloseEvent *event) override;
-    
-    void showStatusMessage(const QString &message, int timeout = statusTimeOut);
-    
-    //void showWriteError(const QString &message);
-    
-    //QStringList subWindows() const;
-
-//public slots:
-
-//    void writeSerial(const QString& msg);
 
 public slots:
 
     void createOrActivate() override;
+
+    void showStatusMessage(const QString& msg, int timeout = 0) override;
 
 private slots:
     void about();
     void updateMenus();
     void updateWindowMenu();
     void switchLayoutDirection();
-    //void openSerialPort();
-    //void closeSerialPort();
     void createOrActivatePlugins();
     void createOrActivateInstances();
-    void createOrActivateLogViewer();
-    //void createOrActivateSettings();
+
     void subWindowActivated(QMdiSubWindow* window) {
         if (window) {
             m_current = window;
@@ -186,14 +165,11 @@ private:
     void setRecentFilesVisible(bool visible);
     MdiChild *activeMdiChild() const;
     QMdiSubWindow *findMdiChild(const QString &fileName) const;
-
     
     static constexpr const int statusTimeOut = 2000;
     static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
                                          "document interface applications using Qt.";
     static constexpr const char* logPath = "szpuler.log";
-    //static constexpr const char* settingsPath = "szpuler.ini";
-    
     static constexpr int QSlotInvalid = -1;
 
     QMdiArea *m_mdiArea = nullptr;
@@ -206,8 +182,7 @@ private:
     QAction *m_previousAct = nullptr;
     QAction *m_windowMenuSeparatorAct = nullptr;
     QSettings m_settings;
-    mutable Logger m_logger;
-    //QSerialPort *m_serial = nullptr;
+    mutable Logger* m_logger = nullptr;
     QAction *m_actionConnect = nullptr;
     QAction *m_actionDisconnect = nullptr;
     QAction *m_actionConfigure = nullptr;

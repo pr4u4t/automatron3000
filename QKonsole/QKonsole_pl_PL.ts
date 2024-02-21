@@ -9,8 +9,7 @@
         <translation type="unfinished">Konsola</translation>
     </message>
     <message>
-        <location filename="QKonsole.cpp" line="16"/>
-        <location filename="QKonsole.cpp" line="18"/>
+        <location filename="QKonsole.cpp" line="26"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
