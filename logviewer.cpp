@@ -28,7 +28,9 @@ LogViewer::LogViewer(const Loader* ld, PluginsLoader* plugins, QWidget* parent, 
     }
 }
 
-void LogViewer::settingsChanged(){}
+void LogViewer::settingsChanged(){
+
+}
     
 void LogViewer::message(const QString& msg){
     m_text->appendPlainText(msg);
@@ -54,10 +56,12 @@ static bool LogViewer_register(Window* win, PluginsLoader* ld, LogViewerMenu* ct
     ctx->m_logviewer->setData(QVariant("LogViewer"));
     ctx->m_logviewer->setText(ctx->m_app->translate("MainWindow", "Log Viewer"));
 
-    QMenu* menu = win->findMenu(ctx->m_app->translate("MainWindow", "&File"));
-    ctx->m_logviewer->setParent(menu);
+    QMenu* fileMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&File"));
+    ctx->m_logviewer->setParent(fileMenu);
     QObject::connect(ctx->m_logviewer, &QAction::triggered, win, &Window::createOrActivate);
-    menu->addAction(ctx->m_logviewer);
+
+    QList<QAction*> actions = fileMenu->findChildren<QAction*>(Qt::FindDirectChildrenOnly);
+    fileMenu->insertAction(actions.size() > 0 ? actions[1] : nullptr, ctx->m_logviewer);
     
     return true;
 }

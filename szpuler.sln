@@ -5,6 +5,7 @@ VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "szpuler", "szpuler.vcxproj", "{B1C34221-B544-4CAE-8999-0114026DBD3E}"
 	ProjectSection(ProjectDependencies) = postProject
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D} = {7A092F59-2FA5-38B8-ABDE-DE854677F08D}
 		{A28FF59B-B50B-433E-89A5-99E2D1B73115} = {A28FF59B-B50B-433E-89A5-99E2D1B73115}
 	EndProjectSection
 EndProject
@@ -26,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QSerial", "QSerial\QSerial.
 	EndProjectSection
 EndProject
 Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "MSInstaller", "MSInstaller\MSInstaller.wixproj", "{106739B9-88A7-4101-B624-BB52004BF897}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "qtadvanceddocking", "Qt-Advanced-Docking-System-master\src\qtadvanceddocking.vcxproj", "{7A092F59-2FA5-38B8-ABDE-DE854677F08D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,6 +112,18 @@ Global
 		{106739B9-88A7-4101-B624-BB52004BF897}.Release|x64.Build.0 = Release|x64
 		{106739B9-88A7-4101-B624-BB52004BF897}.Release|x86.ActiveCfg = Release|x86
 		{106739B9-88A7-4101-B624-BB52004BF897}.Release|x86.Build.0 = Release|x86
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Debug|ARM64.ActiveCfg = Debug|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Debug|ARM64.Build.0 = Debug|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Debug|x64.ActiveCfg = Debug|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Debug|x64.Build.0 = Debug|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Debug|x86.ActiveCfg = Debug|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Debug|x86.Build.0 = Debug|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Release|ARM64.ActiveCfg = Release|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Release|ARM64.Build.0 = Release|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Release|x64.ActiveCfg = Release|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Release|x64.Build.0 = Release|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Release|x86.ActiveCfg = Release|x64
+		{7A092F59-2FA5-38B8-ABDE-DE854677F08D}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

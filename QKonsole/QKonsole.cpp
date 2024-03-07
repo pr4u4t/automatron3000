@@ -50,10 +50,10 @@ Terminal::Terminal(QKonsole* parent)
     document()->setMaximumBlockCount(100);
     Window* win = qobject_cast<Window*>(parent->window());
     if (win != nullptr) {
-        setLocalEchoEnabled(win->settings().value("serial/localEchoEnabled", false).toBool());
+        setLocalEchoEnabled(Settings::get().value("serial/localEchoEnabled", false).toBool());
     }
  
-    connect(this, &Terminal::logMessage, qobject_cast<MdiChild*>(parent), &MdiChild::logMessage);
+    connect(this, &Terminal::logMessage, qobject_cast<Widget*>(parent), &Widget::message);
 }
 
 void Terminal::setLocalEchoEnabled(bool set) {

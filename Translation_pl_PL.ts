@@ -17,41 +17,41 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="mainwindow.cpp" line="56"/>
+        <location filename="mainwindow.cpp" line="61"/>
         <source>Are you sure?
 </source>
         <translation>Czy chcesz zamknąć program?
 </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="78"/>
+        <location filename="mainwindow.cpp" line="84"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
     <message>
-        <location filename="logviewer.cpp" line="57"/>
-        <location filename="mainwindow.cpp" line="200"/>
-        <location filename="mainwindow.cpp" line="202"/>
+        <location filename="logviewer.cpp" line="59"/>
+        <location filename="mainwindow.cpp" line="166"/>
+        <location filename="mainwindow.cpp" line="168"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
     <message>
-        <location filename="logviewer.cpp" line="55"/>
+        <location filename="logviewer.cpp" line="57"/>
         <source>Log Viewer</source>
         <translation>Dziennik</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="206"/>
+        <location filename="mainwindow.cpp" line="172"/>
         <source>Switch layout direction</source>
         <translation>Zmień kierunek układu</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="210"/>
+        <location filename="mainwindow.cpp" line="176"/>
         <source>E&amp;xit</source>
         <translation>&amp;Wyjście</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="212"/>
+        <location filename="mainwindow.cpp" line="178"/>
         <source>Exit the application</source>
         <translation>Wyjdź z proramu</translation>
     </message>
@@ -72,114 +72,99 @@
         <translation type="vanished">Rozłącz</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="216"/>
         <source>&amp;Window</source>
-        <translation>&amp;Okna</translation>
+        <translation type="vanished">&amp;Okna</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="219"/>
         <source>Cl&amp;ose</source>
-        <translation>&amp;Zamknij</translation>
+        <translation type="vanished">&amp;Zamknij</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="220"/>
         <source>Close the active window</source>
-        <translation>Zamknij aktywne okno</translation>
+        <translation type="vanished">Zamknij aktywne okno</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="224"/>
         <source>Close &amp;All</source>
-        <translation>Za&amp;mknij wszystkie</translation>
+        <translation type="vanished">Za&amp;mknij wszystkie</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="225"/>
         <source>Close all the windows</source>
-        <translation>Zamknij wszystkie okna</translation>
+        <translation type="vanished">Zamknij wszystkie okna</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="228"/>
         <source>&amp;Tile</source>
-        <translation>&amp;Sąsiadująco</translation>
+        <translation type="vanished">&amp;Sąsiadująco</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="229"/>
         <source>Tile the windows</source>
-        <translation>Okna sąsiadująco</translation>
+        <translation type="vanished">Okna sąsiadująco</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="232"/>
         <source>&amp;Cascade</source>
-        <translation>Okna &amp;kaskadowo</translation>
+        <translation type="vanished">Okna &amp;kaskadowo</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="233"/>
         <source>Cascade the windows</source>
-        <translation>Rozmieść okna kaskadowo</translation>
+        <translation type="vanished">Rozmieść okna kaskadowo</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="236"/>
         <source>Ne&amp;xt</source>
-        <translation>&amp;Następne</translation>
+        <translation type="vanished">&amp;Następne</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="238"/>
         <source>Move the focus to the next window</source>
-        <translation>Przełącz na następne okno</translation>
+        <translation type="vanished">Przełącz na następne okno</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="241"/>
         <source>Pre&amp;vious</source>
-        <translation>Pop&amp;rzednie</translation>
+        <translation type="vanished">Pop&amp;rzednie</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="243"/>
         <source>Move the focus to the previous window</source>
-        <translation>Przełącz na poprzednie okno</translation>
+        <translation type="vanished">Przełącz na poprzednie okno</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="254"/>
+        <location filename="mainwindow.cpp" line="182"/>
         <source>&amp;Settings</source>
         <translation>&amp;Ustawienia</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="255"/>
-        <location filename="mainwindow.cpp" line="287"/>
+        <location filename="mainwindow.cpp" line="183"/>
         <source>Plugins</source>
         <translation>Wtyczki</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="260"/>
-        <location filename="mainwindow.cpp" line="317"/>
+        <location filename="mainwindow.cpp" line="188"/>
         <source>Instances</source>
         <translation>Instancje</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="267"/>
+        <location filename="mainwindow.cpp" line="195"/>
         <source>&amp;Help</source>
         <translation>Po&amp;moc</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="269"/>
+        <location filename="mainwindow.cpp" line="197"/>
         <source>&amp;About</source>
         <translation>&amp;O programie</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="270"/>
+        <location filename="mainwindow.cpp" line="198"/>
         <source>Show the application&apos;s About box</source>
         <translation>Informacje o programie</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="272"/>
+        <location filename="mainwindow.cpp" line="200"/>
         <source>About &amp;Qt</source>
         <translation>O &amp;Qt</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="273"/>
+        <location filename="mainwindow.cpp" line="201"/>
         <source>Show the Qt library&apos;s About box</source>
         <translation>Informacje o Qt</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="353"/>
+        <location filename="mainwindow.cpp" line="239"/>
         <source>Ready</source>
         <translation>Gotowy</translation>
     </message>
@@ -375,12 +360,12 @@
     <message>
         <location filename="Tray.h" line="18"/>
         <source>Window</source>
-        <translation type="unfinished"></translation>
+        <translation>Okno</translation>
     </message>
     <message>
         <location filename="Tray.h" line="21"/>
         <source>Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>Wyjdź</translation>
     </message>
 </context>
 </TS>

@@ -11,19 +11,19 @@
 
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
-SettingsDialog::SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath) :
-    MdiChild(mwin),
-    m_currentSettings(settings(), settingsPath),
+SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath) 
+    : SettingsMdi(parent),
+    m_currentSettings(Settings::get(), settingsPath),
     m_ui(new Ui::SettingsDialog),
     m_intValidator(new QIntValidator(0, 4000000, this)),
     m_settingsPath(settingsPath){
-    emit logMessage("SettingsDialog::SettingsDialog");
+    emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
     m_ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
 
-    connect(m_ui->applyButton, &QPushButton::clicked,
-            this, &SettingsDialog::apply);
+    connect(m_ui->okButton, &QPushButton::clicked,
+            this, &SettingsDialog::ok);
     connect(m_ui->cancelButton, &QPushButton::clicked,
         this, &SettingsDialog::cancel);
     connect(m_ui->serialPortInfoListBox, &QComboBox::currentIndexChanged,
@@ -44,12 +44,12 @@ SettingsDialog::~SettingsDialog(){
 }
 
 SettingsDialog::SerialSettings SettingsDialog::serialSettings() const{
-    emit logMessage("SettingsDialog::settings");
+    emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
 
 void SettingsDialog::showPortInfo(int idx){
-    emit logMessage("SettingsDialog::showPortInfo");
+    emit message("SettingsDialog::showPortInfo");
     if (idx == -1)
         return;
 
@@ -64,18 +64,25 @@ void SettingsDialog::showPortInfo(int idx){
     m_ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.value(6, blankString)));
 }
 
-void SettingsDialog::apply(){
-    emit logMessage("SettingsDialog::apply");
+void SettingsDialog::ok() {
+    emit message("SettingsDialog::ok");
     updateSettings();
-    parent()->deleteLater();
+    close();
+    emit settingsUpdated();
+}
+
+void SettingsDialog::apply(){
+    emit message("SettingsDialog::apply");
+    updateSettings();
+    emit settingsUpdated();
 }
 
 void SettingsDialog::cancel() {
-    parent()->deleteLater();
+    close();
 }
 
 void SettingsDialog::checkCustomBaudRatePolicy(int idx){
-    emit logMessage("SettingsDialog::checkCustomBaudRatePolicy");
+    emit message("SettingsDialog::checkCustomBaudRatePolicy");
     const bool isCustomBaudRate = !m_ui->baudRateBox->itemData(idx).isValid();
     m_ui->baudRateBox->setEditable(isCustomBaudRate);
     if (isCustomBaudRate) {
@@ -86,7 +93,7 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx){
 }
 
 void SettingsDialog::checkCustomDevicePathPolicy(int idx){
-    emit logMessage("SettingsDialog::checkCustomDevicePathPolicy");
+    emit message("SettingsDialog::checkCustomDevicePathPolicy");
     const bool isCustomPath = !m_ui->serialPortInfoListBox->itemData(idx).isValid();
     m_ui->serialPortInfoListBox->setEditable(isCustomPath);
     if (isCustomPath)
@@ -94,7 +101,7 @@ void SettingsDialog::checkCustomDevicePathPolicy(int idx){
 }
 
 void SettingsDialog::fillPortsParameters(){
-    emit logMessage("SettingsDialog::fillPortsParameters");
+    emit message("SettingsDialog::fillPortsParameters");
     m_ui->baudRateBox->addItem(QStringLiteral("9600"), QSerialPort::Baud9600);
     m_ui->baudRateBox->addItem(QStringLiteral("19200"), QSerialPort::Baud19200);
     m_ui->baudRateBox->addItem(QStringLiteral("38400"), QSerialPort::Baud38400);
@@ -125,7 +132,7 @@ void SettingsDialog::fillPortsParameters(){
 }
 
 void SettingsDialog::fillPortsInfo(){
-    emit logMessage("SettingsDialog::fillPortsInfo");
+    emit message("SettingsDialog::fillPortsInfo");
     m_ui->serialPortInfoListBox->clear();
     const QString blankString = tr(::blankString);
     const auto infos = QSerialPortInfo::availablePorts();
@@ -152,7 +159,7 @@ void SettingsDialog::fillPortsInfo(){
 }
 
 void SettingsDialog::fillFromSettings(){
-    emit logMessage("SettingsDialog::fillFromSettings");
+    emit message("SettingsDialog::fillFromSettings");
     int idx;
     
     if((idx = m_ui->serialPortInfoListBox->findText(m_currentSettings.name)) == -1){
@@ -182,7 +189,7 @@ void SettingsDialog::fillFromSettings(){
 }
 
 void SettingsDialog::updateSettings(){
-    emit logMessage("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings");
     
     m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
 
@@ -207,11 +214,10 @@ void SettingsDialog::updateSettings(){
 
     m_currentSettings.localEchoEnabled = m_ui->localEchoCheckBox->isChecked();
     m_currentSettings.autoConnect = m_ui->autoConnectCheckBox->isChecked();
-    
-    //place to save settings
-    m_currentSettings.save(&settings(), settingsPath());
+    QSettings s = Settings::get();
+    m_currentSettings.save(s, settingsPath());
 }
 
 void SettingsDialog::settingsChanged(){
-    emit logMessage("SettingsDialog::settingsChanged");
+    emit message("SettingsDialog::settingsChanged");
 }

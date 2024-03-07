@@ -3,6 +3,7 @@
 
 #include <QSerialPort>
 #include <QMessageBox>
+#include <QString>
 
 #include "qserial_global.h"
 #include "../api/api.h"
@@ -27,9 +28,14 @@ public:
 
 	bool isOpen() const;
 
+public slots:
+
+	void settingsChanged();
+
 private:
 
 	QSerialPort* m_serial = nullptr;
+	SettingsDialog::SerialSettings m_settings;
 };
 
 #endif

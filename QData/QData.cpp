@@ -1,5 +1,3 @@
-#include "QData.h"
-#include "../api/api.h"
 #include <QApplication>
 #include <QTranslator>
 #include <QSplitter>
@@ -7,6 +5,12 @@
 #include <QGroupBox>
 #include <QProgressDialog>
 #include <QRegularExpression>
+#include <QCryptographicHash>
+
+#include "QData.h"
+#include "../api/api.h"
+#include "SettingsDialog.h"
+#include "passworddialog.h"
 
 struct QDataMenu {
     QDataMenu(QCoreApplication* app)
@@ -16,13 +20,21 @@ struct QDataMenu {
             m_app->installTranslator(m_translator);
         }
 
-        m_database = new QAction(m_app->translate("MainWindow", "Database"), nullptr);
+        m_dataMenu = new QMenu(m_app->translate("MainWindow", "&Data"));
+
+        m_database = new QAction(m_app->translate("MainWindow", "Database"), m_dataMenu);
         m_database->setData(QVariant("QData"));
+        m_dataMenu->addAction(m_database);
+        m_dbSettings = new QAction(m_app->translate("MainWindow", "Settings"), m_dataMenu);
+        m_dataMenu->addAction(m_dbSettings);
     }
 
+    QMenu* m_dataMenu = nullptr;
+    QAction* m_dbSettings = nullptr;
     QAction* m_database = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
+
 };
 
 static bool QData_register(Window* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
@@ -32,13 +44,19 @@ static bool QData_register(Window* win, PluginsLoader* ld, QDataMenu* ctx, Logge
 		return false;
 	}
 
-    QMenu* fileMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&File"));
-    ctx->m_database->setParent(fileMenu);
-	
+    QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
+    if (windowMenu != nullptr) {
+        win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_dataMenu);
+    }
+
 	QObject::connect(ctx->m_database, &QAction::triggered, win, &Window::createOrActivate);
-  
-	QList<QAction*> actions = fileMenu->findChildren<QAction*>(Qt::FindDirectChildrenOnly);
-	fileMenu->insertAction(actions.size() > 0 ? actions[1] : nullptr, ctx->m_database);
+
+    QObject::connect(ctx->m_dbSettings, &QAction::triggered, [ld, win, ctx] {
+        QSharedPointer<Plugin> data = ld->instance("QData", win);
+        SettingsDialog* dialog = new SettingsDialog(win, nullptr, data->settingsPath());
+        QObject::connect(dialog, &SettingsDialog::settingsUpdated, data.dynamicCast<QData>().data(), &QData::settingsChanged);
+        win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+    });
 
 	return true;
 }
@@ -59,129 +77,34 @@ REGISTER_PLUGIN(
     QDataMenu
 )
 
-QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath) {
+QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
+    : Widget(ld, plugins, parent, path)
+    , m_ui(new Ui::QDataUI) {
+    m_ui->setupUi(this);
     m_db = QSqlDatabase::database();
 
-    if (!m_db.isValid() || !m_db.isOpen()) {
-
-        QString db = settings().value(this->settingsPath() + "/DataWindow/database", QString(database)).toString();
-        m_db = QSqlDatabase::addDatabase("QSQLITE");
-        m_db.setDatabaseName(db);
-
-        emit message(QString("QData::QData: connection to database: %1").arg(m_db.open() ? tr("success") : tr("failed")));
-    }
-
-    QString tbl = settings().value(this->settingsPath() + "/DataWindow/table", QString(table)).toString();
-    if (m_db.tables().contains(tbl, Qt::CaseInsensitive) == false) {
-        m_db.exec(QString(createTable).arg(tbl));
-    } else {
-        emit message("QData::QData: creating database");
-    }
-
-    m_view = new QTableView();
-    m_view->setShowGrid(true);
-    m_view->setSortingEnabled(true);
-    m_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    m_view->setAlternatingRowColors(true);
-    m_view->setGridStyle(Qt::SolidLine);
-    m_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_view->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-    m_model = new QSqlTableModel(m_view, m_db);
-    m_model->setTable(tbl);
-    m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    m_model->select();
-    m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
-    m_model->setHeaderData(2, Qt::Horizontal, tr("Cell"));
-    m_view->setModel(m_model);
-    m_view->setColumnHidden(0, true);
-
-    QLabel* label = new QLabel(tr("Part Number"));
-    QPushButton* importCSVButton = new QPushButton(tr("Import &CSV"));
-    QPushButton* importDirButton = new QPushButton(tr("Import &Dir"));
-    QPushButton* exportButton = new QPushButton(tr("&Export CSV"));
-
-    connect(importCSVButton, &QPushButton::clicked, this, &QData::importFromCsv);
-    connect(importDirButton, &QPushButton::clicked, this, &QData::importFromFiles);
-    connect(exportButton, &QPushButton::clicked, this, &QData::exportAsCsv);
-    connect(m_view, &QTableView::activated, this, &QData::activated);
-
-    m_edit = new QLineEdit();
-    m_edit->setMaxLength(24);
-    m_edit->setClearButtonEnabled(true);
-    connect(m_edit, &QLineEdit::returnPressed, this, &QData::enterPressed);
-    connect(m_edit, &QLineEdit::textChanged, this, &QData::textChanged);
-
-    QBoxLayout* buttons = new QHBoxLayout();
-    buttons->addWidget(importCSVButton);
-    buttons->addWidget(importDirButton);
-    buttons->addWidget(exportButton);
-    buttons->addStretch();
-    buttons->setSpacing(10);
-
-    QBoxLayout* l = new QVBoxLayout();
-    l->addWidget(m_view);
-
-    QBoxLayout* h = new QHBoxLayout();
-    h->addWidget(label);
-    h->addWidget(m_edit);
-    h->addStretch(2);
-    h->setSpacing(10);
-
-    QPushButton* search = new QPushButton(tr("&Search"));
-    connect(search, &QPushButton::pressed, this, &QData::enterPressed);
-    h->addWidget(search);
-
-    QPushButton* clear = new QPushButton(tr("C&lear"));
-    connect(clear, &QPushButton::pressed, this, &QData::clearForm);
-    h->addWidget(clear);
-
-    l->addItem(h);
-    
+    m_ui->dbView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_lmodel = new QStandardItemModel(0, 1);
-    m_list = new QListView();
-    m_list->setModel(m_lmodel);
-    m_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_list->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_ui->historyView->setModel(m_lmodel);
 
-    QBoxLayout* r = new QVBoxLayout();
-    r->addWidget(m_list);
+    connect(m_ui->importCsvButton, &QPushButton::clicked, this, &QData::importFromCsv);
+    connect(m_ui->importDirButton, &QPushButton::clicked, this, &QData::importFromFiles);
+    connect(m_ui->exportCSVButton, &QPushButton::clicked, this, &QData::exportAsCsv);
+    connect(m_ui->dbView, &QTableView::activated, this, &QData::activated);
+    connect(m_ui->barcodeEdit, &QLineEdit::returnPressed, this, &QData::enterPressed);
+    connect(m_ui->barcodeEdit, &QLineEdit::textChanged, this, &QData::textChanged);
+    connect(m_ui->barcodeEdit, &QLineEdit::returnPressed, this, &QData::enterPressed);
+    connect(m_ui->barcodeEdit, &QLineEdit::textChanged, this, &QData::textChanged);
+    connect(m_ui->searchButton, &QPushButton::pressed, this, &QData::enterPressed);
+    connect(m_ui->clearButton, &QPushButton::pressed, this, &QData::clearForm);
+    connect(m_ui->unlockButton, &QPushButton::pressed, this, &QData::toggleLock);
 
-    QGridLayout* g = new QGridLayout();
-    m_rack = new QLabel();
-    m_shelf = new QLabel();
-    m_side = new QLabel();
+    if (m_settings.serialInterval != -1) {
+        m_timer.setInterval(m_settings.serialInterval);
+    }
 
-    g->addWidget(new QLabel(tr("Rack:")), 0, 0);
-    g->addWidget(m_rack, 0, 1);
-
-    g->addWidget(new QLabel(tr("Shelf:")), 1, 0);
-    g->addWidget(m_shelf, 1, 1);
-
-    g->addWidget(new QLabel(tr("Side:")), 2, 0);
-    g->addWidget(m_side, 2, 1);
-
-    r->addItem(g);
-
-    QSplitter* split = new QSplitter();
-    QGroupBox* left = new QGroupBox(tr("Database"));
-    QGroupBox* right = new QGroupBox(tr("History"));
-    split->addWidget(left);
-    split->addWidget(right);
-
-    left->setLayout(l);
-    right->setLayout(r);
-
-    QBoxLayout* z = new QVBoxLayout();
-    z->addWidget(split);
-    z->addItem(buttons);
-
-    setLayout(z);
-
-    m_timer.setInterval(interval);
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
+    settingsChanged();
 }
 
 void QData::timeout() {
@@ -197,7 +120,17 @@ void QData::timeout() {
 
     if (io->isOpen() == false) {
         emit message("QData::timeout: serial port not open");
-        return;
+        if (io->open() == false) {
+            emit message("QData::timeout: failed to open serial port");
+            return;
+        }
+            
+        emit message("QData::timeout: serial port open success");
+    }
+
+    if (m_settings.serialPrefix.isEmpty() == false) {
+        auto res = io->write(m_settings.serialPrefix + '\n');
+        emit message(QString("QData::timeout: prefix write %1").arg(res));
     }
 
     auto res = io->write(m_selected + '\n');
@@ -220,7 +153,7 @@ void QData::exportAsCsv(bool checked) {
         return;
     }
 
-    queryToCsv(fileName, QString(exportQuery).arg(table));
+    queryToCsv(fileName, QString(exportQuery).arg(m_settings.dbTable));
 
     QMessageBox::information(this, tr(title),
         tr("Database export successful"),
@@ -290,7 +223,11 @@ void QData::importFromCsv(bool checked) {
 
         QSqlQuery query;
         query.prepare(QString("INSERT INTO %1 (id, part, shelf) VALUES (%2, %3, %4)")
-            .arg(table).arg(columns[0]).arg(columns[1]).arg(columns[2]));
+            .arg(m_settings.dbTable)
+            .arg(columns[0])
+            .arg(columns[1])
+            .arg(columns[2])
+        );
 
         if (!query.exec()) {
             emit message(QString("QData::importFromcsv: insert error: %1").arg(query.lastError().text()));
@@ -363,7 +300,11 @@ void QData::importFromFiles(bool checked) {
         QString shelf(contents);
 
         QSqlQuery query;
-        query.prepare(QString("INSERT INTO %1 (part, shelf) VALUES (%2, %3)").arg(table).arg(part).arg(shelf));
+        query.prepare(QString("INSERT INTO %1 (part, shelf) VALUES (%2, %3)")
+            .arg(m_settings.dbTable)
+            .arg(part)
+            .arg(shelf)
+        );
 
         if (!query.exec()) {
             emit message(QString("QData::importFromCsv: insert error: ").arg(query.lastError().text()));
@@ -426,18 +367,57 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
     progress.setValue(count);
 }
 
-void QData::settingsChanged() {}
+void QData::settingsChanged() {
+    Window* win = qobject_cast<Window*>(parent());
+    m_settings = SettingsDialog::DataSettings(Settings::get(), settingsPath());
+
+    if (m_db.isValid() || m_db.isOpen()) {
+        m_db.close();
+    }
+
+    m_db = QSqlDatabase::addDatabase(m_settings.dbDriver);
+    m_db.setDatabaseName(m_settings.dbUri);
+
+    bool rc = m_db.open();
+
+    emit message(QString("QData::QData: connection to database: %1").arg(rc ? tr("success") : tr("failed")));
+    
+    if (rc == false) {
+        return;
+    }
+
+    if (m_db.tables().contains(m_settings.dbTable, Qt::CaseInsensitive) == false) {
+        m_db.exec(QString(createTable).arg(m_settings.dbTable));
+    } else {
+        emit message("QData::QData: table already exists");
+    }
+
+    if (m_model != nullptr) {
+        m_ui->dbView->setModel(nullptr);
+        delete m_model;
+    }
+
+    m_model = new QSqlTableModel(nullptr, m_db);
+    m_ui->dbView->setModel(m_model);
+    m_model->setTable(m_settings.dbTable);
+    m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    m_model->select();
+    m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
+    m_model->setHeaderData(2, Qt::Horizontal, tr("Cell"));
+    m_ui->dbView->setModel(m_model);
+    m_ui->dbView->setColumnHidden(0, true);
+}
 
 void QData::prepareForFocus() {
     emit message("QData::QData::prepareForFocus()");
-    m_edit->setFocus();
+    m_ui->barcodeEdit->setFocus();
 }
 
 bool QData::clearData() {
     emit message("QData::clearData()", LoggerSeverity::LOG_DEBUG);
 
     QSqlQuery query(m_db);
-    if (query.exec(QString("DELETE FROM %1").arg(table)) == true) {
+    if (query.exec(QString("DELETE FROM %1").arg(m_settings.dbTable)) == true) {
         emit message(QString("QData::clearData(): rows affected %1").arg(query.numRowsAffected()));
         return true;
     }
@@ -458,31 +438,37 @@ void QData::activated(const QModelIndex& idx) {
 
         m_lmodel->appendRow(new QStandardItem(idx.siblingAtColumn(1).data().toString()));
         fillInfo();
-
-        m_timer.start();
-
-        emit message("QData::enterPressed(): timer started");
+        if (m_settings.serialInterval != -1) {
+            emit message("QData::activated(): timer started");
+            m_timer.start();
+        } else {
+            emit message("QData::activated(): single shot");
+            timeout();
+        }
     }
 }
 
 void QData::enterPressed() {
     emit message("QData::enterPressed()", LoggerSeverity::LOG_DEBUG);
-    QString str = m_edit->text();
+    QString str = m_ui->barcodeEdit->text();
 
     if (str.isEmpty()) {
         emit message("QData::enterPressed(): input is empty");
         return;
     }
 
-    QRegularExpression regex("^[0-9]+[\\\\\\/]([0-9\\.]+).+$");
-    auto match = regex.match(str);
+    if (m_settings.barcodeRegexp.isEmpty() != false) {
+        emit message("QData::enterPressed(): barcode regexp found");
+        QRegularExpression regex(m_settings.barcodeRegexp);
+        auto match = regex.match(str);
 
-    if (match.hasMatch() && match.capturedLength() > 2) {
-        emit message("QData::enterPressed(): input from barcode reader");
-        auto res = match.captured(1);
-        res.remove('.');
-        m_edit->setText(res);
-        str = res;
+        if (match.hasMatch() && match.capturedLength() > 2) {
+            emit message("QData::enterPressed(): input from barcode reader");
+            auto res = match.captured(1);
+            res.remove('.');
+            m_ui->barcodeEdit->setText(res);
+            str = res;
+        }
     }
 
     m_model->setFilter("part LIKE '%" + str + "%'");
@@ -493,14 +479,40 @@ void QData::enterPressed() {
 
     if (row != -1) {
         QModelIndex idx = m_model->index(row, 2);
-        m_view->scrollTo(idx);
-        m_view->selectRow(row);
+        m_ui->dbView->scrollTo(idx);
+        m_ui->dbView->selectRow(row);
         m_selected = idx.data().toString();
 
         m_lmodel->appendRow(new QStandardItem(m_model->index(row, 1).data().toString()));
         fillInfo();
+        
+        if (m_settings.serialInterval != -1) {
+            emit message("QData::enterPressed(): timer start");
+            m_timer.start();
+        } else {
+            emit message("QData::enterPressed(): single shot");
+            timeout();
+        }
+    }
+}
 
-        m_timer.start();
-        emit message("QData::enterPressed(): timer started");
+void QData::toggleLock() {
+    if (m_ui->unlockButton->text() == tr("Unlock")) {
+        if (m_settings.dbLock == true && m_settings.dbLockPass.isEmpty() == false) {
+            PasswordDialog d(this, m_settings.dbLockPass);
+            if (d.exec() != QDialog::Accepted) {
+                return;
+            }
+        }
+
+        m_ui->importCsvButton->setEnabled(true);
+        m_ui->importDirButton->setEnabled(true);
+        m_ui->exportCSVButton->setEnabled(true);
+        m_ui->unlockButton->setText(tr("Lock"));
+    } else {
+        m_ui->importCsvButton->setEnabled(false);
+        m_ui->importDirButton->setEnabled(false);
+        m_ui->exportCSVButton->setEnabled(false);
+        m_ui->unlockButton->setText(tr("Unlock"));
     }
 }

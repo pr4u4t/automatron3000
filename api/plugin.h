@@ -59,8 +59,6 @@ public:
 
 	QString uuid() const;
 
-	//virtual bool saveSettings() const = 0;
-
 	virtual ~Plugin() = default;
 
 	QString settingsPath() const {
@@ -80,7 +78,8 @@ private:
 	QString m_settingsPath;
 };
 
-class API_EXPORT Extension : public QObject, public Plugin {
+class API_EXPORT Extension	: public QObject
+							, public Plugin {
 	Q_OBJECT
 
 public:
@@ -95,24 +94,32 @@ signals:
 	void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
 
 	void status(const QString& msg) const;
+
+public slots:
+
+	virtual void settingsChanged() = 0;
 };
 
-class API_EXPORT Widget : public MdiChild, public Plugin {
+class API_EXPORT Widget : public MdiChild
+						, public Plugin {
 	Q_OBJECT
 
 public:
 
 	Widget(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
-		: Plugin(ld, plugins, path), MdiChild(parent){
+		: Plugin(ld, plugins, path)
+		, MdiChild(){
 	}
 
 	virtual ~Widget() {}
 
 signals:
 
-	void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
-
 	void status(const QString& msg) const;
+
+public slots:
+
+	virtual void settingsChanged() = 0;
 };
 
 class PluginsLoader;
@@ -223,5 +230,14 @@ signals:
 };
 
 #define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data) extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg); }
+
+class API_EXPORT Settings {
+
+public:
+	static QSettings get() {
+		return QSettings("configuration.ini", QSettings::Format::IniFormat);
+	}
+
+};
 
 #endif

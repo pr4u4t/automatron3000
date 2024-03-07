@@ -21,7 +21,7 @@ class SettingsDialog;
 //class QIntValidator;
 QT_END_NAMESPACE
 
-class SettingsDialog : public MdiChild{
+class SettingsDialog : public SettingsMdi{
 
     Q_OBJECT
 
@@ -52,37 +52,35 @@ public:
     static constexpr bool autoConnectValue = false;
     
     struct SerialSettings{
-        SerialSettings(){
-            name = nameValue;
-            baudRate = bRateValue;
-            dataBits = dataBitsValue;
-            parity = parityValue;
-            stopBits = stopBitsValue;
-            flowControl = flowControlValue;
-            localEchoEnabled = localEchoEnabledValue;
-            autoConnect = autoConnectValue;
-        }
+        SerialSettings()
+            : name(nameValue)
+            , baudRate(bRateValue)
+            , dataBits(dataBitsValue)
+            , parity(parityValue)
+            , stopBits(stopBitsValue)
+            , flowControl(flowControlValue)
+            , localEchoEnabled(localEchoEnabledValue)
+            , autoConnect(autoConnectValue){}
         
-        SerialSettings(const QSettings& settings, const QString& settingsPath){
-            name = settings.value(settingsPath + "/" + nameKey, nameValue).toString();
-            baudRate = settings.value(settingsPath + "/" + bRateKey, bRateValue).toInt();
-            dataBits = static_cast<QSerialPort::DataBits>(settings.value(settingsPath + "/" + dataBitsKey, dataBitsValue).toInt());
-            parity = static_cast<QSerialPort::Parity>(settings.value(settingsPath + "/" + parityKey, parityValue).toInt());
-            stopBits = static_cast<QSerialPort::StopBits>(settings.value(settingsPath + "/" + stopBitsKey, stopBitsValue).toInt());
-            flowControl = static_cast<QSerialPort::FlowControl>(settings.value(settingsPath + "/" + flowControlKey, flowControlValue).toInt());
-            localEchoEnabled = settings.value(settingsPath + "/" + localEchoEnabledKey, localEchoEnabledValue).toBool();
-            autoConnect = settings.value(settingsPath + "/" + autoConnectKey, autoConnectValue).toBool();
-        }
+        SerialSettings(const QSettings& settings, const QString& settingsPath) 
+            : name(settings.value(settingsPath + "/" + nameKey, nameValue).toString())
+            , baudRate(settings.value(settingsPath + "/" + bRateKey, bRateValue).toInt())
+            , dataBits(static_cast<QSerialPort::DataBits>(settings.value(settingsPath + "/" + dataBitsKey, dataBitsValue).toInt()))
+            , parity(static_cast<QSerialPort::Parity>(settings.value(settingsPath + "/" + parityKey, parityValue).toInt()))
+            , stopBits(static_cast<QSerialPort::StopBits>(settings.value(settingsPath + "/" + stopBitsKey, stopBitsValue).toInt()))
+            , flowControl(static_cast<QSerialPort::FlowControl>(settings.value(settingsPath + "/" + flowControlKey, flowControlValue).toInt()))
+            , localEchoEnabled(settings.value(settingsPath + "/" + localEchoEnabledKey, localEchoEnabledValue).toBool())
+            , autoConnect(settings.value(settingsPath + "/" + autoConnectKey, autoConnectValue).toBool()){}
         
-        void save(QSettings* settings, const QString& settingsPath) const{
-            settings->setValue(settingsPath + "/" + nameKey, name);
-            settings->setValue(settingsPath + "/" + bRateKey, baudRate);
-            settings->setValue(settingsPath + "/" + dataBitsKey, dataBits);
-            settings->setValue(settingsPath + "/" + parityKey, parity);
-            settings->setValue(settingsPath + "/" + stopBitsKey, stopBits);
-            settings->setValue(settingsPath + "/" + flowControlKey, flowControl);
-            settings->setValue(settingsPath + "/" + localEchoEnabledKey, localEchoEnabled);
-            settings->setValue(settingsPath + "/" + autoConnectKey, autoConnect);
+        void save(QSettings& settings, const QString& settingsPath) const{
+            settings.setValue(settingsPath + "/" + nameKey, name);
+            settings.setValue(settingsPath + "/" + bRateKey, baudRate);
+            settings.setValue(settingsPath + "/" + dataBitsKey, dataBits);
+            settings.setValue(settingsPath + "/" + parityKey, parity);
+            settings.setValue(settingsPath + "/" + stopBitsKey, stopBits);
+            settings.setValue(settingsPath + "/" + flowControlKey, flowControl);
+            settings.setValue(settingsPath + "/" + localEchoEnabledKey, localEchoEnabled);
+            settings.setValue(settingsPath + "/" + autoConnectKey, autoConnect);
         }
         
         QString name;
@@ -113,6 +111,7 @@ private slots:
     void showPortInfo(int idx);
     void apply();
     void cancel();
+    void ok();
     void checkCustomBaudRatePolicy(int idx);
     void checkCustomDevicePathPolicy(int idx);
 

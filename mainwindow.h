@@ -19,6 +19,9 @@
 #include "ModuleLoader.h"
 #include "MdiWindow.h"
 
+#include "DockManager.h"
+#include "DockAreaWidget.h"
+
 class MainWindow : public Window {
     Q_OBJECT
 
@@ -29,7 +32,7 @@ public:
     static constexpr const char* winTitle = "szpuler";
     static constexpr const char* fatalError = "Fatal error occurred please contact support";
 
-    MainWindow(MLoader* plugins = nullptr, Logger* log = nullptr);
+    MainWindow(MLoader* plugins = nullptr, Logger* logger = nullptr);
 
     ~MainWindow();
 
@@ -37,7 +40,7 @@ public:
     
     MainWindow& operator<< (const QString& msg);
     
-    Logger* logger();
+    //Logger* logger();
     
     MLoader* plugins();
 
@@ -52,12 +55,12 @@ public:
         QStringList list = session.split(" ", Qt::SkipEmptyParts);
         qint64 ret = 0;
         QRegExp rx("^([A-Za-z0-9]+)");
-        
+
         for (auto it = list.begin(), end = list.end(); it != end; ++it, ++ret) {
             qDebug() << *it;
             if (rx.indexIn(*it) != -1) {
                 QString name = rx.cap(1);
-                qDebug() << name;
+
                 auto plugin = plugins()->instance(name, this, *it);
 
                 if (plugin.isNull()) {
@@ -65,59 +68,35 @@ public:
                 }
 
                 if (plugin->type() == Plugin::Type::WIDGET) {
-                    MdiWindow* win = new MdiWindow(nullptr, dynamic_cast<Widget*>(plugin.data()));
-                    win->setWindowTitle(plugin->name());
-                    m_mdiArea->addSubWindow(win);
-
-                    const QByteArray geometry = settings().value("session/" + plugin->name() + "-" + plugin->uuid() + "/geometry", QByteArray()).toByteArray();
-                    if (geometry.isEmpty() == false) {
-                        win->restoreGeometry(geometry);
-                    }
+                    ads::CDockWidget* dockWidget = new ads::CDockWidget(plugin->name());
+ 
+                    dockWidget->setWidget(dynamic_cast<Widget*>(plugin.data()));
+                    dockWidget->setFeature(ads::CDockWidget::DontDeleteContent, true);
+                    
+                    m_dockManager->addDockWidget(ads::CenterDockWidgetArea, dockWidget, m_area);
                 }
             }
         }
 
-        QString active = settings().value("session/active", QString()).toString();
-        if (active.isEmpty() == false) {
-            m_mdiArea->setActiveSubWindow(findMdiChild(active));
-        }
-
+        QByteArray state = settings().value("session/state").toByteArray();
+        m_dockManager->restoreState(state);
+        m_area = m_dockManager->dockArea(0);
         return ret;
     }
     
 
 protected:
+
+    ads::CDockWidget* addSubWindowInternal(QWidget* widget, const QString& title = QString());
+
+    void closeEvent(QCloseEvent* ev) override;
+
     qint64 saveSession() {
         QSettings& setts = settings();
         QString value;
         
-        const QList<QMdiSubWindow*> subWindows = m_mdiArea->subWindowList();
-
-        if (m_current) {
-            Widget* current = qobject_cast<Widget*>(m_current->widget());
-            if (current) {
-                setts.setValue("session/active", current->name());
-            }
-        }
-
-        for (QMdiSubWindow* window : subWindows) {
-            MdiChild* mdiChild = qobject_cast<MdiChild*>(window->widget());
-            Widget* plugin = qobject_cast<Widget*>(mdiChild);
-
-            if (plugin == nullptr) {
-                continue;
-            }
-
-            value += plugin->name() + "-" + plugin->uuid() + " ";
-            
-            setts.setValue("session/"+plugin->name() + "-" + plugin->uuid() + "/geometry", window->saveGeometry());
-            window->setWidget(nullptr);
-
-            //if (mdiChild->metaObject()->metaType().name() == key){
-            //    m_logger.message(QString("child found: ")+mdiChild->metaObject()->metaType().name());
-            //    return window;
-            //}
-        }
+        QByteArray state = m_dockManager->saveState();
+        settings().setValue("session/state", state);
 
         for (auto extension : plugins()->instances()) {
             if (extension->type() == Plugin::Type::WIDGET) {
@@ -128,11 +107,13 @@ protected:
         }
 
         settings().setValue("session/plugins", value);
-
+        
         return 0;
     }
 
-    void closeEvent(QCloseEvent *event) override;
+signals:
+
+    void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
 
 public slots:
 
@@ -142,17 +123,17 @@ public slots:
 
 private slots:
     void about();
-    void updateMenus();
-    void updateWindowMenu();
+    //void updateMenus();
+    //void updateWindowMenu();
     void switchLayoutDirection();
     void createOrActivatePlugins();
     void createOrActivateInstances();
 
-    void subWindowActivated(QMdiSubWindow* window) {
-        if (window) {
-            m_current = window;
-        }
-    }
+    //void subWindowActivated(QMdiSubWindow* window) {
+    //    if (window) {
+    //        m_current = window;
+    //    }
+    //}
 
 private:
 
@@ -161,18 +142,18 @@ private:
     void createStatusBar();
     void readSettings();
     void writeSettings();
-    void prependToRecentFiles(const QString &fileName);
-    void setRecentFilesVisible(bool visible);
-    MdiChild *activeMdiChild() const;
-    QMdiSubWindow *findMdiChild(const QString &fileName) const;
+    
+    //MdiChild *activeMdiChild() const;
+    /*QMdiSubWindow**/ ads::CDockWidget* findChildWindow(const QString& name) const;
     
     static constexpr const int statusTimeOut = 2000;
     static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
-                                         "document interface applications using Qt.";
-    static constexpr const char* logPath = "szpuler.log";
+                                             "document interface applications using Qt.";
     static constexpr int QSlotInvalid = -1;
 
-    QMdiArea *m_mdiArea = nullptr;
+    ads::CDockManager* m_dockManager = nullptr;
+    ads::CDockAreaWidget* m_area = nullptr;
+
     QMenu *m_windowMenu = nullptr;
     QAction *m_closeAct = nullptr;
     QAction *m_closeAllAct = nullptr;
@@ -182,12 +163,12 @@ private:
     QAction *m_previousAct = nullptr;
     QAction *m_windowMenuSeparatorAct = nullptr;
     QSettings m_settings;
-    mutable Logger* m_logger = nullptr;
     QAction *m_actionConnect = nullptr;
     QAction *m_actionDisconnect = nullptr;
     QAction *m_actionConfigure = nullptr;
     MLoader* m_plugins = nullptr;
-    QMdiSubWindow* m_current = nullptr;
+    //QMdiSubWindow* m_current = nullptr;
+    Logger* m_logger = nullptr;
 };
 
 #endif

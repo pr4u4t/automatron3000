@@ -37,12 +37,12 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>6.5.3_msvc2019_64</QtInstall>
+    <QtInstall>6.6.2_msvc2019_64</QtInstall>
     <QtModules>core;gui;widgets;core5compat;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.5.3_msvc2019_64</QtInstall>
+    <QtInstall>6.6.2_msvc2019_64</QtInstall>
     <QtModules>core;widgets;core5compat;sql</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
@@ -62,9 +62,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <OutDir>$(SolutionDir)plugins\</OutDir>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>$(SolutionDir)plugins\</OutDir>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
@@ -111,12 +113,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="passworddialog.cpp" />
+    <ClCompile Include="settingsdialog.cpp" />
+    <ClCompile Include="simplecrypt.cpp" />
+    <ClInclude Include="simplecrypt.h" />
+    <QtMoc Include="passworddialog.h" />
     <ClInclude Include="qdata_global.h" />
+    <QtMoc Include="settingsdialog.h" />
     <QtMoc Include="QData.h" />
     <ClCompile Include="QData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtTranslation Include="QData_pl_PL.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="passworddialog.ui" />
+    <QtUic Include="qdataui.ui" />
+    <QtUic Include="settingsdialog.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

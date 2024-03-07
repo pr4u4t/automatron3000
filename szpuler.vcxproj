@@ -37,12 +37,12 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>6.5.3_msvc2019_64</QtInstall>
+    <QtInstall>6.6.2_msvc2019_64</QtInstall>
     <QtModules>core;gui;widgets;core5compat;serialbus;serialport;sql</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.5.3_msvc2019_64</QtInstall>
+    <QtInstall>6.6.2_msvc2019_64</QtInstall>
     <QtModules>core;gui;widgets;core5compat;serialbus;serialport;sql</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
@@ -62,14 +62,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
+    <IncludePath>$(SolutionDir)Qt-Advanced-Docking-System-master\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
+    <IncludePath>$(SolutionDir)Qt-Advanced-Docking-System-master\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile />
     <Link>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;$(SolutionDir)$(Platform)\$(Configuration)\qtadvanceddockingd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <QtTranslation>
       <QmOutputDir>$(SolutionDir)translations</QmOutputDir>
@@ -78,7 +80,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;$(SolutionDir)$(Platform)\$(Configuration)\qtadvanceddockingd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <QtTranslation>
       <BuildAction>lupdate_lrelease</BuildAction>

@@ -12,23 +12,23 @@
     "native,Version=v0.0": []
   },
   "packageFolders": {
-    "C:\\Users\\pawel\\.nuget\\packages\\": {},
+    "C:\\Users\\Admin\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\pawel\\Documents\\szpuler\\MSInstaller\\MSInstaller.wixproj",
+      "projectUniqueName": "C:\\Users\\Admin\\Documents\\GitHub\\szpuler\\MSInstaller\\MSInstaller.wixproj",
       "projectName": "MSInstaller",
-      "projectPath": "C:\\Users\\pawel\\Documents\\szpuler\\MSInstaller\\MSInstaller.wixproj",
-      "packagesPath": "C:\\Users\\pawel\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\pawel\\Documents\\szpuler\\MSInstaller\\obj\\",
+      "projectPath": "C:\\Users\\Admin\\Documents\\GitHub\\szpuler\\MSInstaller\\MSInstaller.wixproj",
+      "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Admin\\Documents\\GitHub\\szpuler\\MSInstaller\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\pawel\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],

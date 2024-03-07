@@ -43,7 +43,7 @@ static bool QSerial_register(Window* win, PluginsLoader* ld, QSerialMenu* ctx, L
 		return false;
 	}
 
-	QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Window"));
+	QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
 	if (windowMenu != nullptr) {
 		win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_serialMenu);
 	}
@@ -51,6 +51,7 @@ static bool QSerial_register(Window* win, PluginsLoader* ld, QSerialMenu* ctx, L
 	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, win, ctx] {
 		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
 		SettingsDialog* dialog = new SettingsDialog(win, nullptr, serial->settingsPath());
+		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QSerial>().data(), &QSerial::settingsChanged);
 		win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Serial Port-Settings"));
 	});
 	
@@ -114,16 +115,15 @@ QSerial::QSerial(const Loader* ld, PluginsLoader* plugins, QObject* parent, cons
 	emit message("QSerial::QSerial()", LoggerSeverity::LOG_DEBUG);
 
 	Window* win = qobject_cast<Window*>(parent);
+	m_settings = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+	m_serial->setPortName(m_settings.name);
+	m_serial->setBaudRate(m_settings.baudRate);
+	m_serial->setDataBits(m_settings.dataBits);
+	m_serial->setParity(m_settings.parity);
+	m_serial->setStopBits(m_settings.stopBits);
+	m_serial->setFlowControl(m_settings.flowControl);
 
-	const SettingsDialog::SerialSettings p(win->settings(), settingsPath());
-	m_serial->setPortName(p.name);
-	m_serial->setBaudRate(p.baudRate);
-	m_serial->setDataBits(p.dataBits);
-	m_serial->setParity(p.parity);
-	m_serial->setStopBits(p.stopBits);
-	m_serial->setFlowControl(p.flowControl);
-
-	if (p.autoConnect) {
+	if (m_settings.autoConnect) {
 		emit message(QString("QSerial::QSerial serial port open: %1").arg(open(QString()) ? tr("Success") : tr("Failed")));
 	}
 }
@@ -181,4 +181,37 @@ void QSerial::close() {
 bool QSerial::isOpen() const {
 	emit message("QSerial::isOpen()", LoggerSeverity::LOG_DEBUG);
 	return (m_serial != nullptr) ? m_serial->isOpen() : false;
+}
+
+void QSerial::settingsChanged() {
+
+	bool wasOpened = false;
+
+	if ((wasOpened = m_serial->isOpen()) == true) {
+		m_serial->close();
+	}
+
+	Window* win = qobject_cast<Window*>(parent());
+	m_settings = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+	m_serial->setPortName(m_settings.name);
+	m_serial->setBaudRate(m_settings.baudRate);
+	m_serial->setDataBits(m_settings.dataBits);
+	m_serial->setParity(m_settings.parity);
+	m_serial->setStopBits(m_settings.stopBits);
+	m_serial->setFlowControl(m_settings.flowControl);
+
+	if (wasOpened == true) {
+		if (m_serial->open(QIODevice::ReadWrite)) {
+			emit message("QSerial::open: success");
+
+			//showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
+			//    .arg(p.name, QString::number(p.baudRate), QString::number(p.dataBits),
+			//        QString::number(p.parity), QString::number(p.stopBits), QString::number(p.flowControl)), 0);
+		}
+		else {
+			emit message(QString("QSerial::open: failed: %1").arg(m_serial->errorString()));
+			//TODO: display status: probably using log
+			//showStatusMessage(tr("Open error"));
+		}
+	}
 }

@@ -7,5 +7,6 @@
 #include "MdiChild.h"
 #include "plugin.h"
 #include "iodevice.h"
+#include "settingsmdi.h"
 
 #endif

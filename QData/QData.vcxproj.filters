@@ -29,9 +29,18 @@
     <ClCompile Include="QData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClInclude Include="simplecrypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="QData.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="settingsdialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="passworddialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -39,5 +48,27 @@
     <QtTranslation Include="QData_pl_PL.ts">
       <Filter>Translation Files</Filter>
     </QtTranslation>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="settingsdialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="qdataui.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="passworddialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="settingsdialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="passworddialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="simplecrypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

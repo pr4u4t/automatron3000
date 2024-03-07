@@ -49,9 +49,6 @@ public:
 		return true;
 	}
 
-public slots:
-	void settingsChanged() override {}
-
 };
 
 #endif

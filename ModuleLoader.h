@@ -12,15 +12,11 @@
 template<typename T, typename W>
 class ModuleLoader : PluginsLoader{
 public:
-	ModuleLoader(W* mWin = nullptr,const QString& dir = QString(), Logger* log = nullptr) 
+	ModuleLoader(const QString& dir = QString(), Logger* log = nullptr)
 	: m_path(dir.isEmpty() ? QDir::currentPath() + "/plugins" : dir)
-	, m_win(mWin)
 	, m_logger(log){}
 
 	~ModuleLoader() {
-		for (auto it = m_instances.begin(), end = m_instances.end(); it != end; ++it) {
-			//it.value()->saveSettings();
-		}
 
 		m_instances.clear();
 		m_loaders.clear();
@@ -71,7 +67,7 @@ public:
 		return ret;
 	}
 
-	qint32 loadPlugins() {
+	qint32 loadPlugins(W* win) {
 		qint32 ret = 0;
 		QDirIterator it(path(), { "*.dll", "*.so", "*.dylib"}, QDir::Files);
 		while (it.hasNext()) {
@@ -106,18 +102,10 @@ public:
 		}
 
 		for (auto it = m_loaders.begin(), end = m_loaders.end(); it != end; ++it) {
-			it.value()->registerPlugin(m_win, this, logger());
+			it.value()->registerPlugin(win, this, logger());
 		}
 
 		return ret;
-	}
-
-	W* window() {
-		return m_win;
-	}
-
-	void setWindow(W* win) {
-		m_win = win;
 	}
 
 	QList<decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> instances() const {
@@ -152,7 +140,6 @@ private:
 	QHash<QString, decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> m_instances;
 	static QHash<QString, T*> m_loaders;
 	QString m_path;
-	W* m_win = nullptr;
 	Logger* m_logger = nullptr;
 };
 

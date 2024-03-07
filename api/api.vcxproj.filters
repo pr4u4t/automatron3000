@@ -57,5 +57,8 @@
     <QtMoc Include="iodevice.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="settingsmdi.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>

@@ -18,18 +18,19 @@
 int main(int argc, char *argv[]){
     Logger log(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/szpuler.log");
     Main app(argc,argv, &log);
-   
+
     QPixmap pixmap(":/res/arduino.png");
     QSplashScreen splash(pixmap);
     splash.show();
     app.processEvents();
 
-    MLoader ld(nullptr,QString(),&log);
-    MainWindow mainWin(&ld,&log);
+    MLoader ld(QString(),&log);
+    MainWindow mainWin(&ld, &log);
+    ld.loadPlugins(&mainWin);
+
+    
     Tray tray(&mainWin);
 
-    ld.setWindow(&mainWin);
-    ld.loadPlugins();
     mainWin.setPlugins(&ld);
     mainWin.restoreSession();
     mainWin.show();

@@ -18,28 +18,15 @@ class API_EXPORT MdiChild : public QWidget{
 
 signals:
     
-    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
-    
-    void serialMessage(const QString& msg);
+    void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
 
 public:
-    MdiChild(/*Plugin* parent,*/ QWidget* mwin);
-
-    QSettings& settings();
-
-    virtual bool saveSettings() = 0;
-
-public slots:
-    virtual void settingsChanged() = 0;
+    
+    MdiChild(QWidget* parent = nullptr);
     
 protected:
+
     void closeEvent(QCloseEvent *event) override;
-    
-    QWidget *mainWindow();
-    
-private:
-    QWidget* m_mainWindow = nullptr;
-    Plugin* m_plugin = nullptr;
 };
 
 #endif

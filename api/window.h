@@ -17,10 +17,6 @@ public:
 	
 	Window() = default;
 
-	virtual QSettings& settings() = 0;
-
-	virtual Logger* logger() = 0;
-
 	virtual ~Window() {}
 
 	virtual bool addSubWindow(QWidget* widget, const QString& title = QString()) = 0;

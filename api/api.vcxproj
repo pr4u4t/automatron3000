@@ -37,12 +37,12 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>6.5.3_msvc2019_64</QtInstall>
+    <QtInstall>6.6.2_msvc2019_64</QtInstall>
     <QtModules>core;gui;widgets;core5compat</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.5.3_msvc2019_64</QtInstall>
+    <QtInstall>6.6.2_msvc2019_64</QtInstall>
     <QtModules>core;widgets;core5compat</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
@@ -95,6 +95,7 @@
     <ClCompile Include="mdichild.cpp" />
     <ClCompile Include="plugin.cpp" />
     <ClInclude Include="api_global.h" />
+    <QtMoc Include="settingsmdi.h" />
     <QtMoc Include="iodevice.h" />
     <QtMoc Include="plugin.h" />
     <QtMoc Include="window.h" />

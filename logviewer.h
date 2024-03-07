@@ -13,10 +13,6 @@ class LogViewer : public Widget{
 public:
     
     LogViewer(const Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
-    
-    bool saveSettings() {
-        return true;
-    }
 
 public slots:
     void settingsChanged();
