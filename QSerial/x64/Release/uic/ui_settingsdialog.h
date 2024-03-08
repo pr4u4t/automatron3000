@@ -51,18 +51,20 @@ public:
     QLabel *pidLabel;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
-    QPushButton *cancelButton;
+    QPushButton *okButton;
     QPushButton *applyButton;
+    QPushButton *cancelButton;
     QGroupBox *additionalOptionsGroupBox;
     QVBoxLayout *verticalLayout;
     QCheckBox *autoConnectCheckBox;
     QCheckBox *localEchoCheckBox;
+    QSpacerItem *verticalSpacer;
 
     void setupUi(MdiChild *SettingsDialog)
     {
         if (SettingsDialog->objectName().isEmpty())
             SettingsDialog->setObjectName("SettingsDialog");
-        SettingsDialog->resize(326, 378);
+        SettingsDialog->resize(333, 437);
         gridLayout_3 = new QGridLayout(SettingsDialog);
         gridLayout_3->setObjectName("gridLayout_3");
         parametersBox = new QGroupBox(SettingsDialog);
@@ -170,15 +172,20 @@ public:
 
         horizontalLayout->addItem(horizontalSpacer);
 
-        cancelButton = new QPushButton(SettingsDialog);
-        cancelButton->setObjectName("cancelButton");
+        okButton = new QPushButton(SettingsDialog);
+        okButton->setObjectName("okButton");
 
-        horizontalLayout->addWidget(cancelButton);
+        horizontalLayout->addWidget(okButton);
 
         applyButton = new QPushButton(SettingsDialog);
         applyButton->setObjectName("applyButton");
 
         horizontalLayout->addWidget(applyButton);
+
+        cancelButton = new QPushButton(SettingsDialog);
+        cancelButton->setObjectName("cancelButton");
+
+        horizontalLayout->addWidget(cancelButton);
 
 
         gridLayout_3->addLayout(horizontalLayout, 2, 0, 1, 2);
@@ -197,6 +204,10 @@ public:
         localEchoCheckBox->setChecked(true);
 
         verticalLayout->addWidget(localEchoCheckBox);
+
+        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        verticalLayout->addItem(verticalSpacer);
 
 
         gridLayout_3->addWidget(additionalOptionsGroupBox, 1, 0, 1, 2);
@@ -223,8 +234,9 @@ public:
         locationLabel->setText(QCoreApplication::translate("SettingsDialog", "Location:", nullptr));
         vidLabel->setText(QCoreApplication::translate("SettingsDialog", "Vendor ID:", nullptr));
         pidLabel->setText(QCoreApplication::translate("SettingsDialog", "Product ID:", nullptr));
-        cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));
+        okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
+        cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));
         additionalOptionsGroupBox->setTitle(QCoreApplication::translate("SettingsDialog", "Additional options", nullptr));
         autoConnectCheckBox->setText(QCoreApplication::translate("SettingsDialog", "Auto connect", nullptr));
         localEchoCheckBox->setText(QCoreApplication::translate("SettingsDialog", "Local echo", nullptr));

@@ -7,34 +7,10 @@
 
 #include "qkonsole_global.h"
 #include "../api/api.h"
+#include "settingsdialog.h"
+#include "terminal.h"
 
 class QKonsole;
-
-class Terminal : public QPlainTextEdit {
-    Q_OBJECT
-
-signals:
-    void getData(const QByteArray& data);
-
-    void logMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE);
-
-    void enterPressed();
-
-public:
-    Terminal(QKonsole* parent = nullptr);
-
-    void setLocalEchoEnabled(bool set);
-
-protected:
-    void keyPressEvent(QKeyEvent* e) override;
-    void mousePressEvent(QMouseEvent* e) override;
-    void mouseDoubleClickEvent(QMouseEvent* e) override;
-    void contextMenuEvent(QContextMenuEvent* e) override;
-
-private:
-    bool m_localEchoEnabled = false;
-};
-
 
 class QKONSOLE_EXPORT QKonsole : public Widget
 {
@@ -44,34 +20,19 @@ signals:
     void getData(const QByteArray& data);
 
 public:
-    QKonsole(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
-
-    void putData(const QByteArray& data);
-
-    bool saveSettings() {
-        return true;
-    }
-
-    QString prompt() const {
-        return m_prompt;
-    }
-
-    void setPrompt(const QString& prompt) {
-        m_prompt = prompt;
-    }
+    QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
 public slots:
     void settingsChanged();
 
-    void enterPressed();
+    void enterPressed(const QString& command);
 
-protected:
-
-    void putPrompt(const QString& prompt);
+    void putData(const QByteArray& data);
 
 private:
-    Terminal* m_terminal = nullptr;
-    QString m_prompt = "#> ";
+    QTerminal* m_terminal = nullptr;
+    SettingsDialog::KonsoleSettings m_settings;
+    QSharedPointer<IODevice> m_serial;
 };
 
 #endif

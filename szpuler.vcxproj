@@ -80,7 +80,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;$(SolutionDir)$(Platform)\$(Configuration)\qtadvanceddockingd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\api.lib;$(SolutionDir)$(Platform)\$(Configuration)\qtadvanceddocking.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <QtTranslation>
       <BuildAction>lupdate_lrelease</BuildAction>

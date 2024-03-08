@@ -17,21 +17,21 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="mainwindow.cpp" line="61"/>
+        <location filename="mainwindow.cpp" line="66"/>
         <source>Are you sure?
 </source>
         <translation>Czy chcesz zamknąć program?
 </translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="84"/>
+        <location filename="mainwindow.cpp" line="89"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
     <message>
         <location filename="logviewer.cpp" line="59"/>
-        <location filename="mainwindow.cpp" line="166"/>
-        <location filename="mainwindow.cpp" line="168"/>
+        <location filename="mainwindow.cpp" line="171"/>
+        <location filename="mainwindow.cpp" line="173"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
@@ -41,17 +41,17 @@
         <translation>Dziennik</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="172"/>
+        <location filename="mainwindow.cpp" line="177"/>
         <source>Switch layout direction</source>
         <translation>Zmień kierunek układu</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="176"/>
+        <location filename="mainwindow.cpp" line="181"/>
         <source>E&amp;xit</source>
         <translation>&amp;Wyjście</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="178"/>
+        <location filename="mainwindow.cpp" line="183"/>
         <source>Exit the application</source>
         <translation>Wyjdź z proramu</translation>
     </message>
@@ -124,47 +124,47 @@
         <translation type="vanished">Przełącz na poprzednie okno</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="182"/>
+        <location filename="mainwindow.cpp" line="187"/>
         <source>&amp;Settings</source>
         <translation>&amp;Ustawienia</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="183"/>
+        <location filename="mainwindow.cpp" line="188"/>
         <source>Plugins</source>
         <translation>Wtyczki</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="188"/>
+        <location filename="mainwindow.cpp" line="193"/>
         <source>Instances</source>
         <translation>Instancje</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="195"/>
+        <location filename="mainwindow.cpp" line="200"/>
         <source>&amp;Help</source>
         <translation>Po&amp;moc</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="197"/>
+        <location filename="mainwindow.cpp" line="202"/>
         <source>&amp;About</source>
         <translation>&amp;O programie</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="198"/>
+        <location filename="mainwindow.cpp" line="203"/>
         <source>Show the application&apos;s About box</source>
         <translation>Informacje o programie</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="200"/>
+        <location filename="mainwindow.cpp" line="205"/>
         <source>About &amp;Qt</source>
         <translation>O &amp;Qt</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="201"/>
+        <location filename="mainwindow.cpp" line="206"/>
         <source>Show the Qt library&apos;s About box</source>
         <translation>Informacje o Qt</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="239"/>
+        <location filename="mainwindow.cpp" line="244"/>
         <source>Ready</source>
         <translation>Gotowy</translation>
     </message>

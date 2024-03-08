@@ -12,7 +12,7 @@ class LogViewer : public Widget{
     
 public:
     
-    LogViewer(const Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
+    LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
 
 public slots:
     void settingsChanged();

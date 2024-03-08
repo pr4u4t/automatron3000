@@ -8,7 +8,7 @@
 
 #include "MainWindow.h"
 
-LogViewer::LogViewer(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
+LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
     : Widget(ld, plugins, parent, settingsPath)
     , m_text(new QPlainTextEdit()){
     m_text->document()->setMaximumBlockCount(100);

@@ -31,3 +31,7 @@ QString Plugin::author() const {
 QString Plugin::description() const {
 	return m_loader->description();
 }
+
+QStringList Plugin::depends() const {
+	return m_loader->depends();
+}

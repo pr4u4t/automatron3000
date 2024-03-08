@@ -74,10 +74,11 @@ REGISTER_PLUGIN(
 	"example plugin",
 	QData_register,
 	QData_unregister,
-    QDataMenu
+    QDataMenu,
+    {"QSerial"}
 )
 
-QData::QData(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
+QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
     : Widget(ld, plugins, parent, path)
     , m_ui(new Ui::QDataUI) {
     m_ui->setupUi(this);
@@ -130,11 +131,11 @@ void QData::timeout() {
 
     if (m_settings.serialPrefix.isEmpty() == false) {
         auto res = io->write(m_settings.serialPrefix + '\n');
-        emit message(QString("QData::timeout: prefix write %1").arg(res));
+        emit message(QString("QData::timeout: prefix write %1 %2").arg(res).arg(m_settings.serialPrefix));
     }
 
     auto res = io->write(m_selected + '\n');
-    emit message(QString("QData::timeout: write %1").arg(res));
+    emit message(QString("QData::timeout: write %1 %2").arg(res).arg(m_selected));
 }
 
 void QData::exportAsCsv(bool checked) {
@@ -457,17 +458,22 @@ void QData::enterPressed() {
         return;
     }
 
-    if (m_settings.barcodeRegexp.isEmpty() != false) {
-        emit message("QData::enterPressed(): barcode regexp found");
+    emit message("QData::enterPressed() code: " + str);
+
+    if (m_settings.barcodeRegexp.isEmpty() == false) {
+        emit message("QData::enterPressed(): barcode regexp found "+ m_settings.barcodeRegexp);
         QRegularExpression regex(m_settings.barcodeRegexp);
         auto match = regex.match(str);
 
         if (match.hasMatch() && match.capturedLength() > 2) {
-            emit message("QData::enterPressed(): input from barcode reader");
+            emit message("QData::enterPressed(): regex matched");
             auto res = match.captured(1);
             res.remove('.');
             m_ui->barcodeEdit->setText(res);
+            emit message(QString("QData::enterPressed(): %1 -> %2").arg(str).arg(res));
             str = res;
+        } else {
+            emit message("QData::enterPressed() regex not matched ");
         }
     }
 

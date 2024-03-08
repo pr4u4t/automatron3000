@@ -4,27 +4,27 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QData.cpp" line="22"/>
+        <location filename="QData.cpp" line="23"/>
         <source>&amp;Data</source>
         <translation>&amp;Dane</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="24"/>
+        <location filename="QData.cpp" line="25"/>
         <source>Database</source>
         <translation>Baza danych</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="27"/>
+        <location filename="QData.cpp" line="28"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="46"/>
+        <location filename="QData.cpp" line="47"/>
         <source>&amp;Settings</source>
         <translation>&amp;Ustawienia</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="56"/>
+        <location filename="QData.cpp" line="58"/>
         <source>Database-Settings</source>
         <translation>Baza danych - Ustawienia</translation>
     </message>
@@ -46,17 +46,17 @@
         <translation>Hasło:</translation>
     </message>
     <message>
-        <location filename="passworddialog.cpp" line="17"/>
+        <location filename="passworddialog.cpp" line="13"/>
         <source>&lt;b&gt;The password is unset, so access is prevented&lt;/b&gt;&lt;br&gt;Go to application settings to set the password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="passworddialog.cpp" line="39"/>
+        <location filename="passworddialog.cpp" line="40"/>
         <source>&lt;b&gt;Password correct, press Ok to enter.&lt;/b&gt;</source>
         <translation>&lt;b&gt;Hasło poprawne, naciśnij enter aby przejść dalej.&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="passworddialog.cpp" line="42"/>
+        <location filename="passworddialog.cpp" line="45"/>
         <source>Password incorrect</source>
         <translation>Hasło niepoprawne</translation>
     </message>
@@ -64,7 +64,7 @@
 <context>
     <name>QData</name>
     <message>
-        <location filename="QData.cpp" line="401"/>
+        <location filename="QData.cpp" line="406"/>
         <source>Part</source>
         <translation>Część</translation>
     </message>
@@ -78,7 +78,7 @@
         <translation type="vanished">Numer części</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="402"/>
+        <location filename="QData.cpp" line="407"/>
         <source>Cell</source>
         <translation>Komórka</translation>
     </message>
@@ -116,12 +116,12 @@
         <translation type="vanished">Regał:</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="379"/>
+        <location filename="QData.cpp" line="384"/>
         <source>success</source>
         <translation>sukces</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="379"/>
+        <location filename="QData.cpp" line="384"/>
         <source>failed</source>
         <translation>błąd</translation>
     </message>
@@ -131,73 +131,73 @@
         <translation type="vanished">Strona:</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="142"/>
+        <location filename="QData.cpp" line="147"/>
         <source>Save File</source>
         <translation>Zapisz plik</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="144"/>
-        <location filename="QData.cpp" line="169"/>
+        <location filename="QData.cpp" line="149"/>
+        <location filename="QData.cpp" line="174"/>
         <source>Text files (*.csv *.txt)</source>
         <translation>Pliki tekstowe (*.csv *.txt)</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="155"/>
+        <location filename="QData.cpp" line="160"/>
         <source>Database export successful</source>
         <translation>Eksport bazy danych zakończony sukcesem</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="167"/>
+        <location filename="QData.cpp" line="172"/>
         <source>Open File</source>
         <translation>Otwórz plik</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="178"/>
-        <location filename="QData.cpp" line="254"/>
+        <location filename="QData.cpp" line="183"/>
+        <location filename="QData.cpp" line="259"/>
         <source>This will wipe all data and cannot be undone</source>
         <translation>Ta operacja wymaże dane w bazie i nie może zostać cofnięta</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="189"/>
-        <location filename="QData.cpp" line="265"/>
+        <location filename="QData.cpp" line="194"/>
+        <location filename="QData.cpp" line="270"/>
         <source>Failed to clear existing data</source>
         <translation>Nie udało się usunąć danych</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="203"/>
+        <location filename="QData.cpp" line="208"/>
         <source>Importing database from CSV</source>
         <translation>Importowanie bazy danych z pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="203"/>
-        <location filename="QData.cpp" line="272"/>
-        <location filename="QData.cpp" line="340"/>
+        <location filename="QData.cpp" line="208"/>
+        <location filename="QData.cpp" line="277"/>
+        <location filename="QData.cpp" line="345"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="243"/>
+        <location filename="QData.cpp" line="248"/>
         <source>Open Directory</source>
         <translation>Otwórz katalog</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="272"/>
+        <location filename="QData.cpp" line="277"/>
         <source>Importing database from directory</source>
         <translation>Importowanie bazy danych z katalogu</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="340"/>
+        <location filename="QData.cpp" line="345"/>
         <source>Exporting database to CSV</source>
         <translation>Eksportowanie bazy danych do pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="496"/>
-        <location filename="QData.cpp" line="509"/>
+        <location filename="QData.cpp" line="506"/>
+        <location filename="QData.cpp" line="522"/>
         <source>Unlock</source>
         <translation>Odblokuj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="504"/>
+        <location filename="QData.cpp" line="517"/>
         <source>Lock</source>
         <translation>Zablokuj</translation>
     </message>
@@ -377,14 +377,14 @@
     </message>
     <message>
         <location filename="settingsdialog.ui" line="64"/>
-        <location filename="settingsdialog.cpp" line="56"/>
+        <location filename="settingsdialog.cpp" line="57"/>
         <source>No</source>
         <translation>Nie</translation>
     </message>
     <message>
         <location filename="settingsdialog.ui" line="69"/>
-        <location filename="settingsdialog.cpp" line="56"/>
-        <location filename="settingsdialog.cpp" line="70"/>
+        <location filename="settingsdialog.cpp" line="57"/>
+        <location filename="settingsdialog.cpp" line="72"/>
         <source>Yes</source>
         <translation>Tak</translation>
     </message>
@@ -439,19 +439,19 @@
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="16"/>
+        <location filename="settingsdialog.cpp" line="17"/>
         <source>N/A</source>
         <translation>N/N</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="84"/>
-        <location filename="settingsdialog.cpp" line="96"/>
+        <location filename="settingsdialog.cpp" line="92"/>
+        <location filename="settingsdialog.cpp" line="112"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="84"/>
-        <location filename="settingsdialog.cpp" line="96"/>
+        <location filename="settingsdialog.cpp" line="92"/>
+        <location filename="settingsdialog.cpp" line="112"/>
         <source>Password mismatch</source>
         <translation>Hasło i potwierdzenie są różne</translation>
     </message>

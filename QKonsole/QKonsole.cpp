@@ -1,21 +1,28 @@
 #include "QKonsole.h"
 #include <QApplication>
 #include <QTranslator>
+#include "settingsdialog.h"
 
 struct QKonsoleMenu {
     QKonsoleMenu(QCoreApplication* app) 
     : m_app(app){
+        //m_serialMenu = new QMenu(m_app->translate("MainWindow", /*"&Serial"*/"DUPA"));
+
+        m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"), m_serialMenu);
+        m_actionConfigure->setData(QVariant("QKonsole/Settings"));
+
         m_translator = new QTranslator();
         if (m_translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
             m_app->installTranslator(m_translator);
         }
 
-        m_console = new QAction(QApplication::translate("MainWindow", "Console"), nullptr);
+        m_console = new QAction(m_app->translate("MainWindow", "Konsole"), nullptr);
         m_console->setData(QVariant("QKonsole"));
     }
 
     QAction* m_console = nullptr;
-
+    QMenu* m_serialMenu = nullptr;
+    QAction* m_actionConfigure = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 };
@@ -23,9 +30,18 @@ struct QKonsoleMenu {
 static bool QKonsole_register(Window* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
 
 	QObject::connect(ctx->m_console, &QAction::triggered, win, &Window::createOrActivate);
-	QMenu* menu = win->findMenu(QApplication::translate("MainWindow", "&File"));
-	QList<QAction*> actions = menu->findChildren<QAction*>(Qt::FindDirectChildrenOnly);
-	menu->insertAction(actions.size() > 0 ? actions[1] : nullptr, ctx->m_console);
+	QMenu* menu = win->findMenu(ctx->m_app->translate("MainWindow", "&Serial"));
+    
+    menu->addSeparator();
+    menu->insertAction(nullptr, ctx->m_console);
+    menu->insertAction(nullptr, ctx->m_actionConfigure);
+    
+    QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, win, ctx] {
+        QSharedPointer<Plugin> konsole = ld->instance("QKonsole", win);
+        SettingsDialog* dialog = new SettingsDialog(win, nullptr, konsole->settingsPath());
+        QObject::connect(dialog, &SettingsDialog::settingsUpdated, konsole.dynamicCast<QKonsole>().data(), &QKonsole::settingsChanged);
+        win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Konsole-Settings"));
+    });
 
 	return true;
 }
@@ -42,88 +58,42 @@ REGISTER_PLUGIN(
 	"example plugin",
 	QKonsole_register,
 	QKonsole_unregister,
-    QKonsoleMenu
+    QKonsoleMenu,
+    {"QSerial"}
 )
 
-Terminal::Terminal(QKonsole* parent)
-    : QPlainTextEdit(parent) {
-    document()->setMaximumBlockCount(100);
-    Window* win = qobject_cast<Window*>(parent->window());
-    if (win != nullptr) {
-        setLocalEchoEnabled(Settings::get().value("serial/localEchoEnabled", false).toBool());
-    }
- 
-    connect(this, &Terminal::logMessage, qobject_cast<Widget*>(parent), &Widget::message);
-}
-
-void Terminal::setLocalEchoEnabled(bool set) {
-    m_localEchoEnabled = set;
-}
-
-void Terminal::keyPressEvent(QKeyEvent* e) {
-    emit logMessage("Terminal::keyPressEvent");
-
-    switch (e->key()) {
-        case Qt::Key_Backspace:
-        case Qt::Key_Left:
-        case Qt::Key_Right:
-        case Qt::Key_Up:
-        case Qt::Key_Down:
-            break;
-        case Qt::Key_Return:
-            QPlainTextEdit::keyPressEvent(e);
-            emit enterPressed();
-            break;
-        default:
-            if (m_localEchoEnabled) {
-                emit logMessage("localEcho");
-                QPlainTextEdit::keyPressEvent(e);
-            }
-            emit getData(e->text().toLocal8Bit());
-    }
-}
-
-void Terminal::mousePressEvent(QMouseEvent* e) {
-    Q_UNUSED(e);
-    setFocus();
-}
-
-void Terminal::mouseDoubleClickEvent(QMouseEvent* e) {
-    Q_UNUSED(e);
-}
-
-void Terminal::contextMenuEvent(QContextMenuEvent* e) {
-    Q_UNUSED(e);
-}
-
-QKonsole::QKonsole(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath), m_terminal(new Terminal(this)) {
+QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
+    : Widget(ld, plugins, parent, path)
+    , m_terminal(new QTerminal(this, tr("<b>Welcome to serial (rs-232) terminal</b>"))) {
+    settingsChanged();
+    //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+    //m_terminal->setLocalEchoEnabled(m_settings.localEcho);
     QBoxLayout* l = new QVBoxLayout();
     l->addWidget(m_terminal);
     setLayout(l);
 
-    putPrompt(prompt());
-
-    QObject::connect(m_terminal, &Terminal::enterPressed, this, &QKonsole::enterPressed);
+    QObject::connect(m_terminal, &QTerminal::execCommand, this, &QKonsole::enterPressed);
+    auto io = plugins->instance("QSerial", nullptr);
+    QObject::connect(dynamic_cast<IODevice*>(io.data()), &IODevice::dataReady, this, &QKonsole::putData);
+    m_serial = io.dynamicCast<IODevice>();
 }
 
 void QKonsole::putData(const QByteArray& data) {
-    m_terminal->insertPlainText(data);
-    QScrollBar* bar = m_terminal->verticalScrollBar();
-    if (bar != nullptr) {
-        bar->setValue(bar->maximum());
+    emit message("QKonsole::putData()");
+   
+    m_terminal->printCommandExecutionResults(data);
+}
+
+void QKonsole::enterPressed(const QString& command) {
+    emit message("QKonsole::enterPressed()");
+
+    if (m_serial->isOpen() != true) {
+        m_serial->open();
     }
+    m_serial->write(command + "\n");
 }
 
-void QKonsole::enterPressed() {
-    putPrompt(prompt());
+void QKonsole::settingsChanged() {
+    m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+    m_terminal->setPrompt(m_settings.prompt); //setLocalEchoEnabled(m_settings.localEcho);
 }
-
-void QKonsole::putPrompt(const QString& prompt) {
-    QTextCursor cur = m_terminal->textCursor();
-    cur.movePosition(QTextCursor::End);
-    cur.insertText(prompt);
-    m_terminal->setTextCursor(cur);
-}
-
-void QKonsole::settingsChanged() {}

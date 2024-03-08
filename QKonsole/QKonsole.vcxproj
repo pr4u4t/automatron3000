@@ -111,12 +111,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="settingsdialog.cpp" />
+    <ClCompile Include="terminal.cpp" />
     <ClInclude Include="qkonsole_global.h" />
+    <QtMoc Include="terminal.h" />
+    <QtMoc Include="settingsdialog.h" />
     <QtMoc Include="QKonsole.h" />
     <ClCompile Include="QKonsole.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtTranslation Include="QKonsole_pl_PL.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="settingsdialog.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

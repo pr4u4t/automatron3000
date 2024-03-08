@@ -31,7 +31,7 @@ public:
 	static constexpr qint64 InvalidUUID = -1;
 	static constexpr const char* const settings_path = "plugins/";
 
-	Plugin(const Loader* ld, PluginsLoader* plugins, const QString& path = QString())
+	Plugin(Loader* ld, PluginsLoader* plugins, const QString& path = QString())
 		: m_loader(ld)
 		, m_plugins(plugins)
 		, m_settingsPath(path) {
@@ -55,6 +55,8 @@ public:
 
 	QString description() const;
 
+	QStringList depends() const;
+
 	Plugin::Type type() const;
 
 	QString uuid() const;
@@ -71,9 +73,13 @@ protected:
 
 	PluginsLoader* plugins() const;
 
+	Loader* loader() const {
+		return m_loader;
+	}
+
 private:
-	const Loader* const m_loader = nullptr;
-	PluginsLoader* const m_plugins = nullptr;
+	Loader* m_loader = nullptr;
+	PluginsLoader* m_plugins = nullptr;
 	QString m_uuid = 0;
 	QString m_settingsPath;
 };
@@ -83,7 +89,7 @@ class API_EXPORT Extension	: public QObject
 	Q_OBJECT
 
 public:
-	Extension(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
+	Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
 		: Plugin(ld, plugins, path) {
 	}
 
@@ -106,7 +112,7 @@ class API_EXPORT Widget : public MdiChild
 
 public:
 
-	Widget(const Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
+	Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString())
 		: Plugin(ld, plugins, path)
 		, MdiChild(){
 	}
@@ -128,12 +134,13 @@ class API_EXPORT Loader {
 
 public:
 	Loader(const QString& name, Plugin::Type type, const QString& version,
-		const QString& author, const QString& description)
+		const QString& author, const QString& description, const QStringList& depends = QStringList())
 		: m_name(name)
 		, m_type(type)
 		, m_version(version)
 		, m_author(author)
-		, m_description(description){
+		, m_description(description)
+		, m_depends(depends){
 	}
 
 	QString name() const {
@@ -156,6 +163,10 @@ public:
 		return m_description;
 	}
 
+	QStringList depends() const {
+		return m_depends;
+	}
+
 	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
 
 	virtual bool registerPlugin(Window* win, PluginsLoader* ld, Logger* log) = 0;
@@ -171,6 +182,7 @@ private:
 	QString m_version;
 	QString m_author;
 	QString m_description;
+	QStringList m_depends;
 };
 
 template<typename T, typename D>
@@ -179,8 +191,8 @@ class PluginLoader : public Loader {
 
 public:
 	PluginLoader(const QString& name, Plugin::Type type, const QString& version, const QString& author, const QString& description,
-		RegHandler reg, RegHandler unreg)
-		: Loader(name, type, version, author, description)
+		RegHandler reg, RegHandler unreg, const QStringList& depends = QStringList())
+		: Loader(name, type, version, author, description, depends)
 		, m_register(reg)
 		, m_unregister(unreg)
 		, m_data(D(QCoreApplication::instance())){
@@ -188,7 +200,7 @@ public:
 
 	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const override {
 		return QSharedPointer<T>(new T(
-			this,
+			const_cast<PluginLoader<T,D>*>(this),
 			plugins, 
 			qobject_cast<std::conditional<std::is_base_of<Widget, T>::value, QWidget*, QObject*>::type>(parent),
 			settingsPath
@@ -201,6 +213,10 @@ public:
 
 	bool unregisterPlugin(Window* win, PluginsLoader* ld, Logger* log) override {
 		return (m_unregister) ? m_unregister(win, ld, &m_data, log) : false;
+	}
+
+	D* context() {
+		return &m_data;
 	}
 
 private:
@@ -229,7 +245,7 @@ signals:
 	void loaded(const QString& name);
 };
 
-#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data) extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg); }
+#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends) extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends); }
 
 class API_EXPORT Settings {
 

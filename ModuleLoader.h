@@ -101,8 +101,30 @@ public:
 			++ret;
 		}
 
-		for (auto it = m_loaders.begin(), end = m_loaders.end(); it != end; ++it) {
-			it.value()->registerPlugin(win, this, logger());
+		auto exts = loaders();
+		QStringList order;
+
+		while (exts.size() > 0) {
+			for (int i = 0; i < exts.size() && exts.size() > 0; ++i) {
+				if (exts[i]->depends().size() == 0) {
+					order << exts[i]->name();
+					exts.removeAt(i);
+					--i;
+				} else {
+					QStringList tmp = exts[i]->depends();
+					QSet<QString> deps(tmp.begin(), tmp.end());
+					QSet<QString> met(order.begin(), order.end());
+					if (deps.subtract(met).size() == 0) {
+						order << exts[i]->name();
+						exts.removeAt(i);
+						--i;
+					}
+				}
+			}
+		}
+
+		for (auto item : order) {
+			m_loaders[item]->registerPlugin(win, this, logger());
 		}
 
 		return ret;

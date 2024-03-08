@@ -14,7 +14,7 @@ class QSERIAL_EXPORT QSerial : public IODevice {
 	Q_OBJECT
 
 public:
-	QSerial(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString());
+	QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString());
 
 	bool open(const QString& url);
 
@@ -28,9 +28,15 @@ public:
 
 	bool isOpen() const;
 
+	bool flush();
+
 public slots:
 
 	void settingsChanged();
+
+protected slots:
+
+	void readData();
 
 private:
 

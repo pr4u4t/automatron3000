@@ -14,17 +14,16 @@ struct QSerialMenu {
 			}
 		}
 
-		m_serialMenu = new QMenu(m_app->translate("MainWindow", "&Serial"));
-
-		m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"), m_serialMenu);
+		//m_serialMenu = new QMenu(m_app->translate("MainWindow", "&Serial"));
+		m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"));
 		m_actionConfigure->setData(QVariant("QSerial"));
-		m_serialMenu->addAction(m_actionConfigure);
+		//m_serialMenu->addAction(m_actionConfigure);
 
-		m_actionConnect = new QAction(app->translate("MainWindow", "Connect"), m_serialMenu);
-		m_serialMenu->addAction(m_actionConnect);
+		m_actionConnect = new QAction(app->translate("MainWindow", "Connect"));
+		//m_serialMenu->addAction(m_actionConnect);
 
-		m_actionDisconnect = new QAction(app->translate("MainWindow", "Disconnect"), m_serialMenu);
-		m_serialMenu->addAction(m_actionDisconnect);
+		m_actionDisconnect = new QAction(app->translate("MainWindow", "Disconnect"));
+		//m_serialMenu->addAction(m_actionDisconnect);
 	}
 
 	QMenu* m_serialMenu = nullptr;
@@ -42,7 +41,10 @@ static bool QSerial_register(Window* win, PluginsLoader* ld, QSerialMenu* ctx, L
 	if (win == nullptr) {
 		return false;
 	}
-
+	ctx->m_serialMenu = new QMenu(ctx->m_app->translate("MainWindow", "&Serial"), win->menuBar());
+	ctx->m_serialMenu->addAction(ctx->m_actionConnect);
+	ctx->m_serialMenu->addAction(ctx->m_actionDisconnect);
+	ctx->m_serialMenu->addAction(ctx->m_actionConfigure);
 	QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
 	if (windowMenu != nullptr) {
 		win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_serialMenu);
@@ -106,10 +108,11 @@ REGISTER_PLUGIN(
 	"example plugin",
 	QSerial_register,
 	QSerial_unregister,
-	QSerialMenu
+	QSerialMenu,
+	{}
 )
 
-QSerial::QSerial(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
+QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
 	: IODevice(ld, plugins, parent, path),
 	  m_serial(new QSerialPort(this)){
 	emit message("QSerial::QSerial()", LoggerSeverity::LOG_DEBUG);
@@ -122,6 +125,8 @@ QSerial::QSerial(const Loader* ld, PluginsLoader* plugins, QObject* parent, cons
 	m_serial->setParity(m_settings.parity);
 	m_serial->setStopBits(m_settings.stopBits);
 	m_serial->setFlowControl(m_settings.flowControl);
+
+	QObject::connect(m_serial, &QSerialPort::readyRead, this, &QSerial::readData);
 
 	if (m_settings.autoConnect) {
 		emit message(QString("QSerial::QSerial serial port open: %1").arg(open(QString()) ? tr("Success") : tr("Failed")));
@@ -139,16 +144,24 @@ bool QSerial::open(const QString& url) {
 		return true;
 	}
 
+	auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
+
     if (m_serial->open(QIODevice::ReadWrite)) {
 		emit message("QSerial::open: success");
-
-        //showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
-        //    .arg(p.name, QString::number(p.baudRate), QString::number(p.dataBits),
-        //        QString::number(p.parity), QString::number(p.stopBits), QString::number(p.flowControl)), 0);
+		if (sld->context()) {
+			sld->context()->m_actionConnect->setEnabled(false);
+			sld->context()->m_actionDisconnect->setEnabled(true);
+		}
+        
     } else {
 		emit message(QString("QSerial::open: failed: %1").arg(m_serial->errorString()));
-        //TODO: display status: probably using log
+		if (sld->context()) {
+			sld->context()->m_actionConnect->setEnabled(true);
+			sld->context()->m_actionDisconnect->setEnabled(false);
+		}
+		//TODO: display status: probably using log
         //showStatusMessage(tr("Open error"));
+		return false;
     }
 
 	//m_serial->op
@@ -176,6 +189,12 @@ void QSerial::close() {
 	if (m_serial != nullptr) {
 		m_serial->close();
 	}
+
+	auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
+	if (sld->context()) {
+		sld->context()->m_actionConnect->setEnabled(true);
+		sld->context()->m_actionDisconnect->setEnabled(false);
+	}
 }
 
 bool QSerial::isOpen() const {
@@ -201,17 +220,32 @@ void QSerial::settingsChanged() {
 	m_serial->setFlowControl(m_settings.flowControl);
 
 	if (wasOpened == true) {
-		if (m_serial->open(QIODevice::ReadWrite)) {
+		if (m_serial->open(QIODevice::ReadWrite) == true) {
 			emit message("QSerial::open: success");
 
-			//showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
-			//    .arg(p.name, QString::number(p.baudRate), QString::number(p.dataBits),
-			//        QString::number(p.parity), QString::number(p.stopBits), QString::number(p.flowControl)), 0);
-		}
-		else {
+			auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
+			if (sld->context()) {
+				sld->context()->m_actionConnect->setEnabled(false);
+				sld->context()->m_actionDisconnect->setEnabled(true);
+			}
+
+		} else {
 			emit message(QString("QSerial::open: failed: %1").arg(m_serial->errorString()));
-			//TODO: display status: probably using log
-			//showStatusMessage(tr("Open error"));
+			
+			auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
+			if (sld->context()) {
+				sld->context()->m_actionConnect->setEnabled(true);
+				sld->context()->m_actionDisconnect->setEnabled(false);
+			}
 		}
 	}
+}
+
+void QSerial::readData() {
+	QByteArray data = m_serial->readAll();
+	emit dataReady(data);
+}
+
+bool QSerial::flush() {
+	return m_serial->flush();
 }

@@ -14,6 +14,7 @@
 #include <QRegExp>
 #include <QHash>
 #include <functional>
+#include <QSet>
 
 #include "api/api.h"
 #include "ModuleLoader.h"
@@ -97,16 +98,40 @@ protected:
         
         QByteArray state = m_dockManager->saveState();
         settings().setValue("session/state", state);
+        QList<QSharedPointer<Plugin>> exts = plugins()->instances();
+        QStringList order;
 
-        for (auto extension : plugins()->instances()) {
-            if (extension->type() == Plugin::Type::WIDGET) {
-                continue;
+        while (exts.size() > 0) {
+            for (int i = 0; i < exts.size() && exts.size() > 0; ++i) {
+                if (exts[i]->depends().size() == 0) {
+                    order << exts[i]->name();
+                    exts.removeAt(i);
+                    --i;
+                } else {
+                    QStringList tmp = exts[i]->depends();
+                    QSet<QString> deps(tmp.begin(), tmp.end());
+                    QSet<QString> met(order.begin(), order.end());
+                    if (deps.subtract(met).size() == 0) {
+                        order << exts[i]->name();
+                        exts.removeAt(i);
+                        --i;
+                    }
+                }
             }
-
-            value += extension->name() + "-" + extension->uuid() + " ";
         }
 
-        settings().setValue("session/plugins", value);
+        QStringList result;
+        auto instances = plugins()->instances();
+        
+        for (auto item : order) {
+            for (auto instance : instances) {
+                if (instance->name() == item) {
+                    result << instance->name() + "-" + instance->uuid();
+                }
+            }
+        }
+
+        settings().setValue("session/plugins", result.join(" "));
         
         return 0;
     }
@@ -123,17 +148,9 @@ public slots:
 
 private slots:
     void about();
-    //void updateMenus();
-    //void updateWindowMenu();
     void switchLayoutDirection();
     void createOrActivatePlugins();
     void createOrActivateInstances();
-
-    //void subWindowActivated(QMdiSubWindow* window) {
-    //    if (window) {
-    //        m_current = window;
-    //    }
-    //}
 
 private:
 

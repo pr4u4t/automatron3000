@@ -4,32 +4,32 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QSerial.cpp" line="17"/>
+        <location filename="QSerial.cpp" line="44"/>
         <source>&amp;Serial</source>
         <translation>&amp;Port szeregowy</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="19"/>
+        <location filename="QSerial.cpp" line="18"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="46"/>
+        <location filename="QSerial.cpp" line="48"/>
         <source>&amp;Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="55"/>
+        <location filename="QSerial.cpp" line="57"/>
         <source>Serial Port-Settings</source>
         <translation>Port szeregowy - Ustawienia</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="23"/>
+        <location filename="QSerial.cpp" line="22"/>
         <source>Connect</source>
         <translation>Połącz</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="26"/>
+        <location filename="QSerial.cpp" line="25"/>
         <source>Disconnect</source>
         <translation>Rozłącz</translation>
     </message>
@@ -37,18 +37,18 @@
 <context>
     <name>QSerial</name>
     <message>
-        <location filename="QSerial.cpp" line="127"/>
+        <source>Serial port open error</source>
+        <translation type="vanished">Błąd otwarcia portu szeregowego</translation>
+    </message>
+    <message>
+        <location filename="QSerial.cpp" line="132"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="127"/>
+        <location filename="QSerial.cpp" line="132"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Serial port open error</source>
-        <translation type="vanished">Błąd otwarcia portu szeregowego</translation>
     </message>
 </context>
 <context>

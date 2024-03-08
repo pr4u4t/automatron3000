@@ -11,7 +11,7 @@ class API_EXPORT IODevice : public Extension {
 
 public:
 
-	IODevice(const Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
+	IODevice(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
 		: Extension(ld, plugins, parent, path) {}
 
 	virtual bool open(const QString& url = QString()) = 0;
@@ -25,6 +25,12 @@ public:
 	virtual void close() = 0;
 
 	virtual bool isOpen() const = 0;
+
+	virtual bool flush() = 0;
+
+signals:
+
+	void dataReady(const QByteArray& data);
 };
 
 #endif
