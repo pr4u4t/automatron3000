@@ -48,6 +48,8 @@ public:
     QLineEdit *dbLockPassConfirm;
     QLabel *label_7;
     QLineEdit *serialInterval;
+    QLabel *label_9;
+    QLineEdit *removeChars;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -123,12 +125,12 @@ public:
         label_6 = new QLabel(SettingsDialog);
         label_6->setObjectName("label_6");
 
-        formLayout->setWidget(8, QFormLayout::LabelRole, label_6);
+        formLayout->setWidget(9, QFormLayout::LabelRole, label_6);
 
         serialPrefix = new QLineEdit(SettingsDialog);
         serialPrefix->setObjectName("serialPrefix");
 
-        formLayout->setWidget(8, QFormLayout::FieldRole, serialPrefix);
+        formLayout->setWidget(9, QFormLayout::FieldRole, serialPrefix);
 
         label = new QLabel(SettingsDialog);
         label->setObjectName("label");
@@ -164,12 +166,22 @@ public:
         label_7 = new QLabel(SettingsDialog);
         label_7->setObjectName("label_7");
 
-        formLayout->setWidget(9, QFormLayout::LabelRole, label_7);
+        formLayout->setWidget(10, QFormLayout::LabelRole, label_7);
 
         serialInterval = new QLineEdit(SettingsDialog);
         serialInterval->setObjectName("serialInterval");
 
-        formLayout->setWidget(9, QFormLayout::FieldRole, serialInterval);
+        formLayout->setWidget(10, QFormLayout::FieldRole, serialInterval);
+
+        label_9 = new QLabel(SettingsDialog);
+        label_9->setObjectName("label_9");
+
+        formLayout->setWidget(8, QFormLayout::LabelRole, label_9);
+
+        removeChars = new QLineEdit(SettingsDialog);
+        removeChars->setObjectName("removeChars");
+
+        formLayout->setWidget(8, QFormLayout::FieldRole, removeChars);
 
 
         verticalLayout_2->addLayout(formLayout);
@@ -228,6 +240,7 @@ public:
         label_8->setText(QCoreApplication::translate("SettingsDialog", "Database Table", nullptr));
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Confirm Password", nullptr));
         label_7->setText(QCoreApplication::translate("SettingsDialog", "Interval", nullptr));
+        label_9->setText(QCoreApplication::translate("SettingsDialog", "Barcode Remove Chars", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

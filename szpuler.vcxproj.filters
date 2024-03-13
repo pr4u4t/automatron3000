@@ -38,9 +38,6 @@
     <QtMoc Include="Instances.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="MdiWindow.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="Tray.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -55,6 +52,12 @@
     <ClCompile Include="mainwindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Instances.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="szpuler.qrc">
@@ -66,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MdiWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

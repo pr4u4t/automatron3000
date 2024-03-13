@@ -39,7 +39,7 @@ public:
 
     QSettings& settings();  
     
-    MainWindow& operator<< (const QString& msg);
+    MainWindow& operator<< (const QString& QtClassLibrary1msg);
     
     //Logger* logger();
     
@@ -149,8 +149,8 @@ public slots:
 private slots:
     void about();
     void switchLayoutDirection();
-    void createOrActivatePlugins();
-    void createOrActivateInstances();
+    //void createOrActivatePlugins();
+    //void createOrActivateInstances();
 
 private:
 

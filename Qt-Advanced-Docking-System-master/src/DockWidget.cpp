@@ -386,7 +386,8 @@ CDockWidget::CDockWidget(const QString &title, QWidget *parent) :
 CDockWidget::~CDockWidget()
 {
     ADS_PRINT("~CDockWidget(): " << this->windowTitle());
-    if (features().testFlag(DontDeleteContent)){
+    this->windowTitle(); //debug
+    if (d->Features & DontDeleteContent){
         takeWidget();
     }
 

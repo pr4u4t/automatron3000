@@ -477,6 +477,15 @@ void QData::enterPressed() {
         }
     }
 
+    if (m_settings.removeChars.isEmpty() == false) {
+        emit message("QData::enterPressed(): removing characters: "+m_settings.removeChars);
+        QString toRemove = m_settings.removeChars;
+        str.removeIf([&toRemove](const QChar& ch) {
+            return toRemove.contains(ch);
+        });
+        m_ui->barcodeEdit->setText(str);
+    }
+
     m_model->setFilter("part LIKE '%" + str + "%'");
     m_model->select();
 

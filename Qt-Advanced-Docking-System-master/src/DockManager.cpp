@@ -122,7 +122,7 @@ struct DockManagerPrivate
 	Qt::ToolButtonStyle ToolBarStyleFloating = Qt::ToolButtonTextUnderIcon;
 	QSize ToolBarIconSizeDocked = QSize(16, 16);
 	QSize ToolBarIconSizeFloating = QSize(24, 24);
-	CDockWidget::DockWidgetFeatures LockedDockWidgetFeatures;
+    CDockWidget::DockWidgetFeatures LockedDockWidgetFeatures;
 
 	/**
 	 * Private data constructor

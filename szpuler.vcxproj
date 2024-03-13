@@ -121,9 +121,11 @@
     <QtMoc Include="mainwindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Instances.cpp" />
     <ClCompile Include="logviewer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainwindow.cpp" />
+    <ClCompile Include="PluginList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="szpuler.qrc" />
@@ -132,7 +134,7 @@
     <ClInclude Include="resource.h" />
     <QtMoc Include="Tray.h" />
     <QtMoc Include="Instances.h" />
-    <QtMoc Include="MdiWindow.h" />
+    <ClInclude Include="MdiWindow.h" />
     <ClInclude Include="ModuleLoader.h" />
   </ItemGroup>
   <ItemGroup>

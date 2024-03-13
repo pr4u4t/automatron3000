@@ -1,6 +1,9 @@
 #ifndef MDI_WINDOW_H
 #define MDI_WINDOW_H
 
+//Scheduled for deletion
+
+/*
 #include <QMdiSubWindow>
 #include <QCloseEvent>
 
@@ -19,5 +22,5 @@ public:
 	}
 
 };
-
+*/
 #endif

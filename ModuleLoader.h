@@ -53,7 +53,7 @@ public:
 		m_instances[name] = ret;
 
 		connect(dynamic_cast<QObject*>(ret.data()),SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
-
+		emit loaded(ret.data());
 		return ret;
 	}
 
@@ -70,8 +70,22 @@ public:
 	qint32 loadPlugins(W* win) {
 		qint32 ret = 0;
 		QDirIterator it(path(), { "*.dll", "*.so", "*.dylib"}, QDir::Files);
+
+		QSettings settings = Settings::get();
+		auto list = settings.value("plugins/active").toString();
+		QStringList active;
+
+		if (list.isEmpty() == false) {
+			active = list.split(' ');
+		}
+
 		while (it.hasNext()) {
 			QString libpath = it.next();
+			if (active.isEmpty() == false) {
+				if (active.indexOf(it.fileInfo().baseName()) == -1) {
+					continue;
+				}
+			}
 			QLibrary* lib = new QLibrary(libpath);
 			if (lib == nullptr) {
 				//failed

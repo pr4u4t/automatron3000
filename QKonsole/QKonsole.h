@@ -10,8 +10,6 @@
 #include "settingsdialog.h"
 #include "terminal.h"
 
-class QKonsole;
-
 class QKONSOLE_EXPORT QKonsole : public Widget
 {
     Q_OBJECT

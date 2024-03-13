@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\Admin\AppData\Local\Temp\akx1b1is.r20;C:\Qt\6.6.2\msvc2019_64\include;C:\Qt\6.6.2\msvc2019_64\include\QtWidgets;C:\Qt\6.6.2\msvc2019_64\include\QtGui;C:\Qt\6.6.2\msvc2019_64\include\QtCore5Compat;C:\Qt\6.6.2\msvc2019_64\include\QtCore;C:\Users\Admin\AppData\Local\Temp\akx1b1is.r20;/include;C:\Qt\6.6.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Admin\AppData\Local\Temp\qtbaupe3.oz0;C:\Qt\6.6.2\msvc2019_64\include;C:\Qt\6.6.2\msvc2019_64\include\QtWidgets;C:\Qt\6.6.2\msvc2019_64\include\QtGui;C:\Qt\6.6.2\msvc2019_64\include\QtCore5Compat;C:\Qt\6.6.2\msvc2019_64\include\QtCore;C:\Users\Admin\AppData\Local\Temp\qtbaupe3.oz0;/include;C:\Qt\6.6.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -permissive- -Zc:__cplusplus -Zc:externConstexpr -utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>.\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>

@@ -8,46 +8,26 @@
 #include "api/api.h"
 #include "ModuleLoader.h"
 
-class Instances : public MdiChild {
+class Instances : public Widget {
 
 	Q_OBJECT
 
 public:
 
-	Instances(QWidget* parent, QWidget* mwin, MLoader* loader)
-		: MdiChild(mwin) {
-		QStandardItemModel* model = new QStandardItemModel(0, 2);
+	Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
 
-		if (loader != nullptr) {
-			auto list = loader->instances();
-			for (auto it = list.begin(), end = list.end(); it != end; ++it) {
-				QList<QStandardItem*> row;
-				row << new QStandardItem((*it)->name());
-				row << new QStandardItem((*it)->version());
-				model->appendRow(row);
-			}
-		}
+	bool saveSettings();
 
-		model->setHeaderData(0, Qt::Horizontal, tr("name"));
-		model->setHeaderData(1, Qt::Horizontal, tr("version"));
+	void settingsChanged();
 
-		QTableView* view = new QTableView();
-		view->setShowGrid(true);
-		view->setModel(model);
-		view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-		view->setAlternatingRowColors(true);
-		view->setSelectionMode(QAbstractItemView::SingleSelection);
-		view->setSelectionBehavior(QAbstractItemView::SelectRows);
-		view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+public slots:
 
-		QBoxLayout* lay = new QVBoxLayout();
-		setLayout(lay);
-		lay->addWidget(view);
-	}
+	void loaded(const Plugin* plugin);
 
-	bool saveSettings() {
-		return true;
-	}
+private:
+
+	QTableView* m_view = nullptr;
+	QStandardItemModel* m_model = nullptr;
 
 };
 

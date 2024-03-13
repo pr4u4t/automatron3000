@@ -48,7 +48,7 @@
     <message>
         <location filename="passworddialog.cpp" line="13"/>
         <source>&lt;b&gt;The password is unset, so access is prevented&lt;/b&gt;&lt;br&gt;Go to application settings to set the password.</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;b&gt;Hasło nie jest ustawione, dlatego dostęp jest wzbroniony&lt;/b&gt;&lt;br&gt;Przejdź do ustawień aby ustawić hasło.</translation>
     </message>
     <message>
         <location filename="passworddialog.cpp" line="40"/>
@@ -191,13 +191,13 @@
         <translation>Eksportowanie bazy danych do pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="506"/>
-        <location filename="QData.cpp" line="522"/>
+        <location filename="QData.cpp" line="515"/>
+        <location filename="QData.cpp" line="531"/>
         <source>Unlock</source>
         <translation>Odblokuj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="517"/>
+        <location filename="QData.cpp" line="526"/>
         <source>Lock</source>
         <translation>Zablokuj</translation>
     </message>
@@ -330,7 +330,7 @@
     <message>
         <location filename="qdataui.ui" line="164"/>
         <source>Import Dir</source>
-        <translation>Import kataogu</translation>
+        <translation>Import katalogu</translation>
     </message>
     <message>
         <location filename="qdataui.ui" line="174"/>
@@ -384,7 +384,7 @@
     <message>
         <location filename="settingsdialog.ui" line="69"/>
         <location filename="settingsdialog.cpp" line="57"/>
-        <location filename="settingsdialog.cpp" line="72"/>
+        <location filename="settingsdialog.cpp" line="73"/>
         <source>Yes</source>
         <translation>Tak</translation>
     </message>
@@ -424,17 +424,22 @@
         <translation>Interwał</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="188"/>
+        <location filename="settingsdialog.ui" line="155"/>
+        <source>Barcode Remove Chars</source>
+        <translation>Znaki do usunięcia z kodu</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="198"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="195"/>
+        <location filename="settingsdialog.ui" line="205"/>
         <source>Apply</source>
         <translation>Zastosuj</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="202"/>
+        <location filename="settingsdialog.ui" line="212"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
@@ -444,14 +449,14 @@
         <translation>N/N</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="92"/>
-        <location filename="settingsdialog.cpp" line="112"/>
+        <location filename="settingsdialog.cpp" line="94"/>
+        <location filename="settingsdialog.cpp" line="114"/>
         <source>Error</source>
         <translation>Błąd</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="92"/>
-        <location filename="settingsdialog.cpp" line="112"/>
+        <location filename="settingsdialog.cpp" line="94"/>
+        <location filename="settingsdialog.cpp" line="114"/>
         <source>Password mismatch</source>
         <translation>Hasło i potwierdzenie są różne</translation>
     </message>

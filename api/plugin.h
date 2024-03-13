@@ -242,7 +242,7 @@ public:
 	virtual ~PluginsLoader() = default;
 
 signals:
-	void loaded(const QString& name);
+	void loaded(const Plugin* plugin);
 };
 
 #define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends) extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends); }

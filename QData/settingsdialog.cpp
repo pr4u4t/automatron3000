@@ -60,6 +60,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->serialPrefix->setText(m_currentSettings.serialPrefix);
     m_ui->codeRegexp->setText(m_currentSettings.barcodeRegexp);
     m_ui->serialInterval->setText(QString::number(m_currentSettings.serialInterval));
+    m_ui->removeChars->setText(m_currentSettings.removeChars);
 }
 
 void SettingsDialog::updateSettings() {
@@ -74,6 +75,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.serialPrefix = m_ui->serialPrefix->text();
     m_currentSettings.barcodeRegexp = m_ui->codeRegexp->text();
     m_currentSettings.serialInterval = m_ui->serialInterval->text().toInt();
+    m_currentSettings.removeChars = m_ui->removeChars->text();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

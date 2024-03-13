@@ -135,7 +135,6 @@ bool MainWindow::createWindowByName(const QString& name){
     if (w == nullptr) {
         return false;
     }
-    w->setFeature(ads::CDockWidget::DontDeleteContent, true);
 
     return true;
 }
@@ -149,7 +148,9 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
         return nullptr;
     }
     child->setWidget(widget);
+    child->setFeature(ads::CDockWidget::DontDeleteContent, true);
     m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
+    //
 
     //const QMetaObject* mu = widget->metaObject();
     //if (child->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
@@ -185,15 +186,15 @@ void MainWindow::createActions(){
     }
 
     QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
-    QAction* pluginsList = new QAction(tr("Plugins"), this);
-    pluginsList->setData(QVariant("PluginsList"));
-    connect(pluginsList, &QAction::triggered, this, &MainWindow::createOrActivatePlugins);
-    settingsMenu->addAction(pluginsList);
+    //QAction* pluginsList = new QAction(tr("Plugins"), this);
+    //pluginsList->setData(QVariant("PluginsList"));
+    //connect(pluginsList, &QAction::triggered, this, &MainWindow::createOrActivatePlugins);
+    //settingsMenu->addAction(pluginsList);
 
-    QAction* instances = new QAction(tr("Instances"), this);
-    instances->setData(QVariant("Instances"));
-    connect(instances, &QAction::triggered, this, &MainWindow::createOrActivateInstances);
-    settingsMenu->addAction(instances);
+    //QAction* instances = new QAction(tr("Instances"), this);
+    //instances->setData(QVariant("Instances"));
+    //connect(instances, &QAction::triggered, this, &MainWindow::createOrActivateInstances);
+    //settingsMenu->addAction(instances);
 
     menuBar()->addSeparator();
 
@@ -206,6 +207,7 @@ void MainWindow::createActions(){
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
 }
 
+/*
 void MainWindow::createOrActivatePlugins() {
     ads::CDockWidget* win;
     m_logger->message("MainWindow::createOrActivatePlugins()", LoggerSeverity::LOG_DEBUG);
@@ -219,7 +221,9 @@ void MainWindow::createOrActivatePlugins() {
     MdiChild *child = new PluginList(m_dockManager, this, plugins());
     addSubWindow(child, "Plugins");
 }
+*/
 
+/*
 void MainWindow::createOrActivateInstances() {
     ads::CDockWidget* win = nullptr;
     m_logger->message("MainWindow::createOrActivateInstances()");
@@ -238,6 +242,7 @@ void MainWindow::createOrActivateInstances() {
 
     addSubWindow(child, "Instances");
 }
+*/
 
 void MainWindow::createStatusBar(){
     m_logger->message("MainWindow::createStatusBar()", LoggerSeverity::LOG_DEBUG);
