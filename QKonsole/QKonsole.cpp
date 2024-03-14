@@ -10,10 +10,11 @@ struct QKonsoleMenu {
 
         m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"), m_serialMenu);
         m_actionConfigure->setData(QVariant("QKonsole/Settings"));
-
-        m_translator = new QTranslator();
-        if (m_translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
-            m_app->installTranslator(m_translator);
+        if (app != nullptr && Settings::localeNeeded()) {
+            m_translator = new QTranslator();
+            if (m_translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
+                m_app->installTranslator(m_translator);
+            }
         }
 
         m_console = new QAction(m_app->translate("MainWindow", "Konsole"), nullptr);

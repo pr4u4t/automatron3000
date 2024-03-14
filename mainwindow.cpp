@@ -140,7 +140,7 @@ bool MainWindow::createWindowByName(const QString& name){
 }
 
 ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QString& title) {
-    m_logger->message(QString("MainWindow::addSubWindow(%1, %2)").arg((long long)widget, 0, 16).arg(title), LoggerSeverity::LOG_DEBUG);
+    m_logger->message(QString("MainWindow::addSubWindowInternal(%1, %2)").arg((long long)widget, 0, 16).arg(title), LoggerSeverity::LOG_DEBUG);
 
     ads::CDockWidget* child = new ads::CDockWidget(title);
     if (child == nullptr) {

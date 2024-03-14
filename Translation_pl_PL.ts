@@ -136,11 +136,13 @@
         <translation>&amp;Ustawienia</translation>
     </message>
     <message>
+        <location filename="PluginList.cpp" line="20"/>
         <location filename="PluginList.cpp" line="22"/>
         <source>Plugins</source>
         <translation>Wtyczki</translation>
     </message>
     <message>
+        <location filename="Instances.cpp" line="20"/>
         <location filename="Instances.cpp" line="22"/>
         <source>Instances</source>
         <translation>Instancje</translation>

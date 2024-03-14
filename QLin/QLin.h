@@ -4,6 +4,7 @@
 #include "qlin_global.h"
 #include "../api/api.h"
 #include "settingsdialog.h"
+#include "CLin.h"
 
 class QLIN_EXPORT QLin : public IODevice {
 
@@ -37,6 +38,8 @@ protected slots:
 private:
 
 	SettingsDialog::LinSettings m_settings;
+	CLin* m_lin = nullptr;
+	bool m_open = false;
 };
 
 #endif

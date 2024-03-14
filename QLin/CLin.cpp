@@ -83,29 +83,28 @@ XLstatus CLin::LINInit(int linID) {
 	// Init each channel (master+slave)
 	// ---------------------------------------
 
-	xlStatus = linInitMaster(linID);
-	if (xlStatus) {
-		m_pStatusBox->InsertString(-1, "Init Master failed!");
-		return xlStatus;
+	ret = linInitMaster(linID);
+	if (ret != XL_SUCCESS) {
+		emit message("CLin::LINInit(): init master failed");
+		return ret;
 	}
-	sprintf_s(tmp, sizeof(tmp), "Init M/Slave id:%d", linID);
-	m_pStatusBox->InsertString(-1, tmp);
+
+	emit message(QString("CLin::LINInit(): init M/Slave id:%1").arg(linID));
 
 	// for the next slave we take the next ID
 	linID++;
 
 	// if we have a second channel we setup a LIN slave
 	if (m_xlChannelMask[SLAVE]) {
-		xlStatus = linInitSlave(linID);
-		if (xlStatus) {
-			m_pStatusBox->InsertString(-1, "Init Slave failed!");
-			return xlStatus;
+		ret = linInitSlave(linID);
+		if (ret != XL_SUCCESS) {
+			emit message("CLin::LINInit(): init slave failed");
+			return ret;
 		}
-		sprintf_s(tmp, sizeof(tmp), "Init Slave id:%d", linID);
-		m_pStatusBox->InsertString(-1, tmp);
+		emit message(QString("CLin::LINInit(): init slave id:%1").arg(linID));
 	}
 
-	return xlStatus;
+	return ret;
 }
 
 XLstatus CLin::LINSendMasterReq(BYTE data, int linID) {
@@ -179,76 +178,144 @@ XLstatus CLin::linGetChannelMask() {
 	//check for hardware:
 	ret = xlGetDriverConfig(&xlDrvConfig);
 	if (ret != XL_SUCCESS) {
-		XLDEBUG(DEBUG_ADV, "Error in xlGetDriverConfig...");
-		return xlStatus;
+		emit message(QString("CLin::linGetChannelMask(): xlGetDriverConfig failed %1").arg(ret));
+		return ret;
 	}
 
 	for (appChannel = 0; appChannel < 2; ++appChannel) {
 
-		ret = xlGetApplConfig("xlLINExample", appChannel, &hwType, &hwIndex, &hwChannel, busType);
+		ret = xlGetApplConfig(m_name.toLocal8Bit().data(), appChannel, &hwType, &hwIndex, &hwChannel, busType);
 
-		if (xlStatus != XL_SUCCESS) {
+		if (ret != XL_SUCCESS) {
 			// Set the params into registry (default values...!)
-			XLDEBUG(DEBUG_ADV, "set in registry");
-
 			hwChannel = appChannel;
 
 			for (i = 0; i < xlDrvConfig.channelCount; i++) {
-
 				// check PC for hardware with LINCabs or LINPiggy's 
 				if (xlDrvConfig.channel[i].channelBusCapabilities & XL_BUS_ACTIVE_CAP_LIN) {
 					hwType = xlDrvConfig.channel[i].hwType;
-					sprintf_s(tmp, sizeof(tmp), "Found LIN hWType: %d;\n", hwType);
-					XLDEBUG(DEBUG_ADV, tmp);
-
-					xlStatus = xlSetApplConfig(                 // Registration of Application with default settings
-						"xlLINExample", // Application Name
-						appChannel,     // Application channel 0 or 1
-						hwType,         // hwType  (CANcardXL...)    
-						hwIndex,        // Index of hardware (slot) (0,1,...)
-						hwChannel,      // Index of channel (connector) (0,1,...)
-						busType);       // the application is for LIN.
+					emit message(QString("CLin::linGetChannelMask(): xlGetApplConfig: found LIN hWType: %1").arg(hwType));
+					
+					ret = xlSetApplConfig(				// Registration of Application with default settings
+						m_name.toLocal8Bit().data(),	// Application Name
+						appChannel,						// Application channel 0 or 1
+						hwType,							// hwType  (CANcardXL...)    
+						hwIndex,						// Index of hardware (slot) (0,1,...)
+						hwChannel,						// Index of channel (connector) (0,1,...)
+						busType							// the application is for LIN.
+					);
 				}
 			}
-
-		} else XLDEBUG(DEBUG_ADV, "found in registry");
+		} else {
+			emit message("CLin::linGetChannelMask(): xlGetApplConfig: found in registry");
+		}
 
 		channelIndex = xlGetChannelIndex(hwType, hwIndex, hwChannel);
 
 		// check if we have a valid LIN cab/piggy
 		if (xlDrvConfig.channel[channelIndex].channelBusCapabilities & XL_BUS_ACTIVE_CAP_LIN) {
-			XLDEBUG(DEBUG_ADV, "Found LIN cab/piggy\n");
+			emit message("CLin::linGetChannelMask(): found LIN cab/piggy");
 			// and check the right hardwaretype
 			if (xlDrvConfig.channel[channelIndex].hwType == hwType) {
 				m_xlChannelMask[appChannel + 1] = xlGetChannelMask(hwType, hwIndex, hwChannel);
 			}
 
-		}
-		else {
-			XLDEBUG(DEBUG_ADV, "No LIN cab/piggy found\n");
+		} else {
+			emit message("CLin::linGetChannelMask(): No LIN cab/piggy found");
 		}
 
-		sprintf_s(tmp, sizeof(tmp), "Init LIN hWType: %d; hWIndex: %d; hwChannel: %d; channelMask: 0x%I64x for appChannel: %d\n",
-			hwType, hwIndex, hwChannel, m_xlChannelMask[appChannel + 1], appChannel);
-		XLDEBUG(DEBUG_ADV, tmp);
+		emit message(QString("CLin::linGetChannelMask(): init LIN hWType: %1; hWIndex: %2; hwChannel: %3; channelMask: %4 for appChannel: %5")
+			.arg(hwType)
+			.arg(hwIndex)
+			.arg(hwChannel) 
+			.arg(m_xlChannelMask[appChannel + 1]) 
+			.arg(appChannel)
+		);
 
 	}
 
-	return xlStatus;
+	return ret;
 }
 
 XLstatus CLin::linInitMaster(int linID) {
+	XLstatus ret = XL_ERROR;
 
+	unsigned char   data[8];
+	unsigned char   DLC[64];
+
+	// ---------------------------------------
+	// Setup the channel as a MASTER
+	// ---------------------------------------
+
+	XLlinStatPar     xlStatPar;
+
+	xlStatPar.LINMode = XL_LIN_MASTER;
+	xlStatPar.baudrate = DEFAULT_LIN_BAUDRATE;	// set the baudrate
+	xlStatPar.LINVersion = XL_LIN_VERSION_1_3;  // use LIN 1.3
+
+	ret = xlLinSetChannelParams(m_xlPortHandle, m_xlChannelMask[MASTER], xlStatPar);
+
+	emit message(QString("CLin::linInitMaster(): xlLinSetChannelParams init Master PH: '%1', CM: '%2', status: %3")
+		.arg(m_xlPortHandle)
+		.arg(m_xlChannelMask[MASTER])
+		.arg(ret)
+	);
+	
+	// ---------------------------------------
+	// Setup the Master DLC's
+	// ---------------------------------------
+
+	// set the DLC for all ID's to DEFAULT_LIN_DLC
+	for (int i = 0; i < 64; i++) {
+		DLC[i] = DEFAULT_LIN_DLC;
+	}
+
+	ret = xlLinSetDLC(m_xlPortHandle, m_xlChannelMask[MASTER], DLC);
+	emit message(QString("CLin::linInitMaster(): xlLinSetDLC, CM: %1, status: %2")
+		.arg(m_xlChannelMask[MASTER])
+		.arg(ret));
+
+	// ---------------------------------------
+	// Setup the channel as a SLAVE also
+	// ---------------------------------------
+
+	memset(data, 0, 8);
+
+	ret = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, data, DEFAULT_LIN_DLC, XL_LIN_CALC_CHECKSUM);
+	emit message(QString("CLin::linInitMaster(): xlLinSetSlave set slave id:%1, CM: %2, status: %3")
+		.arg(linID)
+		.arg(m_xlChannelMask[MASTER])
+		.arg(ret)
+	);
+
+	// ---------------------------------------
+	// Activate the Master Channel
+	// ---------------------------------------
+
+	ret = xlActivateChannel(m_xlPortHandle, m_xlChannelMask[MASTER], XL_BUS_TYPE_LIN, XL_ACTIVATE_RESET_CLOCK);
+	emit message(QString("CLin::linInitMaster(): activate channel, CM: %1, status: %2")
+		.arg(m_xlChannelMask[MASTER])
+		.arg(ret)
+	);
+	
+	if (ret != XL_SUCCESS) {
+		return ret;
+	}
+
+	ret = xlFlushReceiveQueue(m_xlPortHandle);
+	emit message(QString("CLin::linInitMaster(): xlFlushReceiveQueue stat %1").arg(ret));
+
+	return ret;
 }
 
 XLstatus CLin::linInitSlave(int linID) {
-
+	return XL_SUCCESS;
 }
 
 XLstatus CLin::linCreateRxThread() {
-
+	return XL_SUCCESS;
 }
 
 XLstatus CLin::linSetSlave(int linID, BYTE data) {
-
+	return XL_SUCCESS;
 }

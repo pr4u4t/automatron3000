@@ -52,35 +52,47 @@ public:
     bool addSubWindow(QWidget* widget, const QString& title = QString()) override;
 
     qint64 restoreSession() {
+        m_logger->message("MainWindow::restoreSession()");
+
         QString session = settings().value("session/plugins").toString();
         QStringList list = session.split(" ", Qt::SkipEmptyParts);
         qint64 ret = 0;
         QRegExp rx("^([A-Za-z0-9]+)");
 
-        for (auto it = list.begin(), end = list.end(); it != end; ++it, ++ret) {
-            qDebug() << *it;
-            if (rx.indexIn(*it) != -1) {
-                QString name = rx.cap(1);
+        if (list.size() > 0) {
+            m_logger->message("MainWindow::restoreSession(): restore plugins instances: "+session);
+            for (auto it = list.begin(), end = list.end(); it != end; ++it, ++ret) {
+                m_logger->message("MainWindow::restoreSession(): creating plugin: " + *it);
+                if (rx.indexIn(*it) != -1) {
+                    QString name = rx.cap(1);
 
-                auto plugin = plugins()->instance(name, this, *it);
+                    auto plugin = plugins()->instance(name, this, *it);
 
-                if (plugin.isNull()) {
-                    continue;
-                }
+                    if (plugin.isNull()) {
+                        m_logger->message("MainWindow::restoreSession(): failed to create plugin: "+*it);
+                        continue;
+                    }
 
-                if (plugin->type() == Plugin::Type::WIDGET) {
-                    ads::CDockWidget* dockWidget = new ads::CDockWidget(plugin->name());
- 
-                    dockWidget->setWidget(dynamic_cast<Widget*>(plugin.data()));
-                    dockWidget->setFeature(ads::CDockWidget::DontDeleteContent, true);
-                    
-                    m_dockManager->addDockWidget(ads::CenterDockWidgetArea, dockWidget, m_area);
+                    if (plugin->type() == Plugin::Type::WIDGET) {
+                        m_logger->message("MainWindow::restoreSession(): adding widget: "+*it);
+                        ads::CDockWidget* dockWidget = new ads::CDockWidget(plugin->name());
+
+                        dockWidget->setWidget(dynamic_cast<Widget*>(plugin.data()));
+                        dockWidget->setFeature(ads::CDockWidget::DontDeleteContent, true);
+
+                        m_dockManager->addDockWidget(ads::CenterDockWidgetArea, dockWidget, m_area);
+                    }
                 }
             }
+        } else {
+            m_logger->message("MainWindow::restoreSession() :");
         }
 
         QByteArray state = settings().value("session/state").toByteArray();
-        m_dockManager->restoreState(state);
+        if (state.isEmpty() == false) {
+            m_logger->message("MainWindow::restoreSession() : restoring dock session");
+            m_dockManager->restoreState(state);
+        }
         m_area = m_dockManager->dockArea(0);
         return ret;
     }
@@ -93,11 +105,17 @@ protected:
     void closeEvent(QCloseEvent* ev) override;
 
     qint64 saveSession() {
+        m_logger->message("MainWindow::saveSession()");
         QSettings& setts = settings();
         QString value;
         
         QByteArray state = m_dockManager->saveState();
         settings().setValue("session/state", state);
+
+        if (settings().status() != QSettings::NoError) {
+            m_logger->message("MainWindow::saveSession(): failed to save session/state");
+        }
+
         QList<QSharedPointer<Plugin>> exts = plugins()->instances();
         QStringList order;
 
@@ -132,7 +150,10 @@ protected:
         }
 
         settings().setValue("session/plugins", result.join(" "));
-        
+        if (settings().status() != QSettings::NoError) {
+            m_logger->message("MainWindow::saveSession(): failed to save session/plugins");
+        }
+
         return 0;
     }
 

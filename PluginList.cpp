@@ -17,7 +17,7 @@ struct PluginListMenu {
 static bool PluginList_register(Window* win, PluginsLoader* ld, PluginListMenu* ctx, Logger* log) {
 
 	ctx->m_app = QCoreApplication::instance();
-	ctx->m_pluginList = new QAction(ctx->m_app->tr("MainWindow", "Plugins"));
+	ctx->m_pluginList = new QAction(ctx->m_app->translate("MainWindow", "Plugins"));
 	ctx->m_pluginList->setData(QVariant("PluginList"));
 	ctx->m_pluginList->setText(ctx->m_app->translate("MainWindow", "Plugins"));
 
@@ -49,13 +49,14 @@ REGISTER_STATIC_PLUGIN(
 
 PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
 : Widget(ld, plugins, parent, settingsPath) {
-	QStandardItemModel* model = new QStandardItemModel(0, 4);
+	QStandardItemModel* model = new QStandardItemModel(0, 5);
 
 	if (plugins != nullptr) {
 		auto loader = reinterpret_cast<MLoader*>(plugins);
 		auto list = loader->loaders();
 		for (auto it = list.begin(), end = list.end(); it != end; ++it) {
 			QList<QStandardItem*> row;
+			row << new QStandardItem((*it)->enabled() ? tr("true") : tr("false"));
 			row << new QStandardItem((*it)->name());
 			row << new QStandardItem((*it)->version());
 			row << new QStandardItem((*it)->description());
@@ -64,10 +65,11 @@ PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
 		}
 	}
 
-	model->setHeaderData(0, Qt::Horizontal, tr("name"));
-	model->setHeaderData(1, Qt::Horizontal, tr("version"));
-	model->setHeaderData(2, Qt::Horizontal, tr("description"));
-	model->setHeaderData(3, Qt::Horizontal, tr("author"));
+	model->setHeaderData(0, Qt::Horizontal, tr("enabled"));
+	model->setHeaderData(1, Qt::Horizontal, tr("name"));
+	model->setHeaderData(2, Qt::Horizontal, tr("version"));
+	model->setHeaderData(3, Qt::Horizontal, tr("description"));
+	model->setHeaderData(4, Qt::Horizontal, tr("author"));
 
 	QTableView* view = new QTableView();
 	view->setShowGrid(true);

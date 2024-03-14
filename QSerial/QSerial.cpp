@@ -7,7 +7,7 @@
 struct QSerialMenu {
 	QSerialMenu(QCoreApplication *app)
 	: m_app(app){
-		if (m_app != nullptr) {
+		if (m_app != nullptr && Settings::localeNeeded()) {
 			m_translator = new QTranslator();
 			if (m_translator->load(QLocale::system(), "QSerial", "_", "translations")) { //set directory of ts
 				m_app->installTranslator(m_translator);

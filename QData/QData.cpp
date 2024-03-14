@@ -15,9 +15,11 @@
 struct QDataMenu {
     QDataMenu(QCoreApplication* app)
     : m_app(app){
-        m_translator = new QTranslator();
-        if (m_translator->load(QLocale::system(), "QData", "_", "translations")) { //set directory of ts
-            m_app->installTranslator(m_translator);
+        if (app != nullptr && Settings::localeNeeded()) {
+            m_translator = new QTranslator();
+            if (m_translator->load(QLocale::system(), "QData", "_", "translations")) { //set directory of ts
+                m_app->installTranslator(m_translator);
+            }
         }
 
         m_dataMenu = new QMenu(m_app->translate("MainWindow", "&Data"));

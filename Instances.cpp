@@ -15,9 +15,9 @@ struct InstancesMenu {
 };
 
 static bool Instances_register(Window* win, PluginsLoader* ld, InstancesMenu* ctx, Logger* log) {
-
+    log->message("Instances_register");
     ctx->m_app = QCoreApplication::instance();
-    ctx->m_instances = new QAction(ctx->m_app->tr("MainWindow", "Instances"));
+    ctx->m_instances = new QAction(ctx->m_app->translate("MainWindow", "Instances"));
     ctx->m_instances->setData(QVariant("Instances"));
     ctx->m_instances->setText(ctx->m_app->translate("MainWindow", "Instances"));
 
@@ -32,7 +32,7 @@ static bool Instances_register(Window* win, PluginsLoader* ld, InstancesMenu* ct
 }
 
 static bool Instances_unregister(Window* win, PluginsLoader* ld, InstancesMenu* ctx, Logger* log) {
-
+    log->message("Instances_unregister");
     return true;
 }
 

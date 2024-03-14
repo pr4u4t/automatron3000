@@ -88,11 +88,11 @@ public:
 			}
 			QLibrary* lib = new QLibrary(libpath);
 			if (lib == nullptr) {
-				//failed
 				continue;
 			}
 
 			if (lib->load() == false) {
+				m_logger->message(QString("ModuleLoader::loadPlugins(): failed to load %1 %2").arg(libpath).arg(lib->errorString()));
 				delete lib;
 				continue;
 			}
@@ -116,6 +116,24 @@ public:
 		}
 
 		auto exts = loaders();
+		
+		for (auto it : exts) {
+			auto deps = it->depends();
+			for (auto begin = deps.begin(), end = deps.end(); begin != end; ++begin) {
+				if (hasLoader(*begin) == false) {
+					m_loaders[it->name()]->setEnabled(false);
+					break;
+				}
+			}
+		}
+		
+		for (int i = 0; i < exts.size(); ++i) {
+			if (exts[i]->enabled() == false) {
+				exts.removeAt(i);
+				--i;
+			}
+		}
+
 		QStringList order;
 
 		while (exts.size() > 0) {
@@ -170,8 +188,11 @@ public:
 		return m_logger;
 	}
 
-
 private:
+	inline bool hasLoader(const QString& name) const {
+		return m_loaders.contains(name);
+	}
+
 	QHash<QString, QLibrary*> m_libraries;
 	QHash<QString, decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> m_instances;
 	static QHash<QString, T*> m_loaders;

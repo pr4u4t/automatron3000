@@ -9,7 +9,7 @@
 #include <QUuid>
 #include <QRegExp>
 #include <QCloseEvent>
-
+#include <QLocale>
 #include "api_global.h"
 #include "window.h"
 #include "mdichild.h"
@@ -140,7 +140,8 @@ public:
 		, m_version(version)
 		, m_author(author)
 		, m_description(description)
-		, m_depends(depends){
+		, m_depends(depends)
+		, m_enabled(true){
 	}
 
 	QString name() const {
@@ -167,6 +168,10 @@ public:
 		return m_depends;
 	}
 
+	bool enabled() const {
+		return m_enabled;
+	}
+
 	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
 
 	virtual bool registerPlugin(Window* win, PluginsLoader* ld, Logger* log) = 0;
@@ -175,7 +180,9 @@ public:
 
 	virtual ~Loader() = default;
 
-private:
+	void setEnabled(bool enabled) {
+		m_enabled = enabled;
+	}
 
 	QString m_name;
 	Plugin::Type m_type;
@@ -183,6 +190,7 @@ private:
 	QString m_author;
 	QString m_description;
 	QStringList m_depends;
+	bool m_enabled;
 };
 
 template<typename T, typename D>
@@ -254,6 +262,13 @@ public:
 		return QSettings("configuration.ini", QSettings::Format::IniFormat);
 	}
 
+	static bool localeNeeded() {
+		QLocale locale = QLocale::system();
+		QString lcName = locale.name();
+		bool lcEnabled = Settings::get().value("translations").toString() == "true" ? true : false;
+
+		return (lcName.startsWith("en") == false && lcEnabled == true);
+	}
 };
 
 #endif

@@ -52,10 +52,10 @@
     <ClCompile Include="mainwindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Instances.cpp">
+    <ClCompile Include="PluginList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PluginList.cpp">
+    <ClCompile Include="Instances.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

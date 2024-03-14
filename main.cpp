@@ -53,32 +53,40 @@ Main::Main(int& argc, char *argv[], Logger* log)
     
     setStyle(new ProxyStyle());
     setWindowIcon(QIcon(":/res/arduino.png"));
-    QTranslator* m_translator = new QTranslator();
-    QTranslator* m_qtTranslator = new QTranslator();
-    QTranslator* m_qtBaseTranslator = new QTranslator();
-
-    if (m_translator->load(QLocale::system(), "Translation", "_", "translations")) { //set directory of ts
-        installTranslator(m_translator);
-        log->message(QString("Main::Main: Successfully installed %1 translation").arg("Translation"));
-    } else {
-        log->message(QString("Main::Main: Failed to install %1 translation").arg("Translation"));
-    }
-
-    if (m_qtTranslator->load(QLocale::system(),
-        "qt", "_",
-        QLibraryInfo::location(QLibraryInfo::TranslationsPath))){
-        installTranslator(m_qtTranslator);
-        log->message(QString("Main::Main: Successfully installed %1 translation").arg("qt"));
-    } else {
-        log->message(QString("Main::Main: Failed to install %1 translation").arg("qt"));
-    }
     
-    if (m_qtBaseTranslator->load("qtbase_" + QLocale::system().name(),
-        QLibraryInfo::location(QLibraryInfo::TranslationsPath))){
-        installTranslator(m_qtBaseTranslator);
-        log->message(QString("Main::Main: Successfully installed %1 translation").arg("qtbase"));
-    } else {
-        log->message(QString("Main::Main: Failed to install %1 translation").arg("qtbase"));
+    QLocale locale = QLocale::system();
+
+    if (Settings::localeNeeded()) {
+        QTranslator* m_translator = new QTranslator();
+        QTranslator* m_qtTranslator = new QTranslator();
+        QTranslator* m_qtBaseTranslator = new QTranslator();
+
+        if (m_translator->load(locale, "Translation", "_", "translations")) { //set directory of ts
+            installTranslator(m_translator);
+            log->message(QString("Main::Main: Successfully installed %1 translation").arg("Translation"));
+        }
+        else {
+            log->message(QString("Main::Main: Failed to install %1 translation").arg("Translation"));
+        }
+
+        if (m_qtTranslator->load(locale,
+            "qt", "_",
+            QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+            installTranslator(m_qtTranslator);
+            log->message(QString("Main::Main: Successfully installed %1 translation").arg("qt"));
+        }
+        else {
+            log->message(QString("Main::Main: Failed to install %1 translation").arg("qt"));
+        }
+
+        if (m_qtBaseTranslator->load("qtbase_" + locale.name(),
+            QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+            installTranslator(m_qtBaseTranslator);
+            log->message(QString("Main::Main: Successfully installed %1 translation").arg("qtbase"));
+        }
+        else {
+            log->message(QString("Main::Main: Failed to install %1 translation").arg("qtbase"));
+        }
     }
 
     parseArgumnets();
