@@ -191,13 +191,13 @@
         <translation>Eksportowanie bazy danych do pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="538"/>
-        <location filename="QData.cpp" line="554"/>
+        <location filename="QData.cpp" line="540"/>
+        <location filename="QData.cpp" line="556"/>
         <source>Unlock</source>
         <translation>Odblokuj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="549"/>
+        <location filename="QData.cpp" line="551"/>
         <source>Lock</source>
         <translation>Zablokuj</translation>
     </message>

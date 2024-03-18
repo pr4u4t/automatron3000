@@ -504,6 +504,8 @@ void QData::enterPressed() {
         m_ui->barcodeEdit->setText(str);
     }
 
+    str = str.remove(QRegularExpression("^0+")).remove(QRegularExpression("0+$"));
+
     m_model->setFilter("part LIKE '%" + str + "%'");
     m_model->select();
 
