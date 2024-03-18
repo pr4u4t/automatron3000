@@ -122,6 +122,7 @@ QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& p
 	, m_lin(new CLin("QLin"))
 	, m_open(false){
 	connect(m_lin, &CLin::message, this, &QLin::message);
+	connect(m_lin, &CLin::dataReady, this, &QLin::dataReady);
 }
 
 bool QLin::open(const QString& url) {
@@ -133,7 +134,7 @@ bool QLin::open(const QString& url) {
 		return false;
 	}
 	
-	if (m_lin->LINInit(0) != XL_SUCCESS) {
+	if (m_lin->LINInit(m_settings.master ? m_settings.masterID : m_settings.slaveID, m_settings.linVersion) != XL_SUCCESS) {
 		close();
 		return false;
 	}
@@ -148,18 +149,91 @@ qint64 QLin::write(const QString& data) {
 		return -1;
 	}
 	
-	QStringList list = data.split(" ");
-	if (list.size() != 2) {
-		emit message("QLin::write: failed invalid data: 'data(BYTE) linID(int)'");
+	if (m_open != true) {
 		return -1;
 	}
 
-	if ((rc = m_lin->LINSendMasterReq(list[0].toLocal8Bit().data()[0], list[1].toInt())) != XL_SUCCESS) {
-		emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+	if (m_settings.master != true) {
 		return -1;
 	}
-	
-	return sizeof(BYTE);
+
+	if (data.isEmpty()) {
+		return -1;
+	}
+
+	QStringList list = data.split(" ");
+	switch (list.size()) {
+		case 1:
+			if ((rc = m_lin->LINSendMasterReq(list[0].toInt())) != XL_SUCCESS) {
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				return -1;
+			}
+			return sizeof(list[0].toInt());
+
+		case 2:
+			if ((rc = m_lin->LINSendMasterReq(list[0].toInt(), list[1].toLocal8Bit().data()[0])) != XL_SUCCESS) {
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				return -1;
+			}
+			return sizeof(list[0].toInt())+sizeof(BYTE);
+
+
+		default:
+			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'");
+			return -1;
+	}
+
+	return -1;
+}
+
+qint64 QLin::write(const QByteArray& data) {
+	emit message("QLin::write()");
+	XLstatus rc;
+
+	if (m_lin == nullptr) {
+		emit message("QLin::write(): m_lin == nullptr");
+		return -1;
+	}
+
+	if (m_open != true) {
+		emit message("QLin::write(): lin not open");
+		return -1;
+	}
+
+	if (m_settings.master != true) {
+		emit message("QLin::write(): not in master mode write unavailable");
+		return -1;
+	}
+
+	if (data.isEmpty()) {
+		emit message("QLin::write(): data is empty");
+		return -1;
+	}
+
+	QByteArrayList list = data.split(' ');
+
+	switch (list.size()) {
+		case 1:
+			if ((rc = m_lin->LINSendMasterReq(list[0].data()[0])) != XL_SUCCESS) {
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				return -1;
+			}
+			return sizeof(list[0].toInt());
+
+		case 2:
+			if ((rc = m_lin->LINSendMasterReq(list[0].toInt(), list[1].data()[0])) != XL_SUCCESS) {
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				return -1;
+			}
+			return sizeof(list[0].toInt()) + sizeof(BYTE);
+
+
+		default:
+			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'");
+			return -1;
+	}
+
+	return -1;
 }
 
 QString QLin::read(qint64 maxLen) {
@@ -171,12 +245,14 @@ qint64 QLin::bytesAvailable() {
 }
 
 void QLin::close() {
+	emit message("QLin::close()");
 	if (m_lin != nullptr) {
 		m_lin->LINClose();
 	}
 }
 
 bool QLin::isOpen() const {
+	emit message("QLin::isOpen()");
 	if (m_lin == nullptr) {
 		return true;
 	}
@@ -184,9 +260,12 @@ bool QLin::isOpen() const {
 }
 
 bool QLin::flush() {
-
+	emit message("QLin::flush()");
 	return true;
 }
 
 void QLin::settingsChanged() {
+	emit message("QLin::settingsChanged()");
+	close();
+	open(QString());
 }

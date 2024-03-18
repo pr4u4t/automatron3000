@@ -13,11 +13,11 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QListView>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QTableView>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -27,21 +27,13 @@ class Ui_QLinBusUI
 {
 public:
     QVBoxLayout *verticalLayout;
-    QGroupBox *groupBox;
-    QHBoxLayout *horizontalLayout_2;
-    QGroupBox *groupBox_3;
-    QHBoxLayout *horizontalLayout_3;
-    QLineEdit *lineEdit;
-    QGroupBox *groupBox_4;
-    QHBoxLayout *horizontalLayout_4;
-    QLineEdit *lineEdit_2;
     QGroupBox *groupBox_2;
     QVBoxLayout *verticalLayout_2;
-    QListView *listView;
+    QTableView *scanTable;
     QProgressBar *scanProgress;
     QHBoxLayout *horizontalLayout;
-    QPushButton *pushButton_2;
-    QPushButton *pushButton;
+    QPushButton *startButton;
+    QPushButton *stopButton;
     QSpacerItem *horizontalSpacer;
 
     void setupUi(QWidget *QLinBusUI)
@@ -51,50 +43,24 @@ public:
         QLinBusUI->resize(409, 412);
         verticalLayout = new QVBoxLayout(QLinBusUI);
         verticalLayout->setObjectName("verticalLayout");
-        groupBox = new QGroupBox(QLinBusUI);
-        groupBox->setObjectName("groupBox");
-        horizontalLayout_2 = new QHBoxLayout(groupBox);
-        horizontalLayout_2->setObjectName("horizontalLayout_2");
-        groupBox_3 = new QGroupBox(groupBox);
-        groupBox_3->setObjectName("groupBox_3");
-        horizontalLayout_3 = new QHBoxLayout(groupBox_3);
-        horizontalLayout_3->setObjectName("horizontalLayout_3");
-        lineEdit = new QLineEdit(groupBox_3);
-        lineEdit->setObjectName("lineEdit");
-
-        horizontalLayout_3->addWidget(lineEdit);
-
-
-        horizontalLayout_2->addWidget(groupBox_3);
-
-        groupBox_4 = new QGroupBox(groupBox);
-        groupBox_4->setObjectName("groupBox_4");
-        horizontalLayout_4 = new QHBoxLayout(groupBox_4);
-        horizontalLayout_4->setObjectName("horizontalLayout_4");
-        lineEdit_2 = new QLineEdit(groupBox_4);
-        lineEdit_2->setObjectName("lineEdit_2");
-
-        horizontalLayout_4->addWidget(lineEdit_2);
-
-
-        horizontalLayout_2->addWidget(groupBox_4);
-
-
-        verticalLayout->addWidget(groupBox);
-
         groupBox_2 = new QGroupBox(QLinBusUI);
         groupBox_2->setObjectName("groupBox_2");
         verticalLayout_2 = new QVBoxLayout(groupBox_2);
         verticalLayout_2->setObjectName("verticalLayout_2");
-        listView = new QListView(groupBox_2);
-        listView->setObjectName("listView");
+        scanTable = new QTableView(groupBox_2);
+        scanTable->setObjectName("scanTable");
+        scanTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        scanTable->setAlternatingRowColors(true);
+        scanTable->setSelectionMode(QAbstractItemView::SingleSelection);
+        scanTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-        verticalLayout_2->addWidget(listView);
+        verticalLayout_2->addWidget(scanTable);
 
         scanProgress = new QProgressBar(groupBox_2);
         scanProgress->setObjectName("scanProgress");
         scanProgress->setAutoFillBackground(false);
-        scanProgress->setValue(24);
+        scanProgress->setMaximum(63);
+        scanProgress->setValue(0);
         scanProgress->setInvertedAppearance(false);
         scanProgress->setTextDirection(QProgressBar::TopToBottom);
 
@@ -102,15 +68,15 @@ public:
 
         horizontalLayout = new QHBoxLayout();
         horizontalLayout->setObjectName("horizontalLayout");
-        pushButton_2 = new QPushButton(groupBox_2);
-        pushButton_2->setObjectName("pushButton_2");
+        startButton = new QPushButton(groupBox_2);
+        startButton->setObjectName("startButton");
 
-        horizontalLayout->addWidget(pushButton_2);
+        horizontalLayout->addWidget(startButton);
 
-        pushButton = new QPushButton(groupBox_2);
-        pushButton->setObjectName("pushButton");
+        stopButton = new QPushButton(groupBox_2);
+        stopButton->setObjectName("stopButton");
 
-        horizontalLayout->addWidget(pushButton);
+        horizontalLayout->addWidget(stopButton);
 
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
 
@@ -131,12 +97,9 @@ public:
     void retranslateUi(QWidget *QLinBusUI)
     {
         QLinBusUI->setWindowTitle(QCoreApplication::translate("QLinBusUI", "Form", nullptr));
-        groupBox->setTitle(QCoreApplication::translate("QLinBusUI", "Test", nullptr));
-        groupBox_3->setTitle(QCoreApplication::translate("QLinBusUI", "Master", nullptr));
-        groupBox_4->setTitle(QCoreApplication::translate("QLinBusUI", "Slave", nullptr));
         groupBox_2->setTitle(QCoreApplication::translate("QLinBusUI", "Scan", nullptr));
-        pushButton_2->setText(QCoreApplication::translate("QLinBusUI", "Start", nullptr));
-        pushButton->setText(QCoreApplication::translate("QLinBusUI", "Stop", nullptr));
+        startButton->setText(QCoreApplication::translate("QLinBusUI", "Start", nullptr));
+        stopButton->setText(QCoreApplication::translate("QLinBusUI", "Stop", nullptr));
     } // retranslateUi
 
 };

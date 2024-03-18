@@ -64,9 +64,20 @@ REGISTER_PLUGIN(
 
 QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
 	: Widget(ld, plugins, parent, path)
-    , m_ui(new Ui::QLinBusUI){
+    , m_ui(new Ui::QLinBusUI)
+    , m_model(new QStandardItemModel(0,5)){
     m_ui->setupUi(this);
+    connect(m_ui->startButton, &QPushButton::clicked, this, &QLinBus::scanStep);
+    QTimer::singleShot(0, this, &QLinBus::init);
 
+    m_model->setHeaderData(0, Qt::Horizontal, tr("ID"));
+    m_model->setHeaderData(1, Qt::Horizontal, tr("Type"));
+    m_model->setHeaderData(2, Qt::Horizontal, tr("DLC"));
+    m_model->setHeaderData(3, Qt::Horizontal, tr("Data"));
+    m_model->setHeaderData(4, Qt::Horizontal, tr("Time"));
+
+    m_ui->scanTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_ui->scanTable->setModel(m_model);
 }
 
 void QLinBus::settingsChanged() {

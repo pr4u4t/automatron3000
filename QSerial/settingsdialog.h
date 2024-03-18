@@ -51,7 +51,7 @@ public:
     static constexpr const char* autoConnectKey = "serial/autoConnect";
     static constexpr bool autoConnectValue = false;
     
-    struct SerialSettings{
+    struct SerialSettings : public PluginSettings {
         SerialSettings()
             : name(nameValue)
             , baudRate(bRateValue)

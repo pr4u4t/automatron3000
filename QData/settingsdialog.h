@@ -35,6 +35,7 @@ public:
     static constexpr const char* serialIntervalKey = "serialInterval";
     static constexpr const char* cipherKey = "cipher";
     static constexpr const char* removeCharsKey = "removeChars";
+    static constexpr const char* omitZerosKey = "omitZeros";
 
     static constexpr const char* dbDriverValue = "QPSQL";
     static constexpr const char* dbUriValue = "szpuler.dat";
@@ -47,8 +48,9 @@ public:
     static constexpr const int serialIntervalValue = -1;
     static constexpr const int cipherValue = 0;
     static constexpr const char* removeCharsValue = ",./\\";
+    static constexpr const bool omitZerosValue = true;
 
-    struct DataSettings {
+    struct DataSettings : public PluginSettings {
         DataSettings() 
         : dbDriver(dbDriverValue)
         , dbUri(dbUriValue)
@@ -60,7 +62,8 @@ public:
         , barcodeRegexp(barcodeRegexpValue)
         , serialInterval(serialIntervalValue)
         , cipher(cipherValue)
-        , removeChars(removeCharsValue){}
+        , removeChars(removeCharsValue)
+        , omitZeros(omitZerosValue){}
 
         DataSettings(const QSettings& settings, const QString& settingsPath)
             : dbDriver(settings.value(settingsPath + "/" + dbDriverKey, dbDriverValue).toString())
@@ -73,7 +76,8 @@ public:
             , barcodeRegexp(settings.value(settingsPath + "/" + barcodeRegexpKey, barcodeRegexpValue).toString())
             , serialInterval(settings.value(settingsPath + "/" + serialIntervalKey, serialIntervalValue).toInt())
             , cipher(settings.value(settingsPath + "/" + cipherKey, cipherValue).toULongLong())
-            , removeChars(settings.value(settingsPath + "/" + removeCharsKey, removeCharsValue).toString()){
+            , removeChars(settings.value(settingsPath + "/" + removeCharsKey, removeCharsValue).toString())
+            , omitZeros(settings.value(settingsPath + "/" + omitZerosKey, omitZerosValue).toBool()){
 
             if (cipher == 0) {
                 cipher = QRandomGenerator::global()->generate64();
@@ -105,6 +109,7 @@ public:
             settings.setValue(settingsPath + "/" + serialIntervalKey, serialInterval);
             settings.setValue(settingsPath + "/" + cipherKey, cipher);
             settings.setValue(settingsPath + "/" + removeCharsKey, removeChars);
+            settings.setValue(settingsPath + "/" + omitZerosKey, omitZeros);
         }
 
         QString dbDriver;
@@ -118,6 +123,7 @@ public:
         int serialInterval;
         quint64 cipher;
         QString removeChars;
+        bool omitZeros;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

@@ -6,6 +6,8 @@
 #include <QSettings>
 
 #include "../api/api.h"
+#include <Windows.h>
+#include "../include/vxlapi.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -22,21 +24,58 @@ class SettingsDialog : public SettingsMdi {
 
 public:
 
-    static constexpr const char* defaultSlaveIDKey = "lin/defaultSlaveID";
-    static constexpr QChar defaultSlaveIDValue = static_cast<char>(0);
+    static constexpr const char* masterIDKey = "lin/masterID";
+    static constexpr char masterIDValue = 0;
+    static constexpr const char* slaveIDKey = "lin/slaveID";
+    static constexpr char slaveIDValue = 0;
+    static constexpr const char* linVersionKey = "lin/version";
+    static constexpr const unsigned int linVersionValue = XL_LIN_VERSION_1_3;
+    static constexpr const char* masterKey = "lin/master";
+    static constexpr bool masterValue = true;
+    static constexpr const char* slaveKey = "lin/slave";
+    static constexpr bool slaveValue = false;
+    static constexpr const char* initialDataKey = "lin/initialSlaveData";
+    static constexpr const char* initialDataValue = "0 0 0 0 0 0 0 0";
 
-    struct LinSettings {
+    struct LinSettings : public PluginSettings {
         LinSettings()
-            : defaultSlaveID(defaultSlaveIDValue){}
-
-        LinSettings(const QSettings& settings, const QString& settingsPath)
-            : defaultSlaveID(settings.value(settingsPath + "/" + defaultSlaveIDKey, defaultSlaveIDValue).toChar()){}
-
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + defaultSlaveIDKey, defaultSlaveID);
+            : linVersion(linVersionValue)
+            , masterID(masterIDValue) 
+            , slaveID(slaveIDValue)
+            , slave(slaveValue)
+            , master(masterValue){
+            //setInitialData();
         }
 
-        QChar defaultSlaveID;
+        LinSettings(const QSettings& settings, const QString& settingsPath)
+            : linVersion(settings.value(settingsPath + "/" + linVersionKey, linVersionValue).toUInt())
+            , masterID(settings.value(settingsPath + "/" + masterIDKey, masterIDValue).toInt())
+            , slaveID(settings.value(settingsPath + "/" + slaveIDKey, slaveIDValue).toInt())
+            , slave(settings.value(settingsPath + "/" + slaveKey, slaveValue).toBool())
+            , master(settings.value(settingsPath + "/" + masterKey, masterValue).toBool()){
+            //setInitialData();
+        }
+
+        void save(QSettings& settings, const QString& settingsPath) const {
+            settings.setValue(settingsPath + "/" + linVersionKey, linVersion);
+            settings.setValue(settingsPath + "/" + masterIDKey, masterID);
+            settings.setValue(settingsPath + "/" + slaveIDKey, slaveID);
+            settings.setValue(settingsPath + "/" + slaveKey, slave);
+            settings.setValue(settingsPath + "/" + masterKey, master);
+        }
+
+        //void setInitialData(const char* data) {
+        //    QString data = settings.value(settingsPath + "/" + masterKey, masterValue).toString();
+        //    QStringList
+        //}
+
+        unsigned int linVersion;
+        char masterID;
+        char slaveID;
+        bool slave;
+        bool master;
+        QByteArray initialData;
+
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

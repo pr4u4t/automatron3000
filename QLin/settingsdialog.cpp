@@ -53,8 +53,20 @@ void SettingsDialog::fillFromSettings() {
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    //m_currentSettings.prompt = m_ui->prompt->text();
-    //m_currentSettings.localEcho = m_ui->localEcho->isChecked();
+    QString version = m_ui->linVersion->currentText();
+
+    if (version == "1.3") {
+        m_currentSettings.linVersion = XL_LIN_VERSION_1_3;
+    } else if (version == "2.0") {
+        m_currentSettings.linVersion = XL_LIN_VERSION_2_0;
+    } else if (version == "2.1") {
+        m_currentSettings.linVersion = XL_LIN_VERSION_2_1;
+    }
+
+    m_currentSettings.masterID = static_cast<char>(m_ui->masterID->text().toInt());
+    m_currentSettings.slaveID = static_cast<char>(m_ui->slaveID->text().toInt());
+    m_currentSettings.master = m_ui->masterCheck->isChecked();
+    m_currentSettings.slave = m_ui->slaveCheck->isChecked();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

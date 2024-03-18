@@ -30,7 +30,7 @@ public:
     static constexpr const bool localEchoValue = true;
     */
 
-    struct LinBusSettings {
+    struct LinBusSettings : public PluginSettings {
         LinBusSettings()
             /* : prompt(promptValue)
             , localEcho(localEchoValue)*/ {}

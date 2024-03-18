@@ -18,6 +18,8 @@ public:
 
 	virtual qint64 write(const QString& data) = 0;
 
+	virtual qint64 write(const QByteArray& data) = 0;
+
 	virtual QString read(qint64 maxLen) = 0;
 
 	virtual qint64 bytesAvailable() = 0;

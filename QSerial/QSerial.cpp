@@ -174,6 +174,11 @@ qint64 QSerial::write(const QString& data) {
 	return (m_serial != nullptr) ? m_serial->write(data.toLocal8Bit()) : -1;
 }
 
+qint64 QSerial::write(const QByteArray& data) {
+	emit message("QSerial::write()", LoggerSeverity::LOG_DEBUG);
+	return (m_serial != nullptr) ? m_serial->write(data) : -1;
+}
+
 QString QSerial::read(qint64 maxLen) {
 	emit message("QSerial::read()", LoggerSeverity::LOG_DEBUG);
 	return (m_serial != nullptr) ? m_serial->read(maxLen) : QString();

@@ -108,16 +108,13 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
 
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
     settingsChanged();
+
+    QTimer::singleShot(0, this, &QData::timeout);
 }
 
 void QData::timeout() {
     emit message("QData::timeout()", LoggerSeverity::LOG_DEBUG);
 
-    if (m_selected.isEmpty() == true) {
-        emit message("QData::timeout: selected barcode empty");
-        return;
-    }
-        
     auto serial = plugins()->instance("QSerial", nullptr);
     auto io = serial.dynamicCast<IODevice>();
 
@@ -127,10 +124,15 @@ void QData::timeout() {
             emit message("QData::timeout: failed to open serial port");
             return;
         }
-            
+
         emit message("QData::timeout: serial port open success");
     }
 
+    if (m_selected.isEmpty() == true) {
+        emit message("QData::timeout: selected barcode empty");
+        return;
+    }
+        
     if (m_settings.serialPrefix.isEmpty() == false) {
         auto res = io->write(m_settings.serialPrefix + '\n');
         emit message(QString("QData::timeout: prefix write %1 %2").arg(res).arg(m_settings.serialPrefix));
@@ -191,6 +193,23 @@ void QData::importFromCsv(bool checked) {
         return;
     }
 
+    QFile input(fileName);
+    QTextStream in(&input);
+
+    QByteArray testLine = input.peek(4096);
+    QByteArrayList list = testLine.split('\n');
+
+    if (list.size() == 1) {
+        emit message("QData::importfromCsv(): no lines detected in input invalid format");
+        return;
+    }
+
+    QByteArrayList columns = list[0].split(',');
+    if (columns.size() != 3) {
+        emit message(QString("QData::importfromCsv(): invalid number of columns detected in input %1 columns should be separated with ',' sign").arg(columns.size()));
+        return;
+    }
+
     if (!clearData()) {
         QMessageBox::critical(this, tr(title),
             tr("Failed to clear existing data"),
@@ -199,14 +218,13 @@ void QData::importFromCsv(bool checked) {
         return;
     }
 
-    QFile input(fileName);
+    
 
     if (!input.open(QIODevice::ReadOnly)) {
         emit message(QString("QData::importFromCsv: %1").arg(input.errorString()));
         return;
     }
 
-    QTextStream in(&input);
     QProgressDialog progress(tr("Importing database from CSV"), tr("Cancel"), 0, 100);
     progress.setWindowModality(Qt::WindowModal);
     qint64 size = input.size();
@@ -493,6 +511,11 @@ void QData::enterPressed() {
 
     int row = findByPart(m_model, str);
     emit message(QString("QData::enterPressed(): find by part: %1").arg(row));
+
+    if (row == -1 && m_settings.omitZeros == true) {
+        emit message("QData::enterPressed(): trying search by regexp ommiting 0's at begin and end");
+        row = findByPartWithOmit(m_model, str);
+    }
 
     if (row != -1) {
         QModelIndex idx = m_model->index(row, 2);

@@ -201,22 +201,37 @@
 <context>
     <name>PluginList</name>
     <message>
-        <location filename="PluginList.cpp" line="67"/>
+        <location filename="PluginList.cpp" line="59"/>
+        <source>true</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PluginList.cpp" line="59"/>
+        <source>false</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PluginList.cpp" line="68"/>
+        <source>enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PluginList.cpp" line="69"/>
         <source>name</source>
         <translation>nazwa</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="68"/>
+        <location filename="PluginList.cpp" line="70"/>
         <source>version</source>
         <translation>wersja</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="69"/>
+        <location filename="PluginList.cpp" line="71"/>
         <source>description</source>
         <translation>opis</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="70"/>
+        <location filename="PluginList.cpp" line="72"/>
         <source>author</source>
         <translation>autor</translation>
     </message>

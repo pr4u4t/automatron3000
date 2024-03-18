@@ -19,6 +19,7 @@
 #include <QListView>
 #include <QStandardItemModel>
 #include <QDirIterator>
+#include <QRegExp>
 
 #include "qdata_global.h"
 #include "../api/api.h"
@@ -52,6 +53,18 @@ protected:
         for (int row = 0; row < model->rowCount(); ++row){
             QVariant data = model->data(model->index(row, 1));
             if (data.toString() == part){
+                return row;
+            }
+        }
+
+        return -1;
+    }
+
+    int findByPartWithOmit(QSqlTableModel* model, const QString& part) {
+        QRegExp rx("0*"+part+"0*");
+        for (int row = 0; row < model->rowCount(); ++row) {
+            QVariant data = model->data(model->index(row, 1));
+            if (rx.exactMatch(data.toString()) == true) {
                 return row;
             }
         }

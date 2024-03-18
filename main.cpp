@@ -57,6 +57,7 @@ Main::Main(int& argc, char *argv[], Logger* log)
     QLocale locale = QLocale::system();
 
     if (Settings::localeNeeded()) {
+        log->message("Main::Main: locale enabled");
         QTranslator* m_translator = new QTranslator();
         QTranslator* m_qtTranslator = new QTranslator();
         QTranslator* m_qtBaseTranslator = new QTranslator();

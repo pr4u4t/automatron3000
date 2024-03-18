@@ -36,6 +36,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QLinBus", "QLinBus\QLinBus.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QLin", "QLin\QLin.vcxproj", "{16F6A755-06B0-4B8E-B1F7-DBD4DF4C488F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A28FF59B-B50B-433E-89A5-99E2D1B73115} = {A28FF59B-B50B-433E-89A5-99E2D1B73115}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QLinKonsole", "QLinKonsole\QLinKonsole.vcxproj", "{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -155,6 +160,18 @@ Global
 		{16F6A755-06B0-4B8E-B1F7-DBD4DF4C488F}.Release|x64.Build.0 = Release|x64
 		{16F6A755-06B0-4B8E-B1F7-DBD4DF4C488F}.Release|x86.ActiveCfg = Release|x64
 		{16F6A755-06B0-4B8E-B1F7-DBD4DF4C488F}.Release|x86.Build.0 = Release|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Debug|ARM64.ActiveCfg = Debug|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Debug|ARM64.Build.0 = Debug|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Debug|x64.ActiveCfg = Debug|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Debug|x64.Build.0 = Debug|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Debug|x86.ActiveCfg = Debug|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Debug|x86.Build.0 = Debug|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Release|ARM64.ActiveCfg = Release|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Release|ARM64.Build.0 = Release|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Release|x64.ActiveCfg = Release|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Release|x64.Build.0 = Release|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Release|x86.ActiveCfg = Release|x64
+		{DEF2CD8B-8CE0-4DEB-8BCD-AC32CEADA46B}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2675,7 +2675,7 @@ typedef struct xl_daio_set_port{
 // defines for xlIoSetDigitalOutput
 typedef struct xl_daio_digital_params{
   unsigned int portMask;     //!< Use defines XL_DAIO_PORT_MASK_DIGITAL_*
-  unsigned int valueMask;    //!< Specify the port value (ON/HIGH – 1 | OFF/LOW - 0)
+  unsigned int valueMask;    //!< Specify the port value (ON/HIGH Â– 1 | OFF/LOW - 0)
 } XLdaioDigitalParams;
 
 // defines for portMask
@@ -3563,12 +3563,12 @@ typedef struct {
 // Maximum number of states that can be configured for a sequence
 #define XL_MOST150_ECL_SEQ_NUM_STATES_MAX               200
 // Value range for duration of ECL sequence states
-#define XL_MOST150_ECL_SEQ_DURATION_MIN                  1      // -> 100 µs
+#define XL_MOST150_ECL_SEQ_DURATION_MIN                  1      // -> 100 Âµs
 #define XL_MOST150_ECL_SEQ_DURATION_MAX                  655350 // -> 65535 ms
 
 // xlMost150EclSetGlitchFilter
 // Value range for setting the glitch filter
-#define XL_MOST150_ECL_GLITCH_FILTER_MIN                 50      // -> 50 µs
+#define XL_MOST150_ECL_GLITCH_FILTER_MIN                 50      // -> 50 Âµs
 #define XL_MOST150_ECL_GLITCH_FILTER_MAX                 50000   // -> 50 ms
 
 // XL_MOST150_GEN_LIGHT_ERROR_EV.stressStarted
@@ -6627,7 +6627,7 @@ DECL_STDXL_FUNC (xlMost150GenerateBypassStress, XLFP_MOST150GENERATEBYPASSSTRESS
  *                                         if an event is received spontaneously
  *  \param  numStates                 [IN] Number of states during the sequence (max. XL_MOST150_ECL_SEQ_NUM_STATES_MAX)
  *  \param  pEclStates                [IN] Pointer to a buffer containing the ECL sequence states (1: High, 0: Low)
- *  \param  pEclStatesDuration        [IN] Pointer to a buffer containing the ECL sequence states duration in multiple of 100 µs (max. value XL_MOST150_ECL_SEQ_DURATION_MAX)
+ *  \param  pEclStatesDuration        [IN] Pointer to a buffer containing the ECL sequence states duration in multiple of 100 Âµs (max. value XL_MOST150_ECL_SEQ_DURATION_MAX)
  *                                         NOTE: Both buffers have to have at least the size <numStates> DWORDS!
  *  \return XLstatus                       general status information
  */
@@ -6650,7 +6650,7 @@ DECL_STDXL_FUNC (xlMost150EclGenerateSeq, XLFP_MOST150ECLGENERATESEQ, (DEFPARAMS
  *  \param  XLaccess accessMask:      [IN] determines on which channel an API should work
  *  \param  XLuserHandle userHandle:  [IN] used to match the response of the driver to the requests of the application
  *                                         if an event is received spontaneously
- *  \param  duration                  [IN] Duration (in µs) of glitches to be filtered. Value range: 50 µs .. 50 ms (Default: 1 ms)
+ *  \param  duration                  [IN] Duration (in Âµs) of glitches to be filtered. Value range: 50 Âµs .. 50 ms (Default: 1 ms)
  *  \return XLstatus                       general status information
  */
 DECL_STDXL_FUNC (xlMost150SetECLGlitchFilter, XLFP_MOST150SETECLGLITCHFILTER, (DEFPARAMS, unsigned int duration));

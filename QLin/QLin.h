@@ -13,9 +13,11 @@ class QLIN_EXPORT QLin : public IODevice {
 public:
     QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString());
 
-	bool open(const QString& url);
+	bool open(const QString& url = QString());
 
 	qint64 write(const QString& data);
+
+	qint64 write(const QByteArray& data);
 
 	QString read(qint64 maxLen);
 

@@ -265,10 +265,22 @@ public:
 	static bool localeNeeded() {
 		QLocale locale = QLocale::system();
 		QString lcName = locale.name();
-		bool lcEnabled = Settings::get().value("translations").toString() == "true" ? true : false;
+		bool lcEnabled = (Settings::get().value("translations").toString() == "true") ? true : false;
 
 		return (lcName.startsWith("en") == false && lcEnabled == true);
 	}
+};
+
+struct API_EXPORT PluginSettings {
+
+public:
+
+	PluginSettings() = default;
+
+	virtual void save(QSettings& settings, const QString& settingsPath) const = 0;
+
+	virtual ~PluginSettings() = default;
+
 };
 
 #endif
