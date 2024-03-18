@@ -196,6 +196,11 @@ void QData::importFromCsv(bool checked) {
     QFile input(fileName);
     QTextStream in(&input);
 
+    if (!input.open(QIODevice::ReadOnly)) {
+        emit message(QString("QData::importFromCsv: inpu open failed %1").arg(input.errorString()));
+        return;
+    }
+
     QByteArray testLine = input.peek(4096);
     QByteArrayList list = testLine.split('\n');
 
@@ -215,13 +220,6 @@ void QData::importFromCsv(bool checked) {
             tr("Failed to clear existing data"),
             QMessageBox::Ok);
         emit message(QString("QData::importfromCsv: failed to clear existing data"));
-        return;
-    }
-
-    
-
-    if (!input.open(QIODevice::ReadOnly)) {
-        emit message(QString("QData::importFromCsv: %1").arg(input.errorString()));
         return;
     }
 

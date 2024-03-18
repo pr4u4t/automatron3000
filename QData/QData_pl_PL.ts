@@ -64,7 +64,7 @@
 <context>
     <name>QData</name>
     <message>
-        <location filename="QData.cpp" line="426"/>
+        <location filename="QData.cpp" line="424"/>
         <source>Part</source>
         <translation>Część</translation>
     </message>
@@ -78,7 +78,7 @@
         <translation type="vanished">Numer części</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="427"/>
+        <location filename="QData.cpp" line="425"/>
         <source>Cell</source>
         <translation>Komórka</translation>
     </message>
@@ -116,12 +116,12 @@
         <translation type="vanished">Regał:</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="404"/>
+        <location filename="QData.cpp" line="402"/>
         <source>success</source>
         <translation>sukces</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="404"/>
+        <location filename="QData.cpp" line="402"/>
         <source>failed</source>
         <translation>błąd</translation>
     </message>
@@ -153,51 +153,51 @@
     </message>
     <message>
         <location filename="QData.cpp" line="187"/>
-        <location filename="QData.cpp" line="279"/>
+        <location filename="QData.cpp" line="277"/>
         <source>This will wipe all data and cannot be undone</source>
         <translation>Ta operacja wymaże dane w bazie i nie może zostać cofnięta</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="215"/>
-        <location filename="QData.cpp" line="290"/>
+        <location filename="QData.cpp" line="220"/>
+        <location filename="QData.cpp" line="288"/>
         <source>Failed to clear existing data</source>
         <translation>Nie udało się usunąć danych</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="228"/>
+        <location filename="QData.cpp" line="226"/>
         <source>Importing database from CSV</source>
         <translation>Importowanie bazy danych z pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="228"/>
-        <location filename="QData.cpp" line="297"/>
-        <location filename="QData.cpp" line="365"/>
+        <location filename="QData.cpp" line="226"/>
+        <location filename="QData.cpp" line="295"/>
+        <location filename="QData.cpp" line="363"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="268"/>
+        <location filename="QData.cpp" line="266"/>
         <source>Open Directory</source>
         <translation>Otwórz katalog</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="297"/>
+        <location filename="QData.cpp" line="295"/>
         <source>Importing database from directory</source>
         <translation>Importowanie bazy danych z katalogu</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="365"/>
+        <location filename="QData.cpp" line="363"/>
         <source>Exporting database to CSV</source>
         <translation>Eksportowanie bazy danych do pliku CSV</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="540"/>
-        <location filename="QData.cpp" line="556"/>
+        <location filename="QData.cpp" line="538"/>
+        <location filename="QData.cpp" line="554"/>
         <source>Unlock</source>
         <translation>Odblokuj</translation>
     </message>
     <message>
-        <location filename="QData.cpp" line="551"/>
+        <location filename="QData.cpp" line="549"/>
         <source>Lock</source>
         <translation>Zablokuj</translation>
     </message>
