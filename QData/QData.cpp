@@ -6,9 +6,12 @@
 #include <QProgressDialog>
 #include <QRegularExpression>
 #include <QCryptographicHash>
+#include <QImage>
+#include <QPixmap>
 
 #include "QData.h"
 #include "../api/api.h"
+#include "../core/core.h"
 #include "SettingsDialog.h"
 #include "passworddialog.h"
 
@@ -39,31 +42,37 @@ struct QDataMenu {
 
 };
 
-static bool QData_register(Window* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
-    log->message("QData_register()");
+static bool QData_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
+    log->message("PluginList_register");
 
-	if (win == nullptr) {
+    GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
+    if (gtx == nullptr) {
+        log->message("PluginList_register(): application is non gui not registering");
+        return false;
+    }
+
+	if (gtx->m_win == nullptr) {
 		return false;
 	}
 
-    QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
+    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
     if (windowMenu != nullptr) {
-        win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_dataMenu);
+        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_dataMenu);
     }
 
-	QObject::connect(ctx->m_database, &QAction::triggered, win, &Window::createOrActivate);
+	QObject::connect(ctx->m_database, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
 
-    QObject::connect(ctx->m_dbSettings, &QAction::triggered, [ld, win, ctx] {
-        QSharedPointer<Plugin> data = ld->instance("QData", win);
-        SettingsDialog* dialog = new SettingsDialog(win, nullptr, data->settingsPath());
+    QObject::connect(ctx->m_dbSettings, &QAction::triggered, [ld, gtx, ctx] {
+        QSharedPointer<Plugin> data = ld->instance("QData", gtx->m_win);
+        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, data->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, data.dynamicCast<QData>().data(), &QData::settingsChanged);
-        win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
     });
 
 	return true;
 }
 
-static bool QData_unregister(Window* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
+static bool QData_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
     log->message("QData_unregister()");
     return true;
 }
@@ -77,7 +86,8 @@ REGISTER_PLUGIN(
 	QData_register,
 	QData_unregister,
     QDataMenu,
-    {"QSerial"}
+    {"QSerial"},
+    true
 )
 
 QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
@@ -108,6 +118,16 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
 
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
     settingsChanged();
+
+    m_ui->left->setPixmap(QPixmap(":qdata/left-arrow.png"));
+    m_ui->left->setEnabled(false);
+    //m_ui->left->setScaledContents(true);
+    //m_ui->left->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    
+    m_ui->right->setPixmap(QPixmap(":qdata/right-arrow.png"));
+    m_ui->right->setEnabled(false);
+    //m_ui->right->setScaledContents(true);
+    //m_ui->right->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     QTimer::singleShot(0, this, &QData::timeout);
 }
@@ -470,6 +490,9 @@ void QData::activated(const QModelIndex& idx) {
 void QData::enterPressed() {
     emit message("QData::enterPressed()", LoggerSeverity::LOG_DEBUG);
     QString str = m_ui->barcodeEdit->text();
+
+    m_ui->right->setEnabled(false);
+    m_ui->left->setEnabled(false);
 
     if (str.isEmpty()) {
         emit message("QData::enterPressed(): input is empty");

@@ -1,0 +1,15 @@
+Instances.cpp
+logviewer.cpp
+main.cpp
+mainwindow.cpp
+PluginList.cpp
+resource.h
+MdiWindow.h
+ModuleLoader.h
+logviewer.h
+main.h
+mainwindow.h
+Tray.h
+Instances.h
+PluginList.h
+szpuler.qrc

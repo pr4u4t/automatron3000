@@ -33,23 +33,29 @@ public slots:
         auto lin = plugin.dynamicCast<IODevice>();
         m_lin = lin;
         connect(lin.data(), &IODevice::dataReady, this, &QLinBus::dataReady);
-        lin->open();
+        if (lin->isOpen() == false) {
+            lin->open();
+        }
     }
 
     void scanStep() {
-        if (m_scan == 0) {
+        if (m_scan == m_settings.scanStartID) {
             m_model->removeRows(0, m_model->rowCount());
         }
 
-        if (m_scan <= 63) {
+        if (m_scan <= m_settings.scanStopID) {
             QByteArray data(1, static_cast<char>(m_scan));
             m_lin->write(data);
+
+            QList<QStandardItem*> rows;
+            rows << new QStandardItem("0x"+QString::number(m_scan, 16)) << new QStandardItem("REQUEST") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem("-");
+            m_model->appendRow(rows);
 
             m_ui->scanProgress->setValue(m_scan);
             ++m_scan;
             QTimer::singleShot(0, this, &QLinBus::scanStep);
         } else {
-            m_scan = 0;
+            m_scan = m_settings.scanStartID;
         }
     }
 
@@ -80,7 +86,7 @@ public slots:
 private:
     SettingsDialog::LinBusSettings m_settings;
     Ui::QLinBusUI* m_ui = nullptr;
-    int m_scan = 0;
+    uint16_t m_scan = 0;
     QSharedPointer<IODevice> m_lin;
     QStandardItemModel* m_model = nullptr;
 };

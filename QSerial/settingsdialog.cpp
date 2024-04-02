@@ -24,6 +24,8 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
     connect(m_ui->okButton, &QPushButton::clicked,
             this, &SettingsDialog::ok);
+    connect(m_ui->applyButton, &QPushButton::clicked,
+        this, &SettingsDialog::apply);
     connect(m_ui->cancelButton, &QPushButton::clicked,
         this, &SettingsDialog::cancel);
     connect(m_ui->serialPortInfoListBox, &QComboBox::currentIndexChanged,

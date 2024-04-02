@@ -1,6 +1,7 @@
 #include "QLin.h"
-
 #include "settingsdialog.h"
+#include "../core/core.h"
+
 #include <QApplication>
 #include <QCoreApplication>
 #include <QTranslator>
@@ -36,33 +37,39 @@ struct QLinMenu {
 	QCoreApplication* m_app = nullptr;
 };
 
-static bool QLin_register(Window* win, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
+static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
 	log->message("QLin_register()");
 
-	if (win == nullptr) {
+	GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
+	if (gtx == nullptr) {
+		log->message("PluginList_register(): application is non gui not registering");
+		return false;
+	}
+
+	if (gtx->m_win == nullptr) {
 		log->message("QLin_register(): window pointer == nullptr");
 		return false;
 	}
 
-	ctx->m_linbusMenu = win->menuBar()->addMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
+	ctx->m_linbusMenu = gtx->m_win->menuBar()->addMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 	ctx->m_linbusMenu->addAction(ctx->m_actionConnect);
 	ctx->m_linbusMenu->addAction(ctx->m_actionDisconnect);
 	ctx->m_linbusMenu->addAction(ctx->m_actionConfigure);
 
-	QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
+	QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
 	if (windowMenu != nullptr) {
-		win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_linbusMenu);
+		gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_linbusMenu);
 	}
 
-	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, win, ctx] {
-		QSharedPointer<Plugin> serial = ld->instance("QLin", win);
-		SettingsDialog* dialog = new SettingsDialog(win, nullptr, serial->settingsPath());
+	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
+		QSharedPointer<Plugin> serial = ld->instance("QLin", gtx->m_win);
+		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, serial->settingsPath());
 		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QLin>().data(), &QLin::settingsChanged);
-		win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Lin/Settings"));
-		});
+		gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Lin/Settings"));
+	});
 
-	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, win, ctx, log] {
-		QSharedPointer<Plugin> serial = ld->instance("QLin", win);
+	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, gtx, ctx, log] {
+		QSharedPointer<Plugin> serial = ld->instance("QLin", gtx->m_win);
 		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
 		if (io->isOpen() == false) {
 			if (io->open() == true) {
@@ -71,14 +78,14 @@ static bool QLin_register(Window* win, PluginsLoader* ld, QLinMenu* ctx, Logger*
 				ctx->m_actionConfigure->setEnabled(false);
 			}
 		}
-		});
+	});
 
-	QObject::connect(ctx->m_actionDisconnect, &QAction::triggered, [ld, win, ctx, log] {
+	QObject::connect(ctx->m_actionDisconnect, &QAction::triggered, [ld, gtx, ctx, log] {
 		if (ld->hasInstance("QLin") == false) {
 			return;
 		}
 
-		QSharedPointer<Plugin> serial = ld->instance("QLin", win);
+		QSharedPointer<Plugin> serial = ld->instance("QLin", gtx->m_win);
 		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
 		if (io->isOpen()) {
 			io->close();
@@ -86,12 +93,11 @@ static bool QLin_register(Window* win, PluginsLoader* ld, QLinMenu* ctx, Logger*
 			ctx->m_actionConnect->setEnabled(true);
 			ctx->m_actionConfigure->setEnabled(true);
 		}
-		});
+	});
 
 	if (ld->hasInstance("QLin") == true) {
 
-	}
-	else {
+	} else {
 		ctx->m_actionConfigure->setEnabled(true);
 		ctx->m_actionConnect->setEnabled(true);
 		ctx->m_actionDisconnect->setEnabled(false);
@@ -100,7 +106,7 @@ static bool QLin_register(Window* win, PluginsLoader* ld, QLinMenu* ctx, Logger*
 	return true;
 }
 
-static bool QLin_unregister(Window* win, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
+static bool QLin_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
 	log->message("QLin_unregister()");
 	return true;
 }
@@ -114,13 +120,15 @@ REGISTER_PLUGIN(
 	QLin_register,
 	QLin_unregister,
 	QLinMenu,
-	{}
+	{},
+	false
 )
 
 QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
 	: IODevice(ld, plugins, parent, path)
 	, m_lin(new CLin("QLin"))
-	, m_open(false){
+	, m_open(false)
+	, m_settings(SettingsDialog::LinSettings(Settings::get(), settingsPath())) {
 	connect(m_lin, &CLin::message, this, &QLin::message);
 	connect(m_lin, &CLin::dataReady, this, &QLin::dataReady);
 }
@@ -131,12 +139,30 @@ bool QLin::open(const QString& url) {
 	}
 
 	if (m_lin->LINGetDevice() != XL_SUCCESS) {
+		emit message("QLin::open(): LINGetDevice failed");
 		return false;
 	}
 	
-	if (m_lin->LINInit(m_settings.master ? m_settings.masterID : m_settings.slaveID, m_settings.linVersion) != XL_SUCCESS) {
+	//if()
+
+	if (m_lin->LINInit(
+		m_settings.mode == SettingsDialog::LinSettings::Mode::MASTER ? m_settings.masterID : m_settings.slaveID,
+		m_settings.linVersion,
+		m_settings.baudrate,
+		m_settings.mode == SettingsDialog::LinSettings::Mode::MASTER ? 1 : 2,
+		m_settings.slaveID,
+		(unsigned char*) m_settings.initialData.data(),
+		m_settings.initialData.size()
+		) != XL_SUCCESS) {
+		emit message("QLin::open(): LINInit failed");
 		close();
 		return false;
+	}
+
+	auto sld = dynamic_cast<PluginLoader<QLin, QLinMenu>*>(loader());
+	if (sld->context()) {
+		sld->context()->m_actionConnect->setEnabled(false);
+		sld->context()->m_actionDisconnect->setEnabled(true);
 	}
 
 	return (m_open = true);
@@ -153,7 +179,7 @@ qint64 QLin::write(const QString& data) {
 		return -1;
 	}
 
-	if (m_settings.master != true) {
+	if (m_settings.mode != SettingsDialog::LinSettings::Mode::MASTER) {
 		return -1;
 	}
 
@@ -164,14 +190,14 @@ qint64 QLin::write(const QString& data) {
 	QStringList list = data.split(" ");
 	switch (list.size()) {
 		case 1:
-			if ((rc = m_lin->LINSendMasterReq(list[0].toInt())) != XL_SUCCESS) {
+			if ((rc = m_lin->LINSendMasterReq(list[0].toUInt())) != XL_SUCCESS) {
 				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
 				return -1;
 			}
 			return sizeof(list[0].toInt());
 
 		case 2:
-			if ((rc = m_lin->LINSendMasterReq(list[0].toInt(), list[1].toLocal8Bit().data()[0])) != XL_SUCCESS) {
+			if ((rc = m_lin->LINSendMasterReq(list[0].toUInt(), (unsigned char*) list[1].toLocal8Bit().data(), list[1].size())) != XL_SUCCESS) {
 				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
 				return -1;
 			}
@@ -200,7 +226,7 @@ qint64 QLin::write(const QByteArray& data) {
 		return -1;
 	}
 
-	if (m_settings.master != true) {
+	if (m_settings.mode != SettingsDialog::LinSettings::Mode::MASTER) {
 		emit message("QLin::write(): not in master mode write unavailable");
 		return -1;
 	}
@@ -221,7 +247,7 @@ qint64 QLin::write(const QByteArray& data) {
 			return sizeof(list[0].toInt());
 
 		case 2:
-			if ((rc = m_lin->LINSendMasterReq(list[0].toInt(), list[1].data()[0])) != XL_SUCCESS) {
+			if ((rc = m_lin->LINSendMasterReq(list[0].data()[0], (unsigned char*) list[1].data(), list[1].size())) != XL_SUCCESS) {
 				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
 				return -1;
 			}
@@ -248,6 +274,12 @@ void QLin::close() {
 	emit message("QLin::close()");
 	if (m_lin != nullptr) {
 		m_lin->LINClose();
+		auto sld = dynamic_cast<PluginLoader<QLin, QLinMenu>*>(loader());
+		if (sld->context()) {
+			sld->context()->m_actionConnect->setEnabled(true);
+			sld->context()->m_actionDisconnect->setEnabled(false);
+		}
+		m_open = false;
 	}
 }
 
@@ -266,6 +298,7 @@ bool QLin::flush() {
 
 void QLin::settingsChanged() {
 	emit message("QLin::settingsChanged()");
+	m_settings = SettingsDialog::LinSettings(Settings::get(), settingsPath());
 	close();
 	open(QString());
 }

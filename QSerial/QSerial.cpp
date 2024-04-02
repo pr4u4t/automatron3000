@@ -4,6 +4,8 @@
 #include <QCoreApplication>
 #include <QTranslator>
 
+#include "../core/core.h"
+
 struct QSerialMenu {
 	QSerialMenu(QCoreApplication *app)
 	: m_app(app){
@@ -35,30 +37,37 @@ struct QSerialMenu {
 	QCoreApplication* m_app = nullptr;
 };
 
-static bool QSerial_register(Window* win, PluginsLoader* ld, QSerialMenu* ctx, Logger* log) {
+static bool QSerial_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QSerialMenu* ctx, Logger* log) {
 	log->message("QSerial_register()");
 
-	if (win == nullptr) {
+	GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
+	if (gtx == nullptr) {
+		log->message("PluginList_register(): application is non gui not registering");
 		return false;
 	}
-	ctx->m_serialMenu = new QMenu(ctx->m_app->translate("MainWindow", "&Serial"), win->menuBar());
+
+	if (gtx->m_win == nullptr) {
+		return false;
+	}
+	ctx->m_serialMenu = new QMenu(ctx->m_app->translate("MainWindow", "&Serial"), gtx->m_win->menuBar());
 	ctx->m_serialMenu->addAction(ctx->m_actionConnect);
 	ctx->m_serialMenu->addAction(ctx->m_actionDisconnect);
 	ctx->m_serialMenu->addAction(ctx->m_actionConfigure);
-	QMenu* windowMenu = win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
+	
+	QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
 	if (windowMenu != nullptr) {
-		win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_serialMenu);
+		gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_serialMenu);
 	}
 	
-	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, win, ctx] {
-		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
-		SettingsDialog* dialog = new SettingsDialog(win, nullptr, serial->settingsPath());
+	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
+		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
+		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, serial->settingsPath());
 		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QSerial>().data(), &QSerial::settingsChanged);
-		win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Serial Port-Settings"));
+		gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Serial Port-Settings"));
 	});
 	
-	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, win, ctx, log] {
-		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
+	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, gtx, ctx, log] {
+		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
 		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
 		if (io->isOpen() == false) {
 			if (io->open() == true) {
@@ -69,12 +78,12 @@ static bool QSerial_register(Window* win, PluginsLoader* ld, QSerialMenu* ctx, L
 		}
 	});
 	
-	QObject::connect(ctx->m_actionDisconnect, &QAction::triggered, [ld, win, ctx, log] {
+	QObject::connect(ctx->m_actionDisconnect, &QAction::triggered, [ld, gtx, ctx, log] {
 		if (ld->hasInstance("QSerial") == false) {
 			return;
 		}
 
-		QSharedPointer<Plugin> serial = ld->instance("QSerial", win);
+		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
 		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
 		if (io->isOpen()) {
 			io->close();
@@ -95,7 +104,7 @@ static bool QSerial_register(Window* win, PluginsLoader* ld, QSerialMenu* ctx, L
 	return true;
 }
 
-static bool QSerial_unregister(Window* win, PluginsLoader* ld, QSerialMenu* ctx, Logger* log) {
+static bool QSerial_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QSerialMenu* ctx, Logger* log) {
 	log->message("QSerial_unregister()");
 	return true;
 }
@@ -109,7 +118,8 @@ REGISTER_PLUGIN(
 	QSerial_register,
 	QSerial_unregister,
 	QSerialMenu,
-	{}
+	{},
+	true
 )
 
 QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)

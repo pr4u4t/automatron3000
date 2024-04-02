@@ -20,6 +20,8 @@ signals:
 public:
     QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
+    void processCommand(const QString& commands);
+
 public slots:
     void settingsChanged();
 

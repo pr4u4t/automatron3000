@@ -3,6 +3,8 @@
 #include <QTranslator>
 #include "settingsdialog.h"
 
+#include "../core/core.h"
+
 struct QKonsoleMenu {
     QKonsoleMenu(QCoreApplication* app) 
     : m_app(app){
@@ -28,26 +30,34 @@ struct QKonsoleMenu {
     QTranslator* m_translator = nullptr;
 };
 
-static bool QKonsole_register(Window* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
+static bool QKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
 
-	QObject::connect(ctx->m_console, &QAction::triggered, win, &Window::createOrActivate);
-	QMenu* menu = win->findMenu(ctx->m_app->translate("MainWindow", "&Serial"));
+    log->message("PluginList_register");
+
+    GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
+    if (gtx == nullptr) {
+        log->message("PluginList_register(): application is non gui not registering");
+        return false;
+    }
+
+	QObject::connect(ctx->m_console, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
+	QMenu* menu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Serial"));
     
     menu->addSeparator();
     menu->insertAction(nullptr, ctx->m_console);
     menu->insertAction(nullptr, ctx->m_actionConfigure);
     
-    QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, win, ctx] {
-        QSharedPointer<Plugin> konsole = ld->instance("QKonsole", win);
-        SettingsDialog* dialog = new SettingsDialog(win, nullptr, konsole->settingsPath());
+    QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
+        QSharedPointer<Plugin> konsole = ld->instance("QKonsole", gtx->m_win);
+        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, konsole->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, konsole.dynamicCast<QKonsole>().data(), &QKonsole::settingsChanged);
-        win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Konsole-Settings"));
+        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Konsole-Settings"));
     });
 
 	return true;
 }
 
-static bool QKonsole_unregister(Window* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
+static bool QKonsole_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
     return true;
 }
 
@@ -60,7 +70,8 @@ REGISTER_PLUGIN(
 	QKonsole_register,
 	QKonsole_unregister,
     QKonsoleMenu,
-    {"QSerial"}
+    {"QSerial"},
+    true
 )
 
 QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)

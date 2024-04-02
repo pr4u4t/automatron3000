@@ -1,4 +1,3 @@
-szpuler
 .qmake.stash
 *.log
 moc_*
@@ -24,3 +23,5 @@ api/x64/Debug/qmake/temp/props.txt
 *.wixpdb
 *.idx
 *.recipe
+*.ipch
+.vs/*

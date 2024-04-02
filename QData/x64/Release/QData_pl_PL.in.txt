@@ -10,3 +10,4 @@ QData.h
 passworddialog.ui
 qdataui.ui
 settingsdialog.ui
+qdata.qrc

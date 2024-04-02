@@ -4,32 +4,32 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QSerial.cpp" line="44"/>
+        <location filename="QSerial.cpp" line="52"/>
         <source>&amp;Serial</source>
         <translation>&amp;Port szeregowy</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="18"/>
+        <location filename="QSerial.cpp" line="20"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="48"/>
+        <location filename="QSerial.cpp" line="57"/>
         <source>&amp;Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="57"/>
+        <location filename="QSerial.cpp" line="66"/>
         <source>Serial Port-Settings</source>
         <translation>Port szeregowy - Ustawienia</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="22"/>
+        <location filename="QSerial.cpp" line="24"/>
         <source>Connect</source>
         <translation>Połącz</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="25"/>
+        <location filename="QSerial.cpp" line="27"/>
         <source>Disconnect</source>
         <translation>Rozłącz</translation>
     </message>
@@ -41,12 +41,12 @@
         <translation type="vanished">Błąd otwarcia portu szeregowego</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="132"/>
+        <location filename="QSerial.cpp" line="142"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="132"/>
+        <location filename="QSerial.cpp" line="142"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -159,79 +159,79 @@
         <translation>N/N</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="59"/>
+        <location filename="settingsdialog.cpp" line="61"/>
         <source>Description: %1</source>
         <translation>Opis: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="60"/>
+        <location filename="settingsdialog.cpp" line="62"/>
         <source>Manufacturer: %1</source>
         <translation>Producent: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="61"/>
+        <location filename="settingsdialog.cpp" line="63"/>
         <source>Serial number: %1</source>
         <translation>Numer seryjny: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="62"/>
+        <location filename="settingsdialog.cpp" line="64"/>
         <source>Location: %1</source>
         <translation>Lokalizacja: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="63"/>
+        <location filename="settingsdialog.cpp" line="65"/>
         <source>Vendor Identifier: %1</source>
         <translation>Kod producenta: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="64"/>
+        <location filename="settingsdialog.cpp" line="66"/>
         <source>Product Identifier: %1</source>
         <translation>Kod produktu: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="109"/>
-        <location filename="settingsdialog.cpp" line="158"/>
+        <location filename="settingsdialog.cpp" line="111"/>
+        <location filename="settingsdialog.cpp" line="160"/>
         <source>Custom</source>
         <translation>Własna</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="117"/>
-        <location filename="settingsdialog.cpp" line="129"/>
+        <location filename="settingsdialog.cpp" line="119"/>
+        <location filename="settingsdialog.cpp" line="131"/>
         <source>None</source>
         <translation>Brak</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="118"/>
+        <location filename="settingsdialog.cpp" line="120"/>
         <source>Even</source>
         <translation>Parzysta</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="119"/>
+        <location filename="settingsdialog.cpp" line="121"/>
         <source>Odd</source>
         <translation>Nieparzysta</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="120"/>
+        <location filename="settingsdialog.cpp" line="122"/>
         <source>Mark</source>
         <translation>Wysoka (Mark)</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="121"/>
+        <location filename="settingsdialog.cpp" line="123"/>
         <source>Space</source>
         <translation>Niska (Space)</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="125"/>
+        <location filename="settingsdialog.cpp" line="127"/>
         <source>1.5</source>
         <translation>1.5</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="130"/>
+        <location filename="settingsdialog.cpp" line="132"/>
         <source>RTS/CTS</source>
         <translation>RTS/CTS</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="131"/>
+        <location filename="settingsdialog.cpp" line="133"/>
         <source>XON/XOFF</source>
         <translation>XON/XOFF</translation>
     </message>

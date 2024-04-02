@@ -46,15 +46,15 @@ SettingsDialog::LinBusSettings SettingsDialog::linbusSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    //m_ui->prompt->setText(m_currentSettings.prompt);
-    //m_ui->localEcho->setChecked(m_currentSettings.localEcho);
+    m_ui->scanStartID->setValue(m_currentSettings.scanStartID);
+    m_ui->scanStopID->setValue(m_currentSettings.scanStopID);
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    //m_currentSettings.prompt = m_ui->prompt->text();
-    //m_currentSettings.localEcho = m_ui->localEcho->isChecked();
+    m_currentSettings.scanStartID = m_ui->scanStartID->value();
+    m_currentSettings.scanStopID = m_ui->scanStopID->value();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

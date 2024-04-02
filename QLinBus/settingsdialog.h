@@ -22,30 +22,32 @@ class SettingsDialog : public SettingsMdi {
 
 public:
 
-    /*
-    static constexpr const char* promptKey = "prompt";
-    static constexpr const char* localEchoKey = "localEcho";
+    
+    static constexpr const char* scanStartIDKey = "scanStartID";
+    static constexpr const char* scanStopIDKey = "scanStopID";
 
-    static constexpr const char* promptValue = "-> ";
-    static constexpr const bool localEchoValue = true;
-    */
+    static constexpr const uint8_t scanStartIDValue = 0;
+    static constexpr const uint8_t scanStopIDValue = 63;
+   
 
     struct LinBusSettings : public PluginSettings {
         LinBusSettings()
-            /* : prompt(promptValue)
-            , localEcho(localEchoValue)*/ {}
-
-        LinBusSettings(const QSettings& settings, const QString& settingsPath)
-            /* : prompt(promptValue)
-            , localEcho(localEchoValue)*/ {}
-
-        void save(QSettings& settings, const QString& settingsPath) const {
-            //settings.setValue(settingsPath + "/" + promptKey, prompt);
-            //settings.setValue(settingsPath + "/" + localEchoKey, localEcho);
+            : scanStartID(scanStartIDValue)
+            , scanStopID(scanStopIDValue){
         }
 
-        //QString prompt;
-        //bool localEcho;
+        LinBusSettings(const QSettings& settings, const QString& settingsPath)
+            : scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
+            , scanStopID(settings.value(settingsPath + "/" + scanStopIDKey, scanStopIDValue).toUInt()) {
+        }
+
+        void save(QSettings& settings, const QString& settingsPath) const {
+            settings.setValue(settingsPath + "/" + scanStartIDKey, scanStartID);
+            settings.setValue(settingsPath + "/" + scanStopIDKey, scanStopID);
+        }
+
+        uint8_t scanStartID;
+        uint8_t scanStopID;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

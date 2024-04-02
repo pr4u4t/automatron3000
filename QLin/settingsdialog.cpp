@@ -20,9 +20,22 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     , m_currentSettings(Settings::get(), settingsPath)
     , m_ui(new Ui::SettingsDialog)
     , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_settingsPath(settingsPath)
+    , m_model(new QStandardItemModel(8,1))
+    , m_sdlcModel(new QStandardItemModel(64, 1)){
+    
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
+    
+    m_ui->slaveInitialData->setModel(m_model);
+    m_ui->slaveInitialData->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_model->setHeaderData(0, Qt::Horizontal, tr("Value"));
+    m_ui->slaveInitialData->setMinimumHeight(m_ui->slaveInitialData->verticalHeader()->sectionSize(0)*9);
+
+    m_ui->DLC->setModel(m_sdlcModel);
+    m_ui->DLC->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_sdlcModel->setHeaderData(0, Qt::Horizontal, tr("Size"));
+    m_ui->DLC->setMinimumHeight(m_ui->slaveInitialData->verticalHeader()->sectionSize(0) * 65);
 
     connect(m_ui->okButton, &QPushButton::clicked,
         this, &SettingsDialog::ok);
@@ -45,9 +58,34 @@ SettingsDialog::LinSettings SettingsDialog::linSettings() const {
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    switch (m_currentSettings.linVersion) {
+        case XL_LIN_VERSION_1_3:
+            m_ui->linVersion->setCurrentIndex(m_ui->linVersion->findText("1.3"));
+            break;
 
-    //m_ui->prompt->setText(m_currentSettings.prompt);
-    //m_ui->localEcho->setChecked(m_currentSettings.localEcho);
+        case XL_LIN_VERSION_2_0:
+            m_ui->linVersion->setCurrentIndex(m_ui->linVersion->findText("2.0"));
+            break;
+
+        case XL_LIN_VERSION_2_1:
+            m_ui->linVersion->setCurrentIndex(m_ui->linVersion->findText("2.1"));
+            break;
+    }
+
+    if (m_currentSettings.mode == SettingsDialog::LinSettings::Mode::MASTER) {
+        m_ui->masterCheck->setChecked(true);
+    } else {
+        m_ui->slaveCheck->setChecked(true);
+    }
+
+    m_ui->masterID->setValue(m_currentSettings.masterID);
+    m_ui->slaveID->setValue(m_currentSettings.slaveID);
+    m_ui->autoConnect->setChecked(m_currentSettings.autoConnect);
+    m_ui->baudrate->setValue(m_currentSettings.baudrate);
+
+    for (qsizetype it = 0, end = m_currentSettings.initialData.size(); it < end; ++it) {
+         m_model->setData(m_model->index(it, 0),"0x"+QString().setNum(static_cast<unsigned char>(m_currentSettings.initialData.at(it)), 16));
+    }
 }
 
 void SettingsDialog::updateSettings() {
@@ -65,8 +103,15 @@ void SettingsDialog::updateSettings() {
 
     m_currentSettings.masterID = static_cast<char>(m_ui->masterID->text().toInt());
     m_currentSettings.slaveID = static_cast<char>(m_ui->slaveID->text().toInt());
-    m_currentSettings.master = m_ui->masterCheck->isChecked();
-    m_currentSettings.slave = m_ui->slaveCheck->isChecked();
+    m_currentSettings.mode = m_ui->masterCheck->isChecked() ? SettingsDialog::LinSettings::Mode::MASTER : SettingsDialog::LinSettings::Mode::SLAVE;
+    m_currentSettings.autoConnect = m_ui->autoConnect->isChecked();
+
+    for (auto it = m_model->index(0, 0); it.isValid(); it = it.siblingAtRow(it.row() + 1)) {
+        qDebug() << it.data();
+        m_currentSettings.initialData[it.row()] = it.data().toString().toInt(nullptr, 16);
+    }
+
+    m_currentSettings.baudrate = m_ui->baudrate->value();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

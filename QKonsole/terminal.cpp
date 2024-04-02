@@ -596,7 +596,7 @@ QString QTerminal::addCommandToHistory(const QString& command)
     Q_EMIT commandAddedToHistory(modifiedCommand);
     return "";
 }
-#include <QTimer>
+
 //pExecCommand(QString) executes the command and displays back its result
 void QTerminal::pExecCommand(const QString& command)
 {

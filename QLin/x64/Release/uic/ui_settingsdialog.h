@@ -12,16 +12,18 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
+#include <QtWidgets/QTableView>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -40,12 +42,14 @@ public:
     QLabel *label;
     QSpinBox *masterID;
     QLabel *label_4;
-    QLineEdit *slaveID;
     QLabel *label_2;
     QComboBox *linVersion;
     QLabel *label_5;
     QGridLayout *gridLayout;
-    QLineEdit *slaveData;
+    QTableView *slaveInitialData;
+    QSpinBox *slaveID;
+    QLabel *label_6;
+    QCheckBox *autoConnect;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -107,11 +111,6 @@ public:
 
         formLayout->setWidget(2, QFormLayout::LabelRole, label_4);
 
-        slaveID = new QLineEdit(SettingsDialog);
-        slaveID->setObjectName("slaveID");
-
-        formLayout->setWidget(2, QFormLayout::FieldRole, slaveID);
-
         label_2 = new QLabel(SettingsDialog);
         label_2->setObjectName("label_2");
 
@@ -132,13 +131,30 @@ public:
 
         gridLayout = new QGridLayout();
         gridLayout->setObjectName("gridLayout");
-        slaveData = new QLineEdit(SettingsDialog);
-        slaveData->setObjectName("slaveData");
+        slaveInitialData = new QTableView(SettingsDialog);
+        slaveInitialData->setObjectName("slaveInitialData");
+        slaveInitialData->setAlternatingRowColors(true);
+        slaveInitialData->setSelectionMode(QAbstractItemView::SingleSelection);
 
-        gridLayout->addWidget(slaveData, 1, 0, 1, 1);
+        gridLayout->addWidget(slaveInitialData, 0, 0, 1, 1);
 
 
         formLayout->setLayout(4, QFormLayout::FieldRole, gridLayout);
+
+        slaveID = new QSpinBox(SettingsDialog);
+        slaveID->setObjectName("slaveID");
+
+        formLayout->setWidget(2, QFormLayout::FieldRole, slaveID);
+
+        label_6 = new QLabel(SettingsDialog);
+        label_6->setObjectName("label_6");
+
+        formLayout->setWidget(5, QFormLayout::LabelRole, label_6);
+
+        autoConnect = new QCheckBox(SettingsDialog);
+        autoConnect->setObjectName("autoConnect");
+
+        formLayout->setWidget(5, QFormLayout::FieldRole, autoConnect);
 
 
         verticalLayout->addLayout(formLayout);
@@ -191,6 +207,8 @@ public:
         linVersion->setItemText(2, QCoreApplication::translate("SettingsDialog", "2.1", nullptr));
 
         label_5->setText(QCoreApplication::translate("SettingsDialog", "Slave initial data", nullptr));
+        label_6->setText(QCoreApplication::translate("SettingsDialog", "Auto connect", nullptr));
+        autoConnect->setText(QString());
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

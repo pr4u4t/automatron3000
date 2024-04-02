@@ -25,9 +25,9 @@ public:
 	~CLin() = default;
 
 	XLstatus LINGetDevice();
-	XLstatus LINInit(int linID, unsigned int linVersion);
-	XLstatus LINSendMasterReq(int linID, BYTE data);
-	XLstatus LINSendMasterReq(int linID);
+	XLstatus LINInit(int masterID, unsigned int linVersion, int baudrate, int mos, int slaveID, const unsigned char* data = nullptr, size_t dsize = 0);
+	XLstatus LINSendMasterReq(unsigned int linID, const unsigned char* data, size_t size);
+	XLstatus LINSendMasterReq(unsigned int linID);
 	XLstatus LINClose();
 
 signals:
@@ -48,16 +48,19 @@ protected:
 
 private:
 	XLstatus linGetChannelMask();
-	XLstatus linInitMaster(int linID, unsigned int linVersion);
+	XLstatus linInitMaster(int linID, unsigned int linVersion, int baudrate, int slaveID = -1, const unsigned char* data = nullptr, size_t dsize = 0);
 	XLstatus linInitSlave(int linID, unsigned int linVersion);
 	XLstatus linCreateRxThread();
-	XLstatus linSetSlave(int linID, BYTE data);
+	XLstatus linSetSlave(int linID, const unsigned char* data, size_t size);
 
 	XLaccess m_xlChannelMask[MAXPORT] = {0};
 	XLportHandle m_xlPortHandle = {0};
 	QString m_name;
 	qint32 m_rxQueueSize;
 	XLhandle m_hMsgEvent;
+	BYTE m_masterID;
+	BYTE m_slaveID;
+	BYTE m_data[8];
 };
 
 #endif

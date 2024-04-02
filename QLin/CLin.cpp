@@ -28,15 +28,19 @@ XLstatus CLin::LINGetDevice() {
 
 	return ret;
 }
+
 /*!
  fn XLstatus CLin::LINInit(int linID)
 
  initialize LIN driver with identifier \a linID 
 */
-XLstatus CLin::LINInit(int linID, unsigned int linVersion) {
+XLstatus CLin::LINInit(int masterID, unsigned int linVersion, int baudrate, int mos, int slaveID, const unsigned char* data, size_t dsize) {
 	XLstatus ret = XL_ERROR;
 	XLaccess xlChannelMask_both;
 	XLaccess xlPermissionMask;
+
+	m_masterID = masterID;
+	m_slaveID = slaveID;
 
 	// ---------------------------------------
 	// Open ONE port for both channels master+slave
@@ -57,17 +61,16 @@ XLstatus CLin::LINInit(int linID, unsigned int linVersion) {
 	);
 
 	if (m_xlPortHandle == XL_INVALID_PORTHANDLE) {
-		emit message(QString("CLin::LINInit(%1):xlOpenPort invaid handle").arg(linID));
+		emit message(QString("CLin::LINInit():xlOpenPort invalid handle"));
 		return XL_ERROR;
 	}
 	if (ret != XL_SUCCESS) {
-		emit message(QString("CLin::LINInit(%1):xlOpenPort failed %2").arg(linID).arg(ret));
+		emit message(QString("CLin::LINInit():xlOpenPort failed %1").arg(ret));
 		m_xlPortHandle = XL_INVALID_PORTHANDLE;
 		return ret;
 	}
 
-	emit message(QString("CLin::LINInit(%1): xlOpenPort PortHandle: %2; Permission_mask: 0x%3; Status: %4")
-		.arg(linID)
+	emit message(QString("CLin::LINInit(): xlOpenPort PortHandle: %1; Permission_mask: 0x%2; Status: %3")
 		.arg(m_xlPortHandle)
 		.arg(QString::number(xlPermissionMask,16))
 		.arg(ret)
@@ -83,44 +86,50 @@ XLstatus CLin::LINInit(int linID, unsigned int linVersion) {
 	// Init each channel (master+slave)
 	// ---------------------------------------
 
-	ret = linInitMaster(linID, linVersion);
+	ret = linInitMaster(masterID, linVersion, baudrate, slaveID, data, dsize);
 	if (ret != XL_SUCCESS) {
 		emit message("CLin::LINInit(): init master failed");
 		return ret;
 	}
 
-	emit message(QString("CLin::LINInit(): init M/Slave id:%1").arg(linID));
+	emit message(QString("CLin::LINInit(): init Master %1 Slave id:%2").arg(masterID).arg(slaveID));
 
 	// for the next slave we take the next ID
-	linID++;
+	//linID++;
 
 	// if we have a second channel we setup a LIN slave
-	if (m_xlChannelMask[SLAVE]) {
-		ret = linInitSlave(linID, linVersion);
-		if (ret != XL_SUCCESS) {
-			emit message("CLin::LINInit(): init slave failed");
-			return ret;
-		}
-		emit message(QString("CLin::LINInit(): init slave id:%1").arg(linID));
-	}
+	//if (m_xlChannelMask[SLAVE]) {
+	//	ret = linInitSlave(linID, linVersion);
+	//	if (ret != XL_SUCCESS) {
+	//		emit message("CLin::LINInit(): init slave failed");
+	//		return ret;
+	//	}
+	//	emit message(QString("CLin::LINInit(): init slave id:%1").arg(linID));
+	//}
 
 	return ret;
 }
 
-XLstatus CLin::LINSendMasterReq(int linID, BYTE data) {
+XLstatus CLin::LINSendMasterReq(unsigned int linID, const unsigned char* data, size_t size) {
 	XLstatus ret = XL_ERROR;
+
+	//ret = xlLinWakeUp(m_xlPortHandle, m_xlChannelMask[MASTER]);
+
+	// setup the only slave channel (LIN ID + 1)
+	ret = linSetSlave(m_slaveID, data, size);
 
 	// send the master request
 	if ((ret = xlLinSendRequest(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, 0)) != XL_SUCCESS) {
-		emit message(QString("CLin::LINSendMasterReq(%1, %2): failed").arg(data).arg(linID));
+		emit message(QString("CLin::LINSendMasterReq(): failed for ID: %1").arg(linID));
 	}
-	// setup the only slave channel (LIN ID + 1)
-	//xlStatus = linSetSlave(linID + 1, data);
+	
 	return ret;
 }
 
-XLstatus CLin::LINSendMasterReq(int linID) {
+XLstatus CLin::LINSendMasterReq(unsigned int linID) {
 	XLstatus ret = XL_ERROR;
+
+	//ret = xlLinWakeUp(m_xlPortHandle, m_xlChannelMask[MASTER]);
 
 	// send the master request
 	if ((ret = xlLinSendRequest(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, 0)) != XL_SUCCESS) {
@@ -133,13 +142,6 @@ XLstatus CLin::LINSendMasterReq(int linID) {
 XLstatus CLin::LINClose() {
 	XLstatus ret = XL_SUCCESS;
 	XLaccess xlChannelMask_both = m_xlChannelMask[MASTER] | m_xlChannelMask[SLAVE];
- 
-	/* DONT NEEDED */
-	//g_bThreadRun = FALSE;
-
-	// Wait until the thread is done...
-	//Sleep(100);
-	/*-----------------*/
 
 	if(m_xlPortHandle == XL_INVALID_PORTHANDLE) {
 		emit message("CLin::LINClose(): no port open");
@@ -248,21 +250,19 @@ XLstatus CLin::linGetChannelMask() {
 	return ret;
 }
 
-XLstatus CLin::linInitMaster(int linID, unsigned int linVersion) {
+XLstatus CLin::linInitMaster(int linID, unsigned int linVersion, int baudrate, int slaveID, const unsigned char* data, size_t dsize) {
 	XLstatus ret = XL_ERROR;
-
-	unsigned char   data[8];
-	unsigned char   DLC[64];
+	unsigned char DLC[64];
 
 	// ---------------------------------------
 	// Setup the channel as a MASTER
 	// ---------------------------------------
 
-	XLlinStatPar     xlStatPar;
+	XLlinStatPar     xlStatPar = {0};
 
 	xlStatPar.LINMode = XL_LIN_MASTER;
-	xlStatPar.baudrate = DEFAULT_LIN_BAUDRATE;	// set the baudrate
-	xlStatPar.LINVersion = linVersion;  // use LIN 1.3
+	xlStatPar.baudrate = baudrate;	// set the baudrate
+	xlStatPar.LINVersion = linVersion;
 
 	ret = xlLinSetChannelParams(m_xlPortHandle, m_xlChannelMask[MASTER], xlStatPar);
 
@@ -290,9 +290,21 @@ XLstatus CLin::linInitMaster(int linID, unsigned int linVersion) {
 	// Setup the channel as a SLAVE also
 	// ---------------------------------------
 
-	memset(data, 0, 8);
+	memset(m_data, 0, 8);
+	if (data != nullptr && dsize > 0) {
+		memcpy(m_data, data, dsize);
+	}
+	unsigned char tmp = (unsigned char)(slaveID == -1 ? linID : slaveID);
 
-	ret = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, data, DEFAULT_LIN_DLC, XL_LIN_CALC_CHECKSUM);
+	ret = xlLinSetSlave(
+		m_xlPortHandle, 
+		m_xlChannelMask[MASTER], 
+		tmp, 
+		m_data, 
+		DEFAULT_LIN_DLC, 
+		XL_LIN_CALC_CHECKSUM
+	);
+
 	emit message(QString("CLin::linInitMaster(): xlLinSetSlave set slave id:%1, CM: %2, status: %3")
 		.arg(linID)
 		.arg(m_xlChannelMask[MASTER])
@@ -412,8 +424,20 @@ XLstatus CLin::linCreateRxThread() {
 	WAITORTIMERCALLBACKFUNC o;
 }
 
-XLstatus CLin::linSetSlave(int linID, BYTE data) {
-	return XL_SUCCESS;
+XLstatus CLin::linSetSlave(int linID, const unsigned char* data, size_t size) {
+	XLstatus xlStatus = XL_ERROR;
+	char tmp[100];
+	unsigned char sdata[8];
+
+	memcpy(sdata, m_data, 8);
+	memcpy(sdata, data, size);
+	
+
+	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, sdata, DEFAULT_LIN_DLC, XL_LIN_CALC_CHECKSUM);
+	sprintf_s(tmp, sizeof(tmp), "Set Slave ID CM: '0x%I64x', status: %d", m_xlChannelMask[SLAVE], xlStatus);
+	emit message(tmp);
+
+	return xlStatus;
 }
 
 void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
@@ -510,7 +534,6 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 					break;
 
 				case XL_LIN_WAKEUP:
-					
 					sprintf_s(tmp, sizeof(tmp), "LIN WAKEUP flags: 0x%x on Ch: '%d'", xlEvent.tagData.linMsgApi.linWakeUp.flag, xlEvent.chanIndex);
 					clin->postMessage(tmp);
 					break;

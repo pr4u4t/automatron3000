@@ -142,8 +142,10 @@ protected slots:
 
         if (cell >= 1 && cell <= 2499){
             m_ui->sideLabel->setText(tr("Left"));
+            m_ui->left->setEnabled(true);
         } else if (cell >= 2500 && cell <= 5000){
             m_ui->sideLabel->setText(tr("Right"));
+            m_ui->right->setEnabled(true);
         }
     
     }
