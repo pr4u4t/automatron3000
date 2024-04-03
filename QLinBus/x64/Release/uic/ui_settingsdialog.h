@@ -11,9 +11,12 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -23,6 +26,11 @@ class Ui_SettingsDialog
 {
 public:
     QVBoxLayout *verticalLayout;
+    QFormLayout *formLayout;
+    QLabel *label;
+    QLabel *label_2;
+    QSpinBox *scanStartID;
+    QSpinBox *scanStopID;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -37,6 +45,32 @@ public:
         SettingsDialog->resize(400, 300);
         verticalLayout = new QVBoxLayout(SettingsDialog);
         verticalLayout->setObjectName("verticalLayout");
+        formLayout = new QFormLayout();
+        formLayout->setObjectName("formLayout");
+        label = new QLabel(SettingsDialog);
+        label->setObjectName("label");
+
+        formLayout->setWidget(0, QFormLayout::LabelRole, label);
+
+        label_2 = new QLabel(SettingsDialog);
+        label_2->setObjectName("label_2");
+
+        formLayout->setWidget(1, QFormLayout::LabelRole, label_2);
+
+        scanStartID = new QSpinBox(SettingsDialog);
+        scanStartID->setObjectName("scanStartID");
+
+        formLayout->setWidget(0, QFormLayout::FieldRole, scanStartID);
+
+        scanStopID = new QSpinBox(SettingsDialog);
+        scanStopID->setObjectName("scanStopID");
+        scanStopID->setMaximum(63);
+
+        formLayout->setWidget(1, QFormLayout::FieldRole, scanStopID);
+
+
+        verticalLayout->addLayout(formLayout);
+
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
         verticalLayout->addItem(verticalSpacer);
@@ -74,6 +108,8 @@ public:
     void retranslateUi(QWidget *SettingsDialog)
     {
         SettingsDialog->setWindowTitle(QCoreApplication::translate("SettingsDialog", "Form", nullptr));
+        label->setText(QCoreApplication::translate("SettingsDialog", "Scan start ID", nullptr));
+        label_2->setText(QCoreApplication::translate("SettingsDialog", "Scan stop ID", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

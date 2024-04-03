@@ -52,6 +52,8 @@ public:
     QLineEdit *serialInterval;
     QLabel *label_10;
     QComboBox *omitZeros;
+    QLabel *label_11;
+    QLineEdit *clearCode;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -197,6 +199,16 @@ public:
 
         formLayout->setWidget(11, QFormLayout::FieldRole, omitZeros);
 
+        label_11 = new QLabel(SettingsDialog);
+        label_11->setObjectName("label_11");
+
+        formLayout->setWidget(12, QFormLayout::LabelRole, label_11);
+
+        clearCode = new QLineEdit(SettingsDialog);
+        clearCode->setObjectName("clearCode");
+
+        formLayout->setWidget(12, QFormLayout::FieldRole, clearCode);
+
 
         verticalLayout_2->addLayout(formLayout);
 
@@ -259,6 +271,7 @@ public:
         omitZeros->setItemText(0, QCoreApplication::translate("SettingsDialog", "Yes", nullptr));
         omitZeros->setItemText(1, QCoreApplication::translate("SettingsDialog", "No", nullptr));
 
+        label_11->setText(QCoreApplication::translate("SettingsDialog", "Clear code", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

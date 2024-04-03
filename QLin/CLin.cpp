@@ -110,12 +110,26 @@ XLstatus CLin::LINInit(int masterID, unsigned int linVersion, int baudrate, int 
 	return ret;
 }
 
+XLstatus CLin::linSetSlave(int linID, const unsigned char* data, size_t size) {
+	XLstatus xlStatus = XL_ERROR;
+	char tmp[100];
+	unsigned char sdata[8];
+
+	memcpy(sdata, m_data, 8);
+	memcpy(sdata, data, size);
+
+	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, sdata, DEFAULT_LIN_DLC, XL_LIN_CALC_CHECKSUM);
+	sprintf_s(tmp, sizeof(tmp), "Set Slave ID CM: '0x%I64x', status: %d", m_xlChannelMask[SLAVE], xlStatus);
+	emit message(tmp);
+
+	return xlStatus;
+}
+
 XLstatus CLin::LINSendMasterReq(unsigned int linID, const unsigned char* data, size_t size) {
 	XLstatus ret = XL_ERROR;
 
 	//ret = xlLinWakeUp(m_xlPortHandle, m_xlChannelMask[MASTER]);
 
-	// setup the only slave channel (LIN ID + 1)
 	ret = linSetSlave(m_slaveID, data, size);
 
 	// send the master request
@@ -422,22 +436,6 @@ XLstatus CLin::linCreateRxThread() {
 	}
 	return ret;
 	WAITORTIMERCALLBACKFUNC o;
-}
-
-XLstatus CLin::linSetSlave(int linID, const unsigned char* data, size_t size) {
-	XLstatus xlStatus = XL_ERROR;
-	char tmp[100];
-	unsigned char sdata[8];
-
-	memcpy(sdata, m_data, 8);
-	memcpy(sdata, data, size);
-	
-
-	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask[MASTER], (unsigned char)linID, sdata, DEFAULT_LIN_DLC, XL_LIN_CALC_CHECKSUM);
-	sprintf_s(tmp, sizeof(tmp), "Set Slave ID CM: '0x%I64x', status: %d", m_xlChannelMask[SLAVE], xlStatus);
-	emit message(tmp);
-
-	return xlStatus;
 }
 
 void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){

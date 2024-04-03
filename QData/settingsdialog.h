@@ -36,6 +36,7 @@ public:
     static constexpr const char* cipherKey = "cipher";
     static constexpr const char* removeCharsKey = "removeChars";
     static constexpr const char* omitZerosKey = "omitZeros";
+    static constexpr const char* clearCodeKey = "clearCode";
 
     static constexpr const char* dbDriverValue = "QPSQL";
     static constexpr const char* dbUriValue = "szpuler.dat";
@@ -49,6 +50,7 @@ public:
     static constexpr const int cipherValue = 0;
     static constexpr const char* removeCharsValue = ",./\\";
     static constexpr const bool omitZerosValue = true;
+    static constexpr const int clearCodeValue = -1;
 
     struct DataSettings : public PluginSettings {
         DataSettings() 
@@ -63,7 +65,8 @@ public:
         , serialInterval(serialIntervalValue)
         , cipher(cipherValue)
         , removeChars(removeCharsValue)
-        , omitZeros(omitZerosValue){}
+        , omitZeros(omitZerosValue)
+        , clearCode(clearCodeValue){}
 
         DataSettings(const QSettings& settings, const QString& settingsPath)
             : dbDriver(settings.value(settingsPath + "/" + dbDriverKey, dbDriverValue).toString())
@@ -77,7 +80,8 @@ public:
             , serialInterval(settings.value(settingsPath + "/" + serialIntervalKey, serialIntervalValue).toInt())
             , cipher(settings.value(settingsPath + "/" + cipherKey, cipherValue).toULongLong())
             , removeChars(settings.value(settingsPath + "/" + removeCharsKey, removeCharsValue).toString())
-            , omitZeros(settings.value(settingsPath + "/" + omitZerosKey, omitZerosValue).toBool()){
+            , omitZeros(settings.value(settingsPath + "/" + omitZerosKey, omitZerosValue).toBool())
+            , clearCode(settings.value(settingsPath + "/" + clearCodeKey, clearCodeValue).toInt()){
 
             if (cipher == 0) {
                 cipher = QRandomGenerator::global()->generate64();
@@ -110,6 +114,7 @@ public:
             settings.setValue(settingsPath + "/" + cipherKey, cipher);
             settings.setValue(settingsPath + "/" + removeCharsKey, removeChars);
             settings.setValue(settingsPath + "/" + omitZerosKey, omitZeros);
+            settings.setValue(settingsPath + "/" + clearCodeKey, clearCode);
         }
 
         QString dbDriver;
@@ -124,6 +129,7 @@ public:
         quint64 cipher;
         QString removeChars;
         bool omitZeros;
+        int clearCode;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

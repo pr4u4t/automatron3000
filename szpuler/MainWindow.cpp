@@ -35,7 +35,7 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
     // as the dock widget content
     ads::CDockWidget* dockWidget = new ads::CDockWidget("Central Widget");
     dockWidget->setWidget(l);
-    //dockWidget->setFeature(ads::CDockWidget::NoTab, true);
+    dockWidget->setFeature(ads::CDockWidget::NoTab, true);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);

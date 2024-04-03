@@ -180,6 +180,16 @@
        </item>
       </widget>
      </item>
+     <item row="12" column="0">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>Clear code</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="1">
+      <widget class="QLineEdit" name="clearCode"/>
+     </item>
     </layout>
    </item>
    <item>

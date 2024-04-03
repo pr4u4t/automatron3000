@@ -34,6 +34,8 @@ class Ui_SettingsDialog
 public:
     QVBoxLayout *verticalLayout;
     QFormLayout *formLayout;
+    QLabel *label_7;
+    QSpinBox *baudrate;
     QLabel *label_3;
     QHBoxLayout *horizontalLayout_2;
     QRadioButton *masterCheck;
@@ -42,14 +44,18 @@ public:
     QLabel *label;
     QSpinBox *masterID;
     QLabel *label_4;
+    QSpinBox *slaveID;
     QLabel *label_2;
     QComboBox *linVersion;
     QLabel *label_5;
     QGridLayout *gridLayout;
     QTableView *slaveInitialData;
-    QSpinBox *slaveID;
+    QLabel *label_9;
+    QSpinBox *SlaveDLC;
     QLabel *label_6;
     QCheckBox *autoConnect;
+    QLabel *label_8;
+    QTableView *DLC;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -67,10 +73,23 @@ public:
         verticalLayout->setObjectName("verticalLayout");
         formLayout = new QFormLayout();
         formLayout->setObjectName("formLayout");
+        label_7 = new QLabel(SettingsDialog);
+        label_7->setObjectName("label_7");
+
+        formLayout->setWidget(0, QFormLayout::LabelRole, label_7);
+
+        baudrate = new QSpinBox(SettingsDialog);
+        baudrate->setObjectName("baudrate");
+        baudrate->setMinimum(10400);
+        baudrate->setMaximum(20000);
+        baudrate->setValue(16500);
+
+        formLayout->setWidget(0, QFormLayout::FieldRole, baudrate);
+
         label_3 = new QLabel(SettingsDialog);
         label_3->setObjectName("label_3");
 
-        formLayout->setWidget(0, QFormLayout::LabelRole, label_3);
+        formLayout->setWidget(1, QFormLayout::LabelRole, label_3);
 
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setObjectName("horizontalLayout_2");
@@ -93,28 +112,33 @@ public:
         horizontalLayout_2->addItem(horizontalSpacer_2);
 
 
-        formLayout->setLayout(0, QFormLayout::FieldRole, horizontalLayout_2);
+        formLayout->setLayout(1, QFormLayout::FieldRole, horizontalLayout_2);
 
         label = new QLabel(SettingsDialog);
         label->setObjectName("label");
 
-        formLayout->setWidget(1, QFormLayout::LabelRole, label);
+        formLayout->setWidget(2, QFormLayout::LabelRole, label);
 
         masterID = new QSpinBox(SettingsDialog);
         masterID->setObjectName("masterID");
         masterID->setMaximum(63);
 
-        formLayout->setWidget(1, QFormLayout::FieldRole, masterID);
+        formLayout->setWidget(2, QFormLayout::FieldRole, masterID);
 
         label_4 = new QLabel(SettingsDialog);
         label_4->setObjectName("label_4");
 
-        formLayout->setWidget(2, QFormLayout::LabelRole, label_4);
+        formLayout->setWidget(3, QFormLayout::LabelRole, label_4);
+
+        slaveID = new QSpinBox(SettingsDialog);
+        slaveID->setObjectName("slaveID");
+
+        formLayout->setWidget(3, QFormLayout::FieldRole, slaveID);
 
         label_2 = new QLabel(SettingsDialog);
         label_2->setObjectName("label_2");
 
-        formLayout->setWidget(3, QFormLayout::LabelRole, label_2);
+        formLayout->setWidget(4, QFormLayout::LabelRole, label_2);
 
         linVersion = new QComboBox(SettingsDialog);
         linVersion->addItem(QString());
@@ -122,12 +146,12 @@ public:
         linVersion->addItem(QString());
         linVersion->setObjectName("linVersion");
 
-        formLayout->setWidget(3, QFormLayout::FieldRole, linVersion);
+        formLayout->setWidget(4, QFormLayout::FieldRole, linVersion);
 
         label_5 = new QLabel(SettingsDialog);
         label_5->setObjectName("label_5");
 
-        formLayout->setWidget(4, QFormLayout::LabelRole, label_5);
+        formLayout->setWidget(5, QFormLayout::LabelRole, label_5);
 
         gridLayout = new QGridLayout();
         gridLayout->setObjectName("gridLayout");
@@ -139,22 +163,39 @@ public:
         gridLayout->addWidget(slaveInitialData, 0, 0, 1, 1);
 
 
-        formLayout->setLayout(4, QFormLayout::FieldRole, gridLayout);
+        formLayout->setLayout(5, QFormLayout::FieldRole, gridLayout);
 
-        slaveID = new QSpinBox(SettingsDialog);
-        slaveID->setObjectName("slaveID");
+        label_9 = new QLabel(SettingsDialog);
+        label_9->setObjectName("label_9");
 
-        formLayout->setWidget(2, QFormLayout::FieldRole, slaveID);
+        formLayout->setWidget(7, QFormLayout::LabelRole, label_9);
+
+        SlaveDLC = new QSpinBox(SettingsDialog);
+        SlaveDLC->setObjectName("SlaveDLC");
+        SlaveDLC->setMinimum(1);
+        SlaveDLC->setMaximum(8);
+
+        formLayout->setWidget(7, QFormLayout::FieldRole, SlaveDLC);
 
         label_6 = new QLabel(SettingsDialog);
         label_6->setObjectName("label_6");
 
-        formLayout->setWidget(5, QFormLayout::LabelRole, label_6);
+        formLayout->setWidget(9, QFormLayout::LabelRole, label_6);
 
         autoConnect = new QCheckBox(SettingsDialog);
         autoConnect->setObjectName("autoConnect");
 
-        formLayout->setWidget(5, QFormLayout::FieldRole, autoConnect);
+        formLayout->setWidget(9, QFormLayout::FieldRole, autoConnect);
+
+        label_8 = new QLabel(SettingsDialog);
+        label_8->setObjectName("label_8");
+
+        formLayout->setWidget(10, QFormLayout::LabelRole, label_8);
+
+        DLC = new QTableView(SettingsDialog);
+        DLC->setObjectName("DLC");
+
+        formLayout->setWidget(10, QFormLayout::FieldRole, DLC);
 
 
         verticalLayout->addLayout(formLayout);
@@ -196,6 +237,7 @@ public:
     void retranslateUi(QWidget *SettingsDialog)
     {
         SettingsDialog->setWindowTitle(QCoreApplication::translate("SettingsDialog", "Form", nullptr));
+        label_7->setText(QCoreApplication::translate("SettingsDialog", "Baudrate", nullptr));
         label_3->setText(QCoreApplication::translate("SettingsDialog", "Mode", nullptr));
         masterCheck->setText(QCoreApplication::translate("SettingsDialog", "Master", nullptr));
         slaveCheck->setText(QCoreApplication::translate("SettingsDialog", "Slave", nullptr));
@@ -207,8 +249,10 @@ public:
         linVersion->setItemText(2, QCoreApplication::translate("SettingsDialog", "2.1", nullptr));
 
         label_5->setText(QCoreApplication::translate("SettingsDialog", "Slave initial data", nullptr));
+        label_9->setText(QCoreApplication::translate("SettingsDialog", "Slave DLC", nullptr));
         label_6->setText(QCoreApplication::translate("SettingsDialog", "Auto connect", nullptr));
         autoConnect->setText(QString());
+        label_8->setText(QCoreApplication::translate("SettingsDialog", "DLC", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));
