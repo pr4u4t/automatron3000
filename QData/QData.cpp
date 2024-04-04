@@ -112,12 +112,12 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
     connect(m_ui->clearButton, &QPushButton::pressed, this, &QData::clearForm);
     connect(m_ui->unlockButton, &QPushButton::pressed, this, &QData::toggleLock);
 
+    connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
+    settingsChanged();
+
     if (m_settings.serialInterval != -1) {
         m_timer.setInterval(m_settings.serialInterval);
     }
-
-    connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
-    settingsChanged();
 
     m_ui->left->setPixmap(QPixmap(":qdata/left-arrow.png"));
     m_ui->left->setEnabled(false);
@@ -129,7 +129,13 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
     //m_ui->right->setScaledContents(true);
     //m_ui->right->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-    QTimer::singleShot(0, this, &QData::timeout);
+    if (m_settings.keepClear == false) {
+        QTimer::singleShot(0, this, &QData::timeout);
+    } else {
+        m_selected = QString::number(m_settings.clearCode);
+        m_timer.start();
+    }
+
 }
 
 void QData::timeout() {
@@ -607,7 +613,11 @@ int QData::findByPartWithOmit(QSqlTableModel* model, const QString& part) {
 void QData::clearForm() {
     m_ui->barcodeEdit->clear();
     m_ui->dbView->clearSelection();
-    m_timer.stop();
+    if (m_settings.keepClear == false) {
+        m_timer.stop();
+    } else {
+        m_selected = QString::number(m_settings.clearCode);
+    }
     m_selected.clear();
     m_model->setFilter(QString());
     m_model->select();
