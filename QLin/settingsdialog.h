@@ -48,7 +48,7 @@ public:
         static constexpr const char* slaveDlcKey = "lin/slaveDLC";
         static constexpr const char slaveDlcValue = 8;
         static constexpr const char* dlcKey = "lin/dlc";
-        static constexpr const char dlcValue[64] = {8};
+        static constexpr const char dlcValue[64] = { 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8 };
 
         LinSettings()
             : linVersion(linVersionValue)

@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -54,6 +55,8 @@ public:
     QComboBox *omitZeros;
     QLabel *label_11;
     QLineEdit *clearCode;
+    QLabel *label_12;
+    QCheckBox *keepClear;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -209,6 +212,16 @@ public:
 
         formLayout->setWidget(12, QFormLayout::FieldRole, clearCode);
 
+        label_12 = new QLabel(SettingsDialog);
+        label_12->setObjectName("label_12");
+
+        formLayout->setWidget(13, QFormLayout::LabelRole, label_12);
+
+        keepClear = new QCheckBox(SettingsDialog);
+        keepClear->setObjectName("keepClear");
+
+        formLayout->setWidget(13, QFormLayout::FieldRole, keepClear);
+
 
         verticalLayout_2->addLayout(formLayout);
 
@@ -272,6 +285,8 @@ public:
         omitZeros->setItemText(1, QCoreApplication::translate("SettingsDialog", "No", nullptr));
 
         label_11->setText(QCoreApplication::translate("SettingsDialog", "Clear code", nullptr));
+        label_12->setText(QCoreApplication::translate("SettingsDialog", "Keep clear", nullptr));
+        keepClear->setText(QString());
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

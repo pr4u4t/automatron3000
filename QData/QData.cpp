@@ -113,29 +113,16 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
     connect(m_ui->unlockButton, &QPushButton::pressed, this, &QData::toggleLock);
 
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
-    settingsChanged();
-
-    if (m_settings.serialInterval != -1) {
-        m_timer.setInterval(m_settings.serialInterval);
-    }
+    
 
     m_ui->left->setPixmap(QPixmap(":qdata/left-arrow.png"));
     m_ui->left->setEnabled(false);
-    //m_ui->left->setScaledContents(true);
-    //m_ui->left->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     
     m_ui->right->setPixmap(QPixmap(":qdata/right-arrow.png"));
     m_ui->right->setEnabled(false);
-    //m_ui->right->setScaledContents(true);
-    //m_ui->right->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
-    if (m_settings.keepClear == false) {
-        QTimer::singleShot(0, this, &QData::timeout);
-    } else {
-        m_selected = QString::number(m_settings.clearCode);
-        m_timer.start();
-    }
-
+    settingsChanged();
+    QTimer::singleShot(0, this, &QData::timeout);
 }
 
 void QData::timeout() {
@@ -451,6 +438,20 @@ void QData::settingsChanged() {
     m_model->setHeaderData(2, Qt::Horizontal, tr("Cell"));
     m_ui->dbView->setModel(m_model);
     m_ui->dbView->setColumnHidden(0, true);
+
+    m_timer.stop();
+
+    if (m_settings.serialInterval != -1) {
+        m_timer.setInterval(m_settings.serialInterval);
+    }
+
+    if (m_settings.keepClear == true && m_settings.clearCode != -1) {
+        m_selected = QString::number(m_settings.clearCode);
+    }
+
+    if (m_settings.keepClear == true && m_settings.serialInterval != -1 && m_settings.clearCode != -1) {
+        m_timer.start();
+    }
 }
 
 void QData::prepareForFocus() {
@@ -471,6 +472,27 @@ bool QData::clearData() {
     return false;
 }
 
+void QData::send() {
+    emit message("QData::send()");
+
+    if (m_settings.clearCode != -1) {
+        emit message(QString("QData::send(): sending clear code: %1").arg(QString::number(m_settings.clearCode)));
+        auto serial = plugins()->instance("QSerial", nullptr);
+        auto io = serial.dynamicCast<IODevice>();
+        auto res = io->write(QString::number(m_settings.clearCode) + '\n');
+    }
+
+    if (m_settings.serialInterval != -1) {
+        if (m_settings.keepClear == false) {
+            emit message("QData::send(): timer start");
+            m_timer.start();
+        }
+    }
+
+    emit message("QData::send(): timeout shot");
+    timeout();
+}
+
 void QData::activated(const QModelIndex& idx) {
     emit message("QData::activated()");
 
@@ -483,22 +505,14 @@ void QData::activated(const QModelIndex& idx) {
 
         m_lmodel->appendRow(new QStandardItem(idx.siblingAtColumn(1).data().toString()));
         fillInfo();
-        if (m_settings.serialInterval != -1) {
-            emit message("QData::activated(): timer started");
-            m_timer.start();
-        } else {
-            emit message("QData::activated(): single shot");
-            timeout();
-        }
+        
+        send();
     }
 }
 
 void QData::enterPressed() {
     emit message("QData::enterPressed()", LoggerSeverity::LOG_DEBUG);
     QString str = m_ui->barcodeEdit->text();
-
-    m_ui->right->setEnabled(false);
-    m_ui->left->setEnabled(false);
 
     if (str.isEmpty()) {
         emit message("QData::enterPressed(): input is empty");
@@ -555,13 +569,7 @@ void QData::enterPressed() {
         m_lmodel->appendRow(new QStandardItem(m_model->index(row, 1).data().toString()));
         fillInfo();
         
-        if (m_settings.serialInterval != -1) {
-            emit message("QData::enterPressed(): timer start");
-            m_timer.start();
-        } else {
-            emit message("QData::enterPressed(): single shot");
-            timeout();
-        }
+        send();
     }
 }
 
@@ -611,14 +619,26 @@ int QData::findByPartWithOmit(QSqlTableModel* model, const QString& part) {
 }
 
 void QData::clearForm() {
+    emit message(QString("QData::clearForm()"));
     m_ui->barcodeEdit->clear();
     m_ui->dbView->clearSelection();
+    
     if (m_settings.keepClear == false) {
+        emit message(QString("QData::clearForm(): clearing selected and stopping timer"));
+        m_selected.clear();
         m_timer.stop();
     } else {
+        emit message(QString("QData::clearForm(): setting selected to clear code"));
         m_selected = QString::number(m_settings.clearCode);
     }
-    m_selected.clear();
+    
+    if (m_settings.clearCode != -1) {
+        emit message(QString("QData::clearForm(): sending clear code: %1").arg(QString::number(m_settings.clearCode)));
+        auto serial = plugins()->instance("QSerial", nullptr);
+        auto io = serial.dynamicCast<IODevice>();
+        auto res = io->write(QString::number(m_settings.clearCode) + '\n');
+    }
+
     m_model->setFilter(QString());
     m_model->select();
 
@@ -626,11 +646,8 @@ void QData::clearForm() {
     m_ui->sideLabel->setText(QString());
     m_ui->shelfLabel->setText(QString());
 
-    if (m_settings.clearCode != -1) {
-        auto serial = plugins()->instance("QSerial", nullptr);
-        auto io = serial.dynamicCast<IODevice>();
-        auto res = io->write(QString::number(m_settings.clearCode) + '\n');
-    }
+    m_ui->right->setEnabled(false);
+    m_ui->left->setEnabled(false);
 }
 
 void QData::textChanged(const QString& text) {
@@ -675,10 +692,12 @@ void QData::fillInfo() {
     if (cell >= 1 && cell <= 2499) {
         m_ui->sideLabel->setText(tr("Left"));
         m_ui->left->setEnabled(true);
+        m_ui->right->setEnabled(false);
     }
     else if (cell >= 2500 && cell <= 5000) {
         m_ui->sideLabel->setText(tr("Right"));
         m_ui->right->setEnabled(true);
+        m_ui->left->setEnabled(false);
     }
 
 }

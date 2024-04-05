@@ -83,6 +83,8 @@ private:
 
     bool clearData();
 
+    void send();
+    
     QString escapedCSV(QString unexc);
 
     void queryToCsv(const QString& path, const QString& queryStr);

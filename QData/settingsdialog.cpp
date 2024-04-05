@@ -62,7 +62,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->serialInterval->setText(QString::number(m_currentSettings.serialInterval));
     m_ui->removeChars->setText(m_currentSettings.removeChars);
     m_ui->clearCode->setText(QString::number(m_currentSettings.clearCode));
-    m_ui->keepClear->setChecked(m_currentSettings.clearCode);
+    m_ui->keepClear->setChecked(m_currentSettings.keepClear);
 }
 
 void SettingsDialog::updateSettings() {
@@ -76,9 +76,9 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.dbLockPass = m_ui->dbLockPass->text().toLocal8Bit();
     m_currentSettings.serialPrefix = m_ui->serialPrefix->text();
     m_currentSettings.barcodeRegexp = m_ui->codeRegexp->text();
-    m_currentSettings.serialInterval = m_ui->serialInterval->text().toInt();
+    m_currentSettings.serialInterval = m_ui->serialInterval->text().isEmpty() ? -1 : m_ui->serialInterval->text().toInt();
     m_currentSettings.removeChars = m_ui->removeChars->text();
-    m_currentSettings.clearCode = m_ui->clearCode->text().toInt();
+    m_currentSettings.clearCode = m_ui->clearCode->text().isEmpty() ? -1 : m_ui->clearCode->text().toInt();
     m_currentSettings.keepClear = m_ui->keepClear->isChecked();
 
     QSettings s = Settings::get();

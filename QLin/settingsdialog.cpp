@@ -86,6 +86,10 @@ void SettingsDialog::fillFromSettings() {
     for (qsizetype it = 0, end = m_currentSettings.initialData.size(); it < end; ++it) {
          m_model->setData(m_model->index(it, 0),"0x"+QString().setNum(static_cast<unsigned char>(m_currentSettings.initialData.at(it)), 16));
     }
+
+    for (qsizetype it = 0, end = m_currentSettings.dlc.size(); it < end; ++it) {
+        m_sdlcModel->setData(m_sdlcModel->index(it, 0), QString::number(m_currentSettings.dlc.at(it)));
+    }
 }
 
 void SettingsDialog::updateSettings() {
@@ -107,11 +111,14 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.autoConnect = m_ui->autoConnect->isChecked();
 
     for (auto it = m_model->index(0, 0); it.isValid(); it = it.siblingAtRow(it.row() + 1)) {
-        qDebug() << it.data();
         m_currentSettings.initialData[it.row()] = it.data().toString().toInt(nullptr, 16);
     }
 
     m_currentSettings.baudrate = m_ui->baudrate->value();
+
+    for (auto it = m_sdlcModel->index(0, 0); it.isValid(); it = it.siblingAtRow(it.row() + 1)) {
+        m_currentSettings.dlc[it.row()] = it.data().toString().toInt();
+    }
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
