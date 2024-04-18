@@ -18,6 +18,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -32,6 +33,8 @@ public:
     QLabel *label_2;
     QCheckBox *localEcho;
     QLineEdit *prompt;
+    QLabel *delay;
+    QSpinBox *spinBox;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -67,6 +70,16 @@ public:
         prompt->setObjectName("prompt");
 
         formLayout->setWidget(1, QFormLayout::FieldRole, prompt);
+
+        delay = new QLabel(SettingsDialog);
+        delay->setObjectName("delay");
+
+        formLayout->setWidget(2, QFormLayout::LabelRole, delay);
+
+        spinBox = new QSpinBox(SettingsDialog);
+        spinBox->setObjectName("spinBox");
+
+        formLayout->setWidget(2, QFormLayout::FieldRole, spinBox);
 
 
         verticalLayout->addLayout(formLayout);
@@ -111,6 +124,7 @@ public:
         label->setText(QCoreApplication::translate("SettingsDialog", "Local echo", nullptr));
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Prompt", nullptr));
         localEcho->setText(QString());
+        delay->setText(QCoreApplication::translate("SettingsDialog", "Command delay (ms)", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

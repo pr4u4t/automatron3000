@@ -19,6 +19,94 @@ namespace Ui {
 //class QIntValidator;
 QT_END_NAMESPACE
 
+struct ChannelConfig;
+
+QDataStream& operator<<(QDataStream& stream, const ChannelConfig& object);
+
+QDataStream& operator>>(QDataStream& stream, ChannelConfig& object);
+
+inline bool operator==(const ChannelConfig& lhs, const ChannelConfig& rhs);
+
+inline bool operator==(const XLchannelConfig& lhs, const ChannelConfig& rhs);
+
+struct ChannelConfig {
+    decltype(static_cast<XL_CHANNEL_CONFIG*>(nullptr)->name) name;
+    int serialNumber;
+    int articleNumber;
+    unsigned int hwType;
+    unsigned int hwIndex;
+    unsigned int hwChannel;
+    unsigned int appChannel;
+    int channelIndex;
+    unsigned int busType = XL_BUS_TYPE_LIN;
+    
+    operator QByteArray() const {
+        return toByteArray();
+    }
+
+    QByteArray toByteArray() const {
+        QByteArray ret;
+        QDataStream out(&ret, QIODeviceBase::WriteOnly);
+        out << *this;
+        return ret;
+    }
+
+    ChannelConfig(const QByteArray& arr) 
+        : name{ 0 }
+        , serialNumber(0)
+        , articleNumber(0)
+        , hwType(0)
+        , hwIndex(0)
+        , hwChannel(0)
+        , appChannel(0)
+        , channelIndex(0)
+        , busType(XL_BUS_TYPE_LIN) {
+        QDataStream in(arr);
+        in >> *this;
+    }
+
+    ChannelConfig()
+        : name{ 0 }
+        , serialNumber(0)
+        , articleNumber(0)
+        , hwType(0)
+        , hwIndex(0)
+        , hwChannel(0)
+        , appChannel(0)
+        , channelIndex(0)
+        , busType(XL_BUS_TYPE_LIN){
+    }    
+    
+    ChannelConfig(const XLchannelConfig& other)
+        : name{0} {
+        *this = other;
+    }
+
+    constexpr ChannelConfig(int serial, int article = 0) 
+        : serialNumber(serial)
+        , articleNumber(article)
+        , name{0}
+        , hwType(0)
+        , hwIndex(0)
+        , hwChannel(0)
+        , appChannel(0)
+        , channelIndex(0){}
+
+    void operator=(const XLchannelConfig& conf) {
+        articleNumber = conf.articleNumber;
+        serialNumber = conf.serialNumber;
+        strncpy(name, conf.name, strlen(conf.name));
+        hwType = conf.hwType;
+        hwIndex = conf.hwIndex;
+        hwChannel = conf.hwChannel;
+        appChannel = 1;
+        channelIndex = conf.channelIndex;
+    }
+};
+
+Q_DECLARE_METATYPE(ChannelConfig)
+
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
@@ -28,11 +116,10 @@ public:
     struct LinSettings : public PluginSettings {
         enum Mode {
             MASTER,
-            SLAVE
+            SLAVE,
+            MASTER_WITH_SLAVE
         };
 
-        static constexpr const char* masterIDKey = "lin/masterID";
-        static constexpr char masterIDValue = 0;
         static constexpr const char* slaveIDKey = "lin/slaveID";
         static constexpr char slaveIDValue = 0;
         static constexpr const char* linVersionKey = "lin/version";
@@ -49,34 +136,47 @@ public:
         static constexpr const char slaveDlcValue = 8;
         static constexpr const char* dlcKey = "lin/dlc";
         static constexpr const char dlcValue[64] = { 8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8 };
+        static constexpr const char* appNameKey = "appName";
+        static constexpr const char* appNameValue = "QLin";
+        static constexpr const char* channelKey = "hwChannel";
+        static constexpr const ChannelConfig channelValue = {0};
+        static constexpr const char* queueSizeKey = "QueueSize";
+        static constexpr const int queueSizeValue = 256;
+        static constexpr const char* checksumMethodKey = "lin/checksum";
+        static constexpr const int checksumMethodValue = XL_LIN_CALC_CHECKSUM;
 
         LinSettings()
             : linVersion(linVersionValue)
-            , masterID(masterIDValue) 
             , slaveID(slaveIDValue)
             , mode(modeValue)
             , initialData((const char*)&initialDataValue[0], sizeof(initialDataValue))
             , autoConnect(autoConnectValue)
             , baudrate(baudrateValue)
             , slaveDLC(slaveDlcValue)
-            , dlc(dlcValue, 64){
+            , dlc(dlcValue, 64)
+            , appName(appNameValue)
+            , hwChannel(channelValue)
+            , queueSize(queueSizeValue)
+            , checksumMethod(checksumMethodValue){
         }
 
         LinSettings(const QSettings& settings, const QString& settingsPath)
             : linVersion(settings.value(settingsPath + "/" + linVersionKey, linVersionValue).toUInt())
-            , masterID(settings.value(settingsPath + "/" + masterIDKey, masterIDValue).toInt())
             , slaveID(settings.value(settingsPath + "/" + slaveIDKey, slaveIDValue).toInt())
             , mode(static_cast<Mode>(settings.value(settingsPath + "/" + modeKey, modeValue).toInt()))
-            , initialData(settings.value(settingsPath + "/" + initialDataKey, QByteArray((const char*) &initialDataValue[0], sizeof(initialDataValue))).toByteArray())
+            , initialData(settings.value(settingsPath + "/" + initialDataKey, QByteArray((const char*)&initialDataValue[0], sizeof(initialDataValue))).toByteArray())
             , autoConnect(settings.value(settingsPath + "/" + autoConnectKey, autoConnectValue).toBool())
             , baudrate(settings.value(settingsPath + "/" + baudrateKey, baudrateValue).toInt())
             , slaveDLC(settings.value(settingsPath + "/" + slaveDlcKey, slaveDlcValue).toInt())
-            , dlc(settings.value(settingsPath + "/" + dlcKey, QByteArray(dlcValue, 64)).toByteArray()){
+            , dlc(settings.value(settingsPath + "/" + dlcKey, QByteArray(dlcValue, 64)).toByteArray())
+            , appName(settings.value(settingsPath + "/" + appNameKey, appNameValue).toString())
+            , hwChannel(settings.value(settingsPath + "/" + channelKey, channelValue.toByteArray()).toByteArray())
+            , queueSize(settings.value(settingsPath + "/" + queueSizeKey, queueSizeValue).toInt())
+            , checksumMethod(settings.value(settingsPath + "/" + checksumMethodKey, checksumMethodValue).toInt()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
             settings.setValue(settingsPath + "/" + linVersionKey, linVersion);
-            settings.setValue(settingsPath + "/" + masterIDKey, masterID);
             settings.setValue(settingsPath + "/" + slaveIDKey, slaveID);
             settings.setValue(settingsPath + "/" + modeKey, mode);
             settings.setValue(settingsPath + "/" + initialDataKey, initialData);
@@ -84,17 +184,24 @@ public:
             settings.setValue(settingsPath + "/" + baudrateKey, baudrate);
             settings.setValue(settingsPath + "/" + slaveDlcKey, slaveDLC);
             settings.setValue(settingsPath + "/" + dlcKey, dlc);
+            settings.setValue(settingsPath + "/" + appNameKey, appName);
+            settings.setValue(settingsPath + "/" + channelKey, hwChannel.toByteArray());
+            settings.setValue(settingsPath + "/" + queueSizeKey, queueSize);
+            settings.setValue(settingsPath + "/" + checksumMethodKey, checksumMethod);
         }
 
         unsigned int linVersion;
-        char masterID;
-        char slaveID;
+        unsigned char slaveID;
         Mode mode;
         QByteArray initialData;
         bool autoConnect;
         int baudrate;
         char slaveDLC;
         QByteArray dlc;
+        QString appName;
+        ChannelConfig hwChannel;
+        int queueSize;
+        int checksumMethod;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
@@ -115,6 +222,9 @@ private slots:
     void apply();
     void cancel();
     void ok();
+    void vectorConfig() {
+        xlPopupHwConfig(nullptr, 0);
+    }
 
 private:
     void updateSettings();

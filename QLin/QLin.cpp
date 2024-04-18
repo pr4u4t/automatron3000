@@ -39,6 +39,8 @@ struct QLinMenu {
 
 static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
 	log->message("QLin_register()");
+	
+	qRegisterMetaType<ChannelConfig>("ChannelConfig");
 
 	GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
 	if (gtx == nullptr) {
@@ -126,9 +128,9 @@ REGISTER_PLUGIN(
 
 QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
 	: IODevice(ld, plugins, parent, path)
-	, m_lin(new CLin("QLin"))
 	, m_open(false)
-	, m_settings(SettingsDialog::LinSettings(Settings::get(), settingsPath())) {
+	, m_settings(SettingsDialog::LinSettings(Settings::get(), settingsPath()))
+	, m_lin(new CLin(&m_settings)) {
 	connect(m_lin, &CLin::message, this, &QLin::message);
 	connect(m_lin, &CLin::dataReady, this, &QLin::dataReady);
 }
@@ -138,13 +140,18 @@ bool QLin::open(const QString& url) {
 		return false;
 	}
 
-	if (m_lin->LINGetDevice() != XL_SUCCESS) {
-		emit message("QLin::open(): LINGetDevice failed");
-		return false;
-	}
+	//if (m_lin->LINGetDevice() != XL_SUCCESS) {
+	//	emit message("QLin::open(): LINGetDevice failed");
+	//	return false;
+	//}
 	
 	//if()
-
+	if (m_lin->LINOpen() != XL_SUCCESS) {
+		emit message("QLin::open(): LINOpen failed");
+		close();
+		return false;
+	}
+	/*
 	if (m_lin->LINInit(
 		m_settings.mode == SettingsDialog::LinSettings::Mode::MASTER ? m_settings.masterID : m_settings.slaveID,
 		m_settings.linVersion,
@@ -158,6 +165,7 @@ bool QLin::open(const QString& url) {
 		close();
 		return false;
 	}
+	*/
 
 	auto sld = dynamic_cast<PluginLoader<QLin, QLinMenu>*>(loader());
 	if (sld->context()) {
@@ -172,18 +180,22 @@ qint64 QLin::write(const QString& data) {
 	XLstatus rc;
 
 	if (m_lin == nullptr) {
+		emit message("QLin::write(): not initialized", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 	
 	if (m_open != true) {
+		emit message("QLin::write(): not open", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
-	if (m_settings.mode != SettingsDialog::LinSettings::Mode::MASTER) {
+	if (m_settings.mode == SettingsDialog::LinSettings::Mode::SLAVE) {
+		emit message("QLin::write(): SLAVE mode cannot send", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
 	if (data.isEmpty()) {
+		emit message("QLin::write(): data empty", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
@@ -191,21 +203,21 @@ qint64 QLin::write(const QString& data) {
 	switch (list.size()) {
 		case 1:
 			if ((rc = m_lin->LINSendMasterReq(list[0].toUInt())) != XL_SUCCESS) {
-				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
 				return -1;
 			}
 			return sizeof(list[0].toInt());
 
 		case 2:
 			if ((rc = m_lin->LINSendMasterReq(list[0].toUInt(), (unsigned char*) list[1].toLocal8Bit().data(), list[1].size())) != XL_SUCCESS) {
-				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
 				return -1;
 			}
 			return sizeof(list[0].toInt())+sizeof(BYTE);
 
 
 		default:
-			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'");
+			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'", LoggerSeverity::LOG_ERROR);
 			return -1;
 	}
 
@@ -217,22 +229,22 @@ qint64 QLin::write(const QByteArray& data) {
 	XLstatus rc;
 
 	if (m_lin == nullptr) {
-		emit message("QLin::write(): m_lin == nullptr");
+		emit message("QLin::write(): m_lin == nullptr", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
 	if (m_open != true) {
-		emit message("QLin::write(): lin not open");
+		emit message("QLin::write(): lin not open", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
-	if (m_settings.mode != SettingsDialog::LinSettings::Mode::MASTER) {
-		emit message("QLin::write(): not in master mode write unavailable");
+	if (m_settings.mode == SettingsDialog::LinSettings::Mode::SLAVE) {
+		emit message("QLin::write(): not in master mode write unavailable", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
 	if (data.isEmpty()) {
-		emit message("QLin::write(): data is empty");
+		emit message("QLin::write(): data is empty", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
 
@@ -241,21 +253,21 @@ qint64 QLin::write(const QByteArray& data) {
 	switch (list.size()) {
 		case 1:
 			if ((rc = m_lin->LINSendMasterReq(list[0].data()[0])) != XL_SUCCESS) {
-				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
 				return -1;
 			}
 			return sizeof(list[0].toInt());
 
 		case 2:
 			if ((rc = m_lin->LINSendMasterReq(list[0].data()[0], (unsigned char*) list[1].data(), list[1].size())) != XL_SUCCESS) {
-				emit message(QString("QLin::write: send maser request failed %1").arg(rc));
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
 				return -1;
 			}
 			return sizeof(list[0].toInt()) + sizeof(BYTE);
 
 
 		default:
-			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'");
+			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'", LoggerSeverity::LOG_ERROR);
 			return -1;
 	}
 

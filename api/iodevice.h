@@ -32,6 +32,10 @@ public:
 
 signals:
 
+	void opened();
+
+	void closed();
+
 	void dataReady(const QByteArray& data);
 };
 

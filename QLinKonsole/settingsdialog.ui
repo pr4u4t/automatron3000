@@ -40,6 +40,16 @@
      <item row="1" column="1">
       <widget class="QLineEdit" name="prompt"/>
      </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="delay">
+       <property name="text">
+        <string>Command delay (ms)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QSpinBox" name="spinBox"/>
+     </item>
     </layout>
    </item>
    <item>

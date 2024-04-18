@@ -1,8 +1,0 @@
-settingsdialog.cpp
-terminal.cpp
-QKonsole.cpp
-qkonsole_global.h
-terminal.h
-settingsdialog.h
-QKonsole.h
-settingsdialog.ui

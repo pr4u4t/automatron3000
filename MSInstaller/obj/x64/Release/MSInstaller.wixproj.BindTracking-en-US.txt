@@ -1,5 +1,0 @@
-BuiltContentOutput	C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Release\en-US\cab1.cab
-BuiltPdbOutput	C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Release\en-US\MSInstaller.wixpdb
-BuiltTargetOutput	C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Release\en-US\MSInstaller.msi
-Input	ExampleComponents.wxs
-Intermediate	C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Release\en-US\cab1.cab

@@ -84,14 +84,21 @@ QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, co
 
     QObject::connect(m_terminal, &QTerminal::execCommand, this, &QLinKonsole::enterPressed);
     auto io = plugins->instance("QLin", nullptr);
-    QObject::connect(dynamic_cast<IODevice*>(io.data()), &IODevice::dataReady, this, &QLinKonsole::putData);
+    QObject::connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
+    QObject::connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
     m_lin = io.dynamicCast<IODevice>();
 }
 
-void QLinKonsole::putData(const QByteArray& data) {
+void QLinKonsole::putData(const QByteArray& data, qint32 severity) {
     emit message("QLinKonsole::putData()");
    
     m_terminal->printCommandExecutionResults(data);
+}
+
+void QLinKonsole::putData(const QString& data, LoggerSeverity severity) {
+    if(severity == LoggerSeverity::LOG_ERROR){ 
+        putData(data.toLocal8Bit(), severity);
+    }
 }
 
 void QLinKonsole::enterPressed(const QString& command) {

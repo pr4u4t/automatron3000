@@ -9,6 +9,7 @@
 #include "api_global.h"
 
 enum class API_EXPORT LoggerSeverity : qint32 {
+    LOG_NONE    = 0,
     LOG_INFO    = 1 << 0,
     LOG_NOTICE  = 1 << 1,
     LOG_WARNING = 1 << 2,
@@ -18,6 +19,8 @@ enum class API_EXPORT LoggerSeverity : qint32 {
 
     LOG_ALL     = 0x1F
 };
+
+
 
 class API_EXPORT Logger : public QObject{
     Q_OBJECT
