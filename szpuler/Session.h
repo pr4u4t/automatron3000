@@ -14,10 +14,6 @@ public:
 
     Session(MLoader* plugins, Logger* log, const QString& path, MainWindow* win);
 
-    qint64 store();
-
-    qint64 restore();
-
     QSettings& settings();
 
     MLoader* plugins() const;
@@ -25,6 +21,12 @@ public:
     Logger* logger() const;
 
     MainWindow* window() const;
+
+public slots:
+
+    qint64 store();
+
+    qint64 restore();
 
 protected:
 

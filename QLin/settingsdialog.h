@@ -25,9 +25,9 @@ QDataStream& operator<<(QDataStream& stream, const ChannelConfig& object);
 
 QDataStream& operator>>(QDataStream& stream, ChannelConfig& object);
 
-inline bool operator==(const ChannelConfig& lhs, const ChannelConfig& rhs);
+bool operator==(const ChannelConfig& lhs, const ChannelConfig& rhs);
 
-inline bool operator==(const XLchannelConfig& lhs, const ChannelConfig& rhs);
+bool operator==(const XLchannelConfig& lhs, const ChannelConfig& rhs);
 
 struct ChannelConfig {
     decltype(static_cast<XL_CHANNEL_CONFIG*>(nullptr)->name) name;
@@ -104,7 +104,7 @@ struct ChannelConfig {
     }
 };
 
-Q_DECLARE_METATYPE(ChannelConfig)
+//Q_DECLARE_METATYPE(ChannelConfig)
 
 
 class SettingsDialog : public SettingsMdi {

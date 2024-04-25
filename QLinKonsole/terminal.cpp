@@ -187,14 +187,13 @@ QString getCommonWord(QStringList& list)
 ////////////////////////////////////////////////////////////////////////////////
 
 //Clear the console
-void QTerminal::clear()
-{
+void QTerminal::clear(){
     QTextEdit::clear();
+    displayPrompt();
 }
 
 //Reset the console
-void QTerminal::reset(const QString& welcomeText)
-{
+void QTerminal::reset(const QString& welcomeText){
     clear();
 
     append(welcomeText);
@@ -596,7 +595,7 @@ QString QTerminal::addCommandToHistory(const QString& command)
     Q_EMIT commandAddedToHistory(modifiedCommand);
     return "";
 }
-#include <QTimer>
+
 //pExecCommand(QString) executes the command and displays back its result
 void QTerminal::pExecCommand(const QString& command)
 {
@@ -717,6 +716,7 @@ void QTerminal::contextMenuEvent(QContextMenuEvent* event)
     del->setShortcut(tr("Del"));
     QAction* selectAll = new QAction(tr("Select All"), this);
     selectAll->setShortcut(tr("Ctrl+A"));
+    QAction* clearAction = new QAction(tr("Clear"), this);
 
     menu->addAction(undo);
     menu->addAction(redo);
@@ -727,6 +727,8 @@ void QTerminal::contextMenuEvent(QContextMenuEvent* event)
     menu->addAction(del);
     menu->addSeparator();
     menu->addAction(selectAll);
+    menu->addSeparator();
+    menu->addAction(clearAction);
 
     connect(undo, SIGNAL(triggered()), this, SLOT(undo()));
     connect(redo, SIGNAL(triggered()), this, SLOT(redo()));
@@ -735,7 +737,7 @@ void QTerminal::contextMenuEvent(QContextMenuEvent* event)
     connect(paste, SIGNAL(triggered()), this, SLOT(paste()));
     connect(del, SIGNAL(triggered()), this, SLOT(del()));
     connect(selectAll, SIGNAL(triggered()), this, SLOT(selectAll()));
-
+    connect(clearAction, SIGNAL(triggered()), this, SLOT(clear()));
 
     menu->exec(event->globalPos());
 

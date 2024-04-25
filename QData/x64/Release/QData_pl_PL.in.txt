@@ -1,0 +1,13 @@
+passworddialog.cpp
+settingsdialog.cpp
+simplecrypt.cpp
+QData.cpp
+simplecrypt.h
+qdata_global.h
+passworddialog.h
+settingsdialog.h
+QData.h
+passworddialog.ui
+qdataui.ui
+settingsdialog.ui
+qdata.qrc

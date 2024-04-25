@@ -16,13 +16,13 @@
 
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
-inline bool operator==(const ChannelConfig& lhs, const ChannelConfig& rhs) {
+bool operator==(const ChannelConfig& lhs, const ChannelConfig& rhs) {
     return  lhs.serialNumber == rhs.serialNumber
         && lhs.articleNumber == rhs.articleNumber
         && strncmp(lhs.name, rhs.name, sizeof(rhs.name));
 }
 
-inline bool operator==(const XLchannelConfig& lhs, const ChannelConfig& rhs) {
+bool operator==(const XLchannelConfig& lhs, const ChannelConfig& rhs) {
     return  lhs.serialNumber == rhs.serialNumber
             && lhs.articleNumber == rhs.articleNumber
             && strncmp(lhs.name, rhs.name, sizeof(rhs.name)) == 0;
@@ -80,8 +80,8 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     m_ui->modeGroup->setId(m_ui->slaveCheck, SettingsDialog::LinSettings::Mode::SLAVE);
     m_ui->modeGroup->setId(m_ui->masterNslave, SettingsDialog::LinSettings::Mode::MASTER_WITH_SLAVE);
 
-    m_ui->checksumMethod->model()->setData(m_ui->checksumMethod->model()->index(0, 0), XL_LIN_CALC_CHECKSUM);
-    m_ui->checksumMethod->model()->setData(m_ui->checksumMethod->model()->index(1, 0), XL_LIN_CALC_CHECKSUM_ENHANCED);
+    m_ui->checksumMethod->model()->setData(m_ui->checksumMethod->model()->index(0, 0), XL_LIN_CALC_CHECKSUM, Qt::ItemDataRole::UserRole);
+    m_ui->checksumMethod->model()->setData(m_ui->checksumMethod->model()->index(1, 0), XL_LIN_CALC_CHECKSUM_ENHANCED, Qt::ItemDataRole::UserRole);
 
     connect(m_ui->okButton, &QPushButton::clicked,
         this, &SettingsDialog::ok);
@@ -121,11 +121,7 @@ void SettingsDialog::fillFromSettings() {
             break;
     }
 
-    if (m_currentSettings.mode == SettingsDialog::LinSettings::Mode::MASTER) {
-        m_ui->masterCheck->setChecked(true);
-    } else {
-        m_ui->slaveCheck->setChecked(true);
-    }
+    m_ui->modeGroup->button(m_currentSettings.mode)->setChecked(true);
 
     m_ui->slaveID->setValue(m_currentSettings.slaveID);
     m_ui->autoConnect->setChecked(m_currentSettings.autoConnect);
@@ -153,7 +149,7 @@ void SettingsDialog::fillFromSettings() {
     }
 
     m_ui->queueSize->setValue(m_currentSettings.queueSize);
-    switch (m_ui->checksumMethod->currentData(2).toInt()) {
+    switch (m_ui->checksumMethod->currentData(Qt::ItemDataRole::UserRole).toInt()) {
         case XL_LIN_CALC_CHECKSUM:
             m_ui->checksumMethod->setCurrentIndex(0);
             break;
@@ -162,6 +158,14 @@ void SettingsDialog::fillFromSettings() {
             m_ui->checksumMethod->setCurrentIndex(1);
             break;
     
+    }
+
+    for (int i = 0; i < m_model->rowCount(); i++) {
+        m_model->setHeaderData(i, Qt::Vertical, i);
+    }
+
+    for (int i = 0; i < m_sdlcModel->rowCount(); i++) {
+        m_sdlcModel->setHeaderData(i, Qt::Vertical, i);
     }
 }
 
@@ -198,7 +202,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.hwChannel = config;
 
     m_currentSettings.queueSize = m_ui->queueSize->value();
-    m_currentSettings.checksumMethod = m_ui->checksumMethod->currentData(2).toInt();
+    m_currentSettings.checksumMethod = m_ui->checksumMethod->currentData(Qt::ItemDataRole::UserRole).toInt();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

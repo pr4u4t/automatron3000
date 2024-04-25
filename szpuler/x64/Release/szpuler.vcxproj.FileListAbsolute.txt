@@ -25,3 +25,4 @@ C:\Users\pawel\Documents\szpuler\x64\Release\mfcm140.dll
 C:\Users\pawel\Documents\szpuler\x64\Release\mfcm140u.dll
 C:\Users\pawel\Documents\szpuler\x64\Release\vcomp140.dll
 C:\Users\pawel\Documents\szpuler\szpuler\x64\Release\szpuler.vcxproj.Up2Date
+C:\Users\Admin\Documents\GitHub\szpuler\szpuler\x64\Release\szpuler.vcxproj.Up2Date

@@ -41,6 +41,8 @@ int main(int argc, char *argv[]){
     splash.finish(&mainWin);
     tray.show();
 
+    QObject::connect(&mainWin, SIGNAL(aboutToQuit()), &session, SLOT(store()));
+
     return app.exec();
 }
 

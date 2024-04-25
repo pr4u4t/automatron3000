@@ -1,6 +1,7 @@
 #include "QLinKonsole.h"
 #include <QApplication>
 #include <QTranslator>
+#include <QTimer>
 #include "settingsdialog.h"
 
 #include "../core/core.h"
@@ -87,6 +88,16 @@ QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, co
     QObject::connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
     QObject::connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
     m_lin = io.dynamicCast<IODevice>();
+
+    QTimer::singleShot(0, this, &QLinKonsole::init);
+}
+
+void QLinKonsole::init() {
+    if (m_lin->isOpen() == false) {
+        if (m_lin->open() == false) {
+            emit message("QLinKonsole::init(): failed to open QLin");
+        }
+    }
 }
 
 void QLinKonsole::putData(const QByteArray& data, qint32 severity) {

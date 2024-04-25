@@ -40,7 +40,7 @@ struct QLinMenu {
 static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
 	log->message("QLin_register()");
 	
-	qRegisterMetaType<ChannelConfig>("ChannelConfig");
+	//qRegisterMetaType<ChannelConfig>("ChannelConfig");
 
 	GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
 	if (gtx == nullptr) {

@@ -66,27 +66,21 @@ XLstatus CLin::LINOpen() {
 	linCreateRxThread();
 
 	if (m_settings->mode != SettingsDialog::LinSettings::Mode::SLAVE) {
-		ret = linInitMaster();
-		if (ret != XL_SUCCESS) {
+		if ((ret = linInitMaster()) != XL_SUCCESS) {
 			emit message("CLin::LINInit(): init master failed");
 			return ret;
 		}
 
-		emit message(QString("CLin::LINInit(): init Slave id:%1").arg(m_settings->slaveID));
+		emit message(QString("CLin::LINInit(): init Master: success"));
+		
+	} else {
+		if ((ret = linInitSlave()) != XL_SUCCESS) {
+			emit message("CLin::LINInit(): init slave failed");
+			return ret;
+		}
+
+		emit message(QString("CLin::LINInit(): init Slave: success"));
 	}
-
-	// for the next slave we take the next ID
-	//linID++;
-
-	// if we have a second channel we setup a LIN slave
-	//if (m_xlChannelMask[SLAVE]) {
-	//	ret = linInitSlave(linID, linVersion);
-	//	if (ret != XL_SUCCESS) {
-	//		emit message("CLin::LINInit(): init slave failed");
-	//		return ret;
-	//	}
-	//	emit message(QString("CLin::LINInit(): init slave id:%1").arg(linID));
-	//}
 
 	return ret;
 }
@@ -240,8 +234,27 @@ XLstatus CLin::linInitMaster() {
 			.arg(ret)
 		);
 
+		ret = xlLinSwitchSlave(
+			m_xlPortHandle,
+			m_xlChannelMask,
+			m_settings->slaveID,
+			XL_LIN_SLAVE_ON
+		);
+
 		if (ret != XL_SUCCESS) {
 			emit message("CLin::linInitMaster(): set slave failed");
+			return ret;
+		}
+	} else {
+		ret = xlLinSwitchSlave(
+			m_xlPortHandle,
+			m_xlChannelMask,
+			m_settings->slaveID,
+			XL_LIN_SLAVE_OFF
+		);
+
+		if (ret != XL_SUCCESS) {
+			emit message("CLin::linInitMaster(): failed to switch off slave");
 			return ret;
 		}
 	}
@@ -344,6 +357,13 @@ XLstatus CLin::linInitSlave() {
 	xlStatus = xlFlushReceiveQueue(m_xlPortHandle);
 	sprintf_s(tmp, sizeof(tmp), "FlushReceiveQueue stat: %d\n", xlStatus);
 	emit message(tmp);
+
+	xlStatus = xlLinSwitchSlave(
+		m_xlPortHandle,
+		m_xlChannelMask,
+		m_settings->slaveID,
+		XL_LIN_SLAVE_ON
+	);
 
 	return xlStatus;
 }

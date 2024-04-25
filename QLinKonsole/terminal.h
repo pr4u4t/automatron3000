@@ -78,8 +78,8 @@ public:
     void setPrompt(const QString& prompt, bool display = true);
 
     //clear & reset the console (useful sometimes)
-    void clear();
-    void reset(const QString& welcomeText = "");
+    
+    
 
     //cosmetic methods !
 
@@ -176,6 +176,10 @@ public slots:
     void del();
     //displays the prompt
     void displayPrompt();
+
+    void clear();
+
+    void reset(const QString& welcomeText = "");
 
     void printCommandExecutionResults(const QString&, ResultType t = ResultType::Complete);
 

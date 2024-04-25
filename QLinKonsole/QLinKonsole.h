@@ -31,6 +31,10 @@ public slots:
 
     void putData(const QString& data, LoggerSeverity severity = LoggerSeverity::LOG_NONE);
 
+private slots:
+
+    void init();
+
 private:
     QTerminal* m_terminal = nullptr;
     SettingsDialog::KonsoleSettings m_settings;
