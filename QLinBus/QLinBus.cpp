@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QTranslator>
+#include <QMessageBox>
 
 #include "QLinBus.h"
 #include "../core/core.h"
@@ -75,7 +76,7 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
     , m_ui(new Ui::QLinBusUI)
     , m_model(new QStandardItemModel(0,5)){
     m_ui->setupUi(this);
-    connect(m_ui->startButton, &QPushButton::clicked, this, &QLinBus::scanStep);
+    connect(m_ui->startButton, &QPushButton::clicked, this, &QLinBus::startScan);
     connect(m_ui->stopButton, &QPushButton::clicked, this, &QLinBus::scanStop);
     connect(m_ui->clearButton, &QPushButton::clicked, this, &QLinBus::scanClear);
     m_ui->stopButton->setEnabled(false);
@@ -99,6 +100,7 @@ void QLinBus::settingsChanged() {
 }
 
 void QLinBus::init() {
+    emit message("QLinBus::init()", LoggerSeverity::LOG_DEBUG);
     auto plugin = plugins()->instance("QLin", 0);
     auto lin = plugin.dynamicCast<IODevice>();
     m_lin = lin;
@@ -108,7 +110,26 @@ void QLinBus::init() {
     }
 }
 
+void QLinBus::startScan() {
+    emit message("QLinBus::startScan()", LoggerSeverity::LOG_DEBUG);
+    if (m_lin.isNull() || m_lin->isOpen() == false) {
+        emit message("QLinBus::startScan(): failed LIN device not open");
+        QMessageBox::critical(
+            this,
+            tr("QLinBus: error"),
+            tr("LIN device not open"),
+            QMessageBox::StandardButton::Ok
+        );
+
+        return;
+    }
+
+    scanStep();
+}
+
 void QLinBus::scanStep() {
+    emit message("QLinBus::scanStep()");
+
     if (m_scan == m_settings.scanStartID) {
         m_model->removeRows(0, m_model->rowCount());
         m_ui->startButton->setEnabled(false);
@@ -135,7 +156,7 @@ void QLinBus::scanStep() {
 }
 
 void QLinBus::dataReady(const QByteArray& data) {
-    emit message("QLinBus::dataReady(): " + data);
+    emit message("QLinBus::dataReady(): " + data, LoggerSeverity::LOG_DEBUG);
 
     if (data.startsWith("LIN NOANS")) {
         QByteArrayList list = data.split(',');
@@ -160,9 +181,11 @@ void QLinBus::dataReady(const QByteArray& data) {
 }
 
 void QLinBus::scanStop() {
+    emit message("QLinBus::scanStop()", LoggerSeverity::LOG_DEBUG);
     m_scan = m_settings.scanStopID;
 }
 
 void QLinBus::scanClear() {
+    emit message("QLinBus::scanClear()", LoggerSeverity::LOG_DEBUG);
     m_model->removeRows(0, m_model->rowCount());
 }

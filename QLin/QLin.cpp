@@ -38,7 +38,7 @@ struct QLinMenu {
 };
 
 static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
-	log->message("QLin_register()");
+	log->message("QLin_register()", LoggerSeverity::LOG_DEBUG);
 	
 	//qRegisterMetaType<ChannelConfig>("ChannelConfig");
 
@@ -63,9 +63,10 @@ static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMen
 		gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_linbusMenu);
 	}
 
-	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
+	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx, log] {
 		QSharedPointer<Plugin> serial = ld->instance("QLin", gtx->m_win);
 		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, serial->settingsPath());
+		QObject::connect(dialog, &MdiChild::message, log, &Logger::message);
 		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QLin>().data(), &QLin::settingsChanged);
 		gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Lin/Settings"));
 	});
@@ -109,7 +110,7 @@ static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMen
 }
 
 static bool QLin_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
-	log->message("QLin_unregister()");
+	log->message("QLin_unregister()", LoggerSeverity::LOG_DEBUG);
 	return true;
 }
 
@@ -136,18 +137,13 @@ QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& p
 }
 
 bool QLin::open(const QString& url) {
+	emit message("QLin::open()", LoggerSeverity::LOG_DEBUG);
 	if (m_lin == nullptr) {
 		return false;
 	}
 
-	//if (m_lin->LINGetDevice() != XL_SUCCESS) {
-	//	emit message("QLin::open(): LINGetDevice failed");
-	//	return false;
-	//}
-	
-	//if()
 	if (m_lin->LINOpen() != XL_SUCCESS) {
-		emit message("QLin::open(): LINOpen failed");
+		emit message("QLin::open(): LINOpen failed", LoggerSeverity::LOG_ERROR);
 		close();
 		return false;
 	}
@@ -177,6 +173,7 @@ bool QLin::open(const QString& url) {
 }
 
 qint64 QLin::write(const QString& data) {
+	emit message("QLin::write()", LoggerSeverity::LOG_DEBUG);
 	XLstatus rc;
 
 	if (m_lin == nullptr) {
@@ -283,7 +280,7 @@ qint64 QLin::bytesAvailable() {
 }
 
 void QLin::close() {
-	emit message("QLin::close()");
+	emit message("QLin::close()", LoggerSeverity::LOG_DEBUG);
 	if (m_lin != nullptr) {
 		m_lin->LINClose();
 		auto sld = dynamic_cast<PluginLoader<QLin, QLinMenu>*>(loader());
@@ -296,7 +293,7 @@ void QLin::close() {
 }
 
 bool QLin::isOpen() const {
-	emit message("QLin::isOpen()");
+	emit message("QLin::isOpen()", LoggerSeverity::LOG_DEBUG);
 	if (m_lin == nullptr) {
 		return true;
 	}
@@ -304,12 +301,12 @@ bool QLin::isOpen() const {
 }
 
 bool QLin::flush() {
-	emit message("QLin::flush()");
+	emit message("QLin::flush()", LoggerSeverity::LOG_DEBUG);
 	return true;
 }
 
 void QLin::settingsChanged() {
-	emit message("QLin::settingsChanged()");
+	emit message("QLin::settingsChanged()", LoggerSeverity::LOG_DEBUG);
 	m_settings = SettingsDialog::LinSettings(Settings::get(), settingsPath());
 	close();
 	open(QString());

@@ -34,14 +34,14 @@
         <translation>O programie</translation>
     </message>
     <message>
-        <location filename="LogViewer.cpp" line="66"/>
+        <location filename="LogViewer.cpp" line="92"/>
         <location filename="MainWindow.cpp" line="176"/>
         <location filename="MainWindow.cpp" line="178"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
     <message>
-        <location filename="LogViewer.cpp" line="64"/>
+        <location filename="LogViewer.cpp" line="90"/>
         <source>Log Viewer</source>
         <translation>Dziennik</translation>
     </message>

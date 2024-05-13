@@ -100,7 +100,7 @@ void QLinKonsole::init() {
     }
 }
 
-void QLinKonsole::putData(const QByteArray& data, qint32 severity) {
+void QLinKonsole::putData(const QByteArray& data, LoggerSeverity severity) {
     emit message("QLinKonsole::putData()");
    
     m_terminal->printCommandExecutionResults(data);
@@ -116,7 +116,7 @@ void QLinKonsole::enterPressed(const QString& command) {
     emit message("QLinKonsole::enterPressed()");
 
     if (m_lin->isOpen() != true) {
-        emit message("QLinKonsole::enterPressed(): LIN not open");
+        emit message("QLinKonsole::enterPressed(): LIN not open", LoggerSeverity::LOG_ERROR);
         if (m_lin->open() != true) {
             emit message("QLinKonsole::enterPressed(): failed to open LIN");
             return;

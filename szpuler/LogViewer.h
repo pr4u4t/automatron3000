@@ -1,7 +1,7 @@
 #ifndef LOGVIEWER_H
 #define LOGVIEWER_H
 
-#include <QPlainTextEdit>
+#include <QTextEdit>
 
 #include "../api/api.h"
 #include "../core/core.h"
@@ -17,10 +17,10 @@ public:
 public slots:
     void settingsChanged();
     
-    void message(const QString& msg);
+    void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE);
     
 private:
-    QPlainTextEdit* m_text;
+    QTextEdit* m_text;
 };
 
 #endif

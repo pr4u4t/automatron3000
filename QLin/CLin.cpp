@@ -29,8 +29,13 @@ XLstatus CLin::LINOpen() {
 	XLaccess xlChannelMask;
 	XLaccess xlPermissionMask;
 
+	if (LINFindDevice(m_settings->hwChannel) == false) {
+		emit message(QString("CLin::LINOpen(): device %1 serial %2 not found").arg(m_settings->hwChannel.name).arg(m_settings->hwChannel.serialNumber), LoggerSeverity::LOG_ERROR);
+		return ret;
+	}
+
 	if ((ret = LINGetChannelMask(m_settings->appName, m_settings->hwChannel, &xlChannelMask)) != XL_SUCCESS) {
-		emit message("CLin::LINOpen(): failed to get channel mask");
+		emit message("CLin::LINOpen(): failed to get channel mask", LoggerSeverity::LOG_ERROR);
 		return ret;
 	}
 
@@ -48,11 +53,11 @@ XLstatus CLin::LINOpen() {
 	);
 
 	if (m_xlPortHandle == XL_INVALID_PORTHANDLE) {
-		emit message(QString("CLin::LINInit():xlOpenPort invalid handle"));
+		emit message(QString("CLin::LINInit():xlOpenPort invalid handle"), LoggerSeverity::LOG_ERROR);
 		return XL_ERROR;
 	}
 	if (ret != XL_SUCCESS) {
-		emit message(QString("CLin::LINInit():xlOpenPort failed %1").arg(ret));
+		emit message(QString("CLin::LINInit():xlOpenPort failed %1").arg(ret), LoggerSeverity::LOG_ERROR);
 		m_xlPortHandle = XL_INVALID_PORTHANDLE;
 		return ret;
 	}
@@ -67,7 +72,7 @@ XLstatus CLin::LINOpen() {
 
 	if (m_settings->mode != SettingsDialog::LinSettings::Mode::SLAVE) {
 		if ((ret = linInitMaster()) != XL_SUCCESS) {
-			emit message("CLin::LINInit(): init master failed");
+			emit message("CLin::LINInit(): init master failed", LoggerSeverity::LOG_ERROR);
 			return ret;
 		}
 
@@ -91,7 +96,7 @@ XLstatus CLin::linSetSlave(int linID, const unsigned char* data, size_t size) {
 	unsigned char sdata[8];
 
 	if (linID > 63) {
-		emit message("CLin::linSetSlave(): ID invald max 63 allowed");
+		emit message("CLin::linSetSlave(): ID invald max 63 allowed", LoggerSeverity::LOG_ERROR);
 		return XL_ERROR;
 	}
 

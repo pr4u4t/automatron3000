@@ -27,7 +27,7 @@ public slots:
 
     void enterPressed(const QString& command);
 
-    void putData(const QByteArray& data, qint32 severity = 0);
+    void putData(const QByteArray& data, LoggerSeverity severity = LoggerSeverity::LOG_NONE);
 
     void putData(const QString& data, LoggerSeverity severity = LoggerSeverity::LOG_NONE);
 

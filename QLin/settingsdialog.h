@@ -226,7 +226,6 @@ private slots:
         xlPopupHwConfig(nullptr, 0);
     }
 
-private:
     void updateSettings();
     void fillFromSettings();
 

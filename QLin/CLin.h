@@ -26,6 +26,23 @@ public:
 
 	~CLin();
 
+	static bool LINFindDevice(const ChannelConfig& channel) {
+		XLstatus status = 0;
+	
+		QList<XLchannelConfig> channels = LINGetDevices(&status);
+		if (status != XL_SUCCESS) {
+			return false;
+		}
+
+		for (const XLchannelConfig& conf : channels) {
+			if (conf == channel) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	static QList<XLchannelConfig> LINGetDevices(XLstatus* status = nullptr) {
 		XLstatus err = XL_ERROR;
 		XLdriverConfig xlDrvConfig;

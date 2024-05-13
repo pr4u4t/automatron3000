@@ -38,6 +38,8 @@ public slots:
 
     void scanClear();
 
+    void startScan();
+
 private:
     SettingsDialog::LinBusSettings m_settings;
     Ui::QLinBusUI* m_ui = nullptr;

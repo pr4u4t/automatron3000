@@ -5,12 +5,13 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QAction>
+#include <QScrollBar>
 
 #include "MainWindow.h"
 
 LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
     : Widget(ld, plugins, parent, settingsPath)
-    , m_text(new QPlainTextEdit()){
+    , m_text(new QTextEdit()){
     m_text->document()->setMaximumBlockCount(100);
     m_text->setReadOnly(true);
     
@@ -32,8 +33,33 @@ void LogViewer::settingsChanged(){
 
 }
     
-void LogViewer::message(const QString& msg){
-    m_text->appendPlainText(msg);
+void LogViewer::message(const QString& msg, LoggerSeverity severity){
+    QColor color = m_text->textColor();
+    
+    switch (severity) {
+    case LoggerSeverity::LOG_INFO:
+        m_text->setTextColor(QColor(56, 61, 65));
+        break;
+
+    case LoggerSeverity::LOG_NOTICE:
+        m_text->setTextColor(QColor(12, 84, 96));
+        break;
+
+    case LoggerSeverity::LOG_WARNING:
+        m_text->setTextColor(QColor(133, 100, 4));
+        break;
+
+    case LoggerSeverity::LOG_ERROR:
+        m_text->setTextColor(QColor(114, 28, 36));
+        break;
+
+    case LoggerSeverity::LOG_DEBUG:
+        break;
+    }
+
+    m_text->append(msg);
+    m_text->setTextColor(color);
+    m_text->verticalScrollBar()->setValue(m_text->verticalScrollBar()->maximum());
 }
 
 struct LogViewerMenu {

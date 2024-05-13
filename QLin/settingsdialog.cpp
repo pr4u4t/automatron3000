@@ -10,6 +10,7 @@
 #include <QLineEdit>
 #include <QCryptographicHash>
 #include <QMessageBox>
+#include <QTimer>
 
 //#include "DockManager.h"
 #include <QCloseEvent>
@@ -63,7 +64,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     , m_model(new QStandardItemModel(8,1))
     , m_sdlcModel(new QStandardItemModel(64, 1)){
     
-    emit message("SettingsDialog::SettingsDialog");
+    emit message("SettingsDialog::SettingsDialog", LoggerSeverity::LOG_DEBUG);
     m_ui->setupUi(this);
     
     m_ui->slaveInitialData->setModel(m_model);
@@ -93,7 +94,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
         this, &SettingsDialog::vectorConfig);
 
 
-    fillFromSettings();
+    QTimer::singleShot(0,this,&SettingsDialog::fillFromSettings);
 }
 
 SettingsDialog::~SettingsDialog() {
@@ -101,12 +102,12 @@ SettingsDialog::~SettingsDialog() {
 }
 
 SettingsDialog::LinSettings SettingsDialog::linSettings() const {
-    emit message("SettingsDialog::settings");
+    emit message("SettingsDialog::settings", LoggerSeverity::LOG_DEBUG);
     return m_currentSettings;
 }
 
 void SettingsDialog::fillFromSettings() {
-    emit message("SettingsDialog::fillFromSettings");
+    emit message("SettingsDialog::fillFromSettings", LoggerSeverity::LOG_DEBUG);
     switch (m_currentSettings.linVersion) {
         case XL_LIN_VERSION_1_3:
             m_ui->linVersion->setCurrentIndex(m_ui->linVersion->findText("1.3"));
@@ -139,9 +140,20 @@ void SettingsDialog::fillFromSettings() {
     m_ui->SlaveDLC->setValue(m_currentSettings.slaveDLC);
     QList<XLchannelConfig> channels = CLin::LINGetDevices();
 
+    if (channels.size() == 0) {
+        emit message("SettingsDialog::fillFromSettings: no LIN channels found");
+    }
+
+    if (CLin::LINFindDevice(m_currentSettings.hwChannel) == false) {
+        emit message("SettingsDialog::fillFromSettings: ****************************************************************", LoggerSeverity::LOG_WARNING);
+        emit message("SettingsDialog::fillFromSettings: Platform configuration changed please update you settings", LoggerSeverity::LOG_WARNING);
+        emit message("SettingsDialog::fillFromSettings: and save before proceeding", LoggerSeverity::LOG_WARNING);
+        emit message("SettingsDialog::fillFromSettings: ****************************************************************", LoggerSeverity::LOG_WARNING);
+    }
+
     int i = 0;
     for (auto it = channels.begin(), end = channels.end(); it != end; ++it) {
-        m_ui->channelCombo->addItem(QString((*it).name), QVariant::fromValue(ChannelConfig(*it)));
+        m_ui->channelCombo->addItem(QString("%1 serial: %2").arg((*it).name).arg((*it).serialNumber), QVariant::fromValue(ChannelConfig(*it)));
         if ((*it) == m_currentSettings.hwChannel) {
             m_ui->channelCombo->setCurrentIndex(i);
         }
@@ -170,7 +182,7 @@ void SettingsDialog::fillFromSettings() {
 }
 
 void SettingsDialog::updateSettings() {
-    emit message("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
 
     QString version = m_ui->linVersion->currentText();
 
@@ -209,7 +221,7 @@ void SettingsDialog::updateSettings() {
 }
 
 void SettingsDialog::ok() {
-    emit message("SettingsDialog::ok");
+    emit message("SettingsDialog::ok", LoggerSeverity::LOG_DEBUG);
 
     updateSettings();
     close();
@@ -217,13 +229,13 @@ void SettingsDialog::ok() {
 }
 
 void SettingsDialog::apply() {
-    emit message("SettingsDialog::apply");
+    emit message("SettingsDialog::apply", LoggerSeverity::LOG_DEBUG);
 
     updateSettings();
     emit settingsUpdated();
 }
 
 void SettingsDialog::cancel() {
-    emit message("SettingsDialog::cancel");
+    emit message("SettingsDialog::cancel", LoggerSeverity::LOG_DEBUG);
     close();
 }

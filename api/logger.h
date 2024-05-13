@@ -26,7 +26,7 @@ class API_EXPORT Logger : public QObject{
     Q_OBJECT
     
 signals:
-    void echo(const QString& msg);
+    void echo(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE);
     
 public:
     static constexpr const char* LE = "\r\n";
