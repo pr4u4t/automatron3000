@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -31,6 +32,10 @@ public:
     QLabel *label_2;
     QSpinBox *scanStartID;
     QSpinBox *scanStopID;
+    QLabel *label_3;
+    QSpinBox *scanInterval;
+    QLabel *label_4;
+    QCheckBox *enableColors;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -67,6 +72,26 @@ public:
         scanStopID->setMaximum(63);
 
         formLayout->setWidget(1, QFormLayout::FieldRole, scanStopID);
+
+        label_3 = new QLabel(SettingsDialog);
+        label_3->setObjectName("label_3");
+
+        formLayout->setWidget(2, QFormLayout::LabelRole, label_3);
+
+        scanInterval = new QSpinBox(SettingsDialog);
+        scanInterval->setObjectName("scanInterval");
+
+        formLayout->setWidget(2, QFormLayout::FieldRole, scanInterval);
+
+        label_4 = new QLabel(SettingsDialog);
+        label_4->setObjectName("label_4");
+
+        formLayout->setWidget(3, QFormLayout::LabelRole, label_4);
+
+        enableColors = new QCheckBox(SettingsDialog);
+        enableColors->setObjectName("enableColors");
+
+        formLayout->setWidget(3, QFormLayout::FieldRole, enableColors);
 
 
         verticalLayout->addLayout(formLayout);
@@ -110,6 +135,9 @@ public:
         SettingsDialog->setWindowTitle(QCoreApplication::translate("SettingsDialog", "Form", nullptr));
         label->setText(QCoreApplication::translate("SettingsDialog", "Scan start ID", nullptr));
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Scan stop ID", nullptr));
+        label_3->setText(QCoreApplication::translate("SettingsDialog", "Interval [ms]", nullptr));
+        label_4->setText(QCoreApplication::translate("SettingsDialog", "Enable colors", nullptr));
+        enableColors->setText(QString());
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

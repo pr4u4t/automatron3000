@@ -1,6 +1,11 @@
 #include <QCoreApplication>
 #include <QTranslator>
 #include <QMessageBox>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QFileDialog>
+#include <QProgressDialog>
 
 #include "QLinBus.h"
 #include "../core/core.h"
@@ -74,12 +79,25 @@ REGISTER_PLUGIN(
 QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
 	: Widget(ld, plugins, parent, path)
     , m_ui(new Ui::QLinBusUI)
-    , m_model(new QStandardItemModel(0,5)){
+    , m_model(new QStandardItemModel(0,5))
+    , m_state(QLinBusState::INITIAL)
+    , m_settings(SettingsDialog::LinBusSettings(Settings::get(), settingsPath()))
+    , m_sniffEnabled(true){
     m_ui->setupUi(this);
+    
     connect(m_ui->startButton, &QPushButton::clicked, this, &QLinBus::startScan);
     connect(m_ui->stopButton, &QPushButton::clicked, this, &QLinBus::scanStop);
     connect(m_ui->clearButton, &QPushButton::clicked, this, &QLinBus::scanClear);
+    connect(m_ui->pauseButton, &QPushButton::clicked, this, &QLinBus::pauseScan);
+    connect(m_ui->sniffEnable, &QPushButton::clicked, this, &QLinBus::enableSniff);
+    connect(m_ui->sniffDisable, &QPushButton::clicked, this, &QLinBus::disableSniff);
+    connect(m_ui->exportJson, &QPushButton::clicked, this, &QLinBus::exportToJson);
+
     m_ui->stopButton->setEnabled(false);
+    m_ui->pauseButton->setEnabled(false);
+    m_ui->sniffEnable->setEnabled(false);
+    m_ui->sniffDisable->setEnabled(true);
+    settingsChanged();
 
     QTimer::singleShot(0, this, &QLinBus::init);
 
@@ -92,10 +110,11 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
     m_ui->scanTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_ui->scanTable->setModel(m_model);
 
-    settingsChanged();
+    connect(&m_timer, &QTimer::timeout, this, &QLinBus::scanStep);
 }
 
 void QLinBus::settingsChanged() {
+    emit message("QLinBus::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     m_settings = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
 }
 
@@ -112,6 +131,7 @@ void QLinBus::init() {
 
 void QLinBus::startScan() {
     emit message("QLinBus::startScan()", LoggerSeverity::LOG_DEBUG);
+
     if (m_lin.isNull() || m_lin->isOpen() == false) {
         emit message("QLinBus::startScan(): failed LIN device not open");
         QMessageBox::critical(
@@ -124,57 +144,83 @@ void QLinBus::startScan() {
         return;
     }
 
-    scanStep();
+
+    switch (m_state) {
+    case QLinBusState::STOP:
+    case QLinBusState::INITIAL:
+        m_model->removeRows(0, m_model->rowCount());
+    case QLinBusState::PAUSE:
+        m_ui->startButton->setEnabled(false);
+        m_ui->stopButton->setEnabled(true);
+        m_ui->pauseButton->setEnabled(true);
+        m_state = QLinBusState::SCAN;
+        m_timer.start();
+        break;
+    }
 }
 
 void QLinBus::scanStep() {
     emit message("QLinBus::scanStep()");
 
-    if (m_scan == m_settings.scanStartID) {
-        m_model->removeRows(0, m_model->rowCount());
-        m_ui->startButton->setEnabled(false);
-        m_ui->stopButton->setEnabled(true);
-    }
-
     if (m_scan <= m_settings.scanStopID) {
         QByteArray data(1, static_cast<char>(m_scan));
         m_lin->write(data);
 
-        QList<QStandardItem*> rows;
-        rows << new QStandardItem("0x" + QString::number(m_scan, 16)) << new QStandardItem("REQUEST") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem("-");
-        m_model->appendRow(rows);
+        QList<QStandardItem*> cells;
+        cells << new QStandardItem("0x" + QString::number(m_scan, 16)) << new QStandardItem("REQUEST") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem("-");
+        if (m_settings.enableColors == true) {
+            for (QStandardItem* item : cells) {
+                item->setData(QColor(177, 194, 239), Qt::BackgroundRole);
+            }
+        }
+        m_model->appendRow(cells);
 
         m_ui->scanProgress->setValue(m_scan);
         ++m_scan;
-        QTimer::singleShot(0, this, &QLinBus::scanStep);
-    }
-    else {
+    } else {
+        m_state = QLinBusState::STOP;
         m_scan = m_settings.scanStartID;
         m_ui->startButton->setEnabled(true);
         m_ui->stopButton->setEnabled(false);
+        m_ui->pauseButton->setEnabled(false);
+        m_timer.stop();
     }
 }
 
 void QLinBus::dataReady(const QByteArray& data) {
     emit message("QLinBus::dataReady(): " + data, LoggerSeverity::LOG_DEBUG);
 
+    if (m_sniffEnabled == false && m_state != QLinBusState::SCAN) {
+        emit message("QLinBus::dataReady(): sniffer disabled while data arrived", LoggerSeverity::LOG_DEBUG);
+        return;
+    }
+
     if (data.startsWith("LIN NOANS")) {
         QByteArrayList list = data.split(',');
         for (auto& item : list) {
             item = item.mid(item.indexOf(':') + 1);
         }
-        QList<QStandardItem*> rows;
-        rows << new QStandardItem(list[0]) << new QStandardItem("NOANS") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[2]);
-        m_model->appendRow(rows);
-    }
-    else if (data.startsWith("ID")) {
+        QList<QStandardItem*> cells;
+        cells << new QStandardItem(list[0]) << new QStandardItem("NOANS") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[2]);
+        if (m_settings.enableColors == true) {
+            for (QStandardItem* item : cells) {
+                item->setData(QColor(239, 177, 184), Qt::BackgroundRole);
+            }
+        }
+        m_model->appendRow(cells);
+    } else if (data.startsWith("ID")) {
         QByteArrayList list = data.split(',');
         for (auto& item : list) {
             item = item.mid(item.indexOf(':') + 1);
         }
-        QList<QStandardItem*> rows;
-        rows << new QStandardItem(list[0]) << new QStandardItem("ANS") << new QStandardItem(list[1].removeIf([](QChar ch) { return ch == '\'';  })) << new QStandardItem(list[2]) << new QStandardItem(list[3]);
-        m_model->appendRow(rows);
+        QList<QStandardItem*> cells;
+        cells << new QStandardItem(list[0]) << new QStandardItem("ANS") << new QStandardItem(list[1].removeIf([](QChar ch) { return ch == '\'';  })) << new QStandardItem(list[2]) << new QStandardItem(list[3]);
+        if (m_settings.enableColors == true) {
+            for (QStandardItem* item : cells) {
+                item->setData(QColor(177, 239, 188), Qt::BackgroundRole);
+            }
+        }
+        m_model->appendRow(cells);
     }
 
     m_ui->scanTable->verticalScrollBar()->setSliderPosition(m_ui->scanTable->verticalScrollBar()->maximum());
@@ -182,10 +228,93 @@ void QLinBus::dataReady(const QByteArray& data) {
 
 void QLinBus::scanStop() {
     emit message("QLinBus::scanStop()", LoggerSeverity::LOG_DEBUG);
-    m_scan = m_settings.scanStopID;
+    m_state = QLinBusState::STOP;
+    m_scan = m_settings.scanStartID;
+    m_timer.stop();
+    m_ui->startButton->setEnabled(true);
+    m_ui->stopButton->setEnabled(false);
+    m_ui->pauseButton->setEnabled(false);
 }
 
 void QLinBus::scanClear() {
     emit message("QLinBus::scanClear()", LoggerSeverity::LOG_DEBUG);
     m_model->removeRows(0, m_model->rowCount());
+    scanStop();
+    m_ui->scanProgress->setValue(0);
+}
+
+void QLinBus::pauseScan() {
+    emit message("QLinBus::pauseScan()", LoggerSeverity::LOG_DEBUG);
+    m_state = QLinBusState::PAUSE;
+    m_ui->startButton->setEnabled(true);
+    m_ui->stopButton->setEnabled(true);
+    m_ui->pauseButton->setEnabled(false);
+    m_timer.stop();
+}
+
+void QLinBus::enableSniff() {
+    emit message("QLinBus::enableSniff()", LoggerSeverity::LOG_DEBUG);
+    m_sniffEnabled = true;
+    m_ui->sniffEnable->setEnabled(false);
+    m_ui->sniffDisable->setEnabled(true);
+}
+
+void QLinBus::disableSniff() {
+    emit message("QLinBus::disableSniff()", LoggerSeverity::LOG_DEBUG);
+    m_sniffEnabled = false;
+    m_ui->sniffEnable->setEnabled(true);
+    m_ui->sniffDisable->setEnabled(false);
+}
+
+void QLinBus::exportToJson() {
+    emit message("QLinBus::exportToJson()", LoggerSeverity::LOG_DEBUG);
+
+    if (m_model->rowCount() <= 0) {
+        emit message("QLinBus::exportToJson(): model empty", LoggerSeverity::LOG_DEBUG);
+        return;
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(
+        this, 
+        tr("Save File"),
+        QString(),
+        tr("Text (*.json)")
+    );
+
+    if (fileName.isEmpty()) {
+        emit message("QLinBus::exportToJson(): operation cancelled", LoggerSeverity::LOG_DEBUG);
+        return;
+    }
+
+    QFile saveFile(fileName);
+
+    if (saveFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODeviceBase::Truncate) == false) {
+        emit message(QString("QLinBus::exportToJson(): can't open file: %1 %2").arg(fileName).arg(saveFile.errorString()), LoggerSeverity::LOG_DEBUG);
+        return;
+    } 
+    
+    QJsonObject json;
+    QJsonArray items;
+
+    QProgressDialog progress(tr("Exporting to JSON"), tr("Abort"), 0, m_model->rowCount(), this);
+    progress.setWindowModality(Qt::WindowModal);
+
+    for (int row = 0; row < m_model->rowCount(); row++) {
+        QJsonObject rowItem;
+        for (int col = 0; col < m_model->columnCount(); ++col) {
+            rowItem[m_model->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString()] = QJsonValue(m_model->index(row, col).data().toString());
+        }
+        items.append(rowItem);
+        progress.setValue(row);
+
+        if (progress.wasCanceled()) {
+            return;
+        }
+    }
+
+    json["items"] = items;
+
+    QJsonDocument saveDoc(json);
+    saveFile.write(saveDoc.toJson());
+    progress.setValue(m_model->rowCount());
 }

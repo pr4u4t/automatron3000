@@ -34,7 +34,7 @@ public:
     QCheckBox *localEcho;
     QLineEdit *prompt;
     QLabel *delay;
-    QSpinBox *spinBox;
+    QSpinBox *commandDelay;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -76,10 +76,10 @@ public:
 
         formLayout->setWidget(2, QFormLayout::LabelRole, delay);
 
-        spinBox = new QSpinBox(SettingsDialog);
-        spinBox->setObjectName("spinBox");
+        commandDelay = new QSpinBox(SettingsDialog);
+        commandDelay->setObjectName("commandDelay");
 
-        formLayout->setWidget(2, QFormLayout::FieldRole, spinBox);
+        formLayout->setWidget(2, QFormLayout::FieldRole, commandDelay);
 
 
         verticalLayout->addLayout(formLayout);

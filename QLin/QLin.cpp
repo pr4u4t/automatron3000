@@ -196,26 +196,30 @@ qint64 QLin::write(const QString& data) {
 		return -1;
 	}
 
-	QStringList list = data.split(" ");
-	switch (list.size()) {
+	if (data.size() > 9) {
+		emit message("QLin::write(): data too long", LoggerSeverity::LOG_ERROR);
+		emit message("QLin::write: failed invalid data: 'linID(int)[data(BYTE)]'", LoggerSeverity::LOG_ERROR);
+		return -1;
+	}
+	
+	switch (data.size()) {
 		case 1:
-			if ((rc = m_lin->LINSendMasterReq(list[0].toUInt())) != XL_SUCCESS) {
+			if ((rc = m_lin->LINSendMasterReq(static_cast<unsigned char>(data.toLocal8Bit()[0]))) != XL_SUCCESS) {
 				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
 				return -1;
 			}
-			return sizeof(list[0].toInt());
-
-		case 2:
-			if ((rc = m_lin->LINSendMasterReq(list[0].toUInt(), (unsigned char*) list[1].toLocal8Bit().data(), list[1].size())) != XL_SUCCESS) {
-				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
-				return -1;
-			}
-			return sizeof(list[0].toInt())+sizeof(BYTE);
-
+			return data.size();
 
 		default:
-			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'", LoggerSeverity::LOG_ERROR);
-			return -1;
+			if ((rc = m_lin->LINSendMasterReq(
+					static_cast<unsigned char>(data.toLocal8Bit()[0]), 
+					reinterpret_cast<unsigned char*>(data.toLocal8Bit().data()+1), 
+					data.size()-1)
+			) != XL_SUCCESS) {
+				emit message(QString("QLin::write: send master request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
+				return -1;
+			}
+			return data.size();
 	}
 
 	return -1;
@@ -245,27 +249,30 @@ qint64 QLin::write(const QByteArray& data) {
 		return -1;
 	}
 
-	QByteArrayList list = data.split(' ');
+	if (data.size() > 9) {
+		emit message("QLin::write(): data too long", LoggerSeverity::LOG_ERROR);
+		emit message("QLin::write: failed invalid data: 'linID(int)[data(BYTE)]'", LoggerSeverity::LOG_ERROR);
+		return -1;
+	}
 
-	switch (list.size()) {
+	switch (data.size()) {
 		case 1:
-			if ((rc = m_lin->LINSendMasterReq(list[0].data()[0])) != XL_SUCCESS) {
+			if ((rc = m_lin->LINSendMasterReq(static_cast<unsigned char>(data[0]))) != XL_SUCCESS) {
 				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
 				return -1;
 			}
-			return sizeof(list[0].toInt());
-
-		case 2:
-			if ((rc = m_lin->LINSendMasterReq(list[0].data()[0], (unsigned char*) list[1].data(), list[1].size())) != XL_SUCCESS) {
-				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
-				return -1;
-			}
-			return sizeof(list[0].toInt()) + sizeof(BYTE);
-
+			return data.size();
 
 		default:
-			emit message("QLin::write: failed invalid data: 'linID(int) [data(BYTE)]'", LoggerSeverity::LOG_ERROR);
-			return -1;
+			if ((rc = m_lin->LINSendMasterReq(
+					static_cast<unsigned char>(data[0]), 
+					reinterpret_cast<const unsigned char*>(data.constData()+1),
+					data.size()-1)
+			) != XL_SUCCESS) {
+				emit message(QString("QLin::write: send maser request failed %1").arg(rc), LoggerSeverity::LOG_ERROR);
+				return -1;
+			}
+			return data.size();
 	}
 
 	return -1;

@@ -457,7 +457,7 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 							sData = sData + str1;
 						}
 
-						sprintf_s(tmp, sizeof(tmp), "ID: 0x%02x, dlc: '%d', Data: 0x%s, time: %I64u, Ch: '%d'", 
+						sprintf_s(tmp, sizeof(tmp), "ID: 0x%x, dlc: '%d', Data: 0x%s, time: %I64u, Ch: '%d'", 
 							xlEvent.tagData.linMsgApi.linMsg.id, 
 							xlEvent.tagData.linMsgApi.linMsg.dlc, 
 							sData.toLocal8Bit().data(), 

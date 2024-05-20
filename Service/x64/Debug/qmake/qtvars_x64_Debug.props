@@ -1,11 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-<Qt_DEFINES_>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;NDEBUG;QT_NO_DEBUG;QT_WEBENGINEWIDGETS_LIB;QT_PRINTSUPPORT_LIB;QT_WIDGETS_LIB;QT_WEBENGINECORE_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_GUI_LIB;QT_CORE5COMPAT_LIB;QT_QMLMODELS_LIB;QT_WEBCHANNEL_LIB;QT_QML_LIB;QT_NETWORK_LIB;QT_QMLINTEGRATION_LIB;QT_POSITIONING_LIB;QT_CORE_LIB</Qt_DEFINES_>
-<Qt_INCLUDEPATH_>C:\Users\Admin\AppData\Local\Temp\ahosh3q3.tmv;C:\Qt\6.6.2\msvc2019_64\include;C:\Qt\6.6.2\msvc2019_64\include\QtWebEngineWidgets;C:\Qt\6.6.2\msvc2019_64\include\QtPrintSupport;C:\Qt\6.6.2\msvc2019_64\include\QtWidgets;C:\Qt\6.6.2\msvc2019_64\include\QtWebEngineCore;C:\Qt\6.6.2\msvc2019_64\include\QtQuick;C:\Qt\6.6.2\msvc2019_64\include\QtOpenGL;C:\Qt\6.6.2\msvc2019_64\include\QtGui;C:\Qt\6.6.2\msvc2019_64\include\QtCore5Compat;C:\Qt\6.6.2\msvc2019_64\include\QtQmlModels;C:\Qt\6.6.2\msvc2019_64\include\QtWebChannel;C:\Qt\6.6.2\msvc2019_64\include\QtQml;C:\Qt\6.6.2\msvc2019_64\include\QtNetwork;C:\Qt\6.6.2\msvc2019_64\include\QtQmlIntegration;C:\Qt\6.6.2\msvc2019_64\include\QtPositioning;C:\Qt\6.6.2\msvc2019_64\include\QtCore;C:\Users\Admin\AppData\Local\Temp\ahosh3q3.tmv;/include;C:\Qt\6.6.2\msvc2019_64\mkspecs\win32-msvc</Qt_INCLUDEPATH_>
+<Qt_DEFINES_>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_GUI_LIB;QT_CORE_LIB</Qt_DEFINES_>
+<Qt_INCLUDEPATH_>C:\Users\Admin\AppData\Local\Temp\izzy1ufi.h4s;C:\Qt\6.6.2\msvc2019_64\include;C:\Qt\6.6.2\msvc2019_64\include\QtGui;C:\Qt\6.6.2\msvc2019_64\include\QtCore;C:\Users\Admin\AppData\Local\Temp\izzy1ufi.h4s;/include;C:\Qt\6.6.2\msvc2019_64\mkspecs\win32-msvc</Qt_INCLUDEPATH_>
 <Qt_STDCPP_>stdcpp17</Qt_STDCPP_>
-<Qt_RUNTIME_>MultiThreadedDLL</Qt_RUNTIME_>
+<Qt_RUNTIME_>MultiThreadedDebugDLL</Qt_RUNTIME_>
 <Qt_CL_OPTIONS_>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -permissive- -Zc:__cplusplus -Zc:externConstexpr -utf-8</Qt_CL_OPTIONS_>
-<Qt_LIBS_>C:\Qt\6.6.2\msvc2019_64\lib\Qt6WebEngineWidgets.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6PrintSupport.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Widgets.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6WebEngineCore.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Quick.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6OpenGL.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Gui.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Core5Compat.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6QmlModels.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6WebChannel.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Qml.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Network.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Positioning.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Core.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6EntryPoint.lib;shell32.lib</Qt_LIBS_>
+<Qt_LIBS_>C:\Qt\6.6.2\msvc2019_64\lib\Qt6Guid.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6Cored.lib;C:\Qt\6.6.2\msvc2019_64\lib\Qt6EntryPointd.lib;shell32.lib</Qt_LIBS_>
 <Qt_LINK_OPTIONS_>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'"</Qt_LINK_OPTIONS_>
 <QMake_QT_SYSROOT_></QMake_QT_SYSROOT_>
 <QMake_QT_INSTALL_PREFIX_>C:/Qt/6.6.2/msvc2019_64</QMake_QT_INSTALL_PREFIX_>
@@ -33,11 +33,11 @@
 <QMake_QMAKE_VERSION_>3.1</QMake_QMAKE_VERSION_>
 <QMake_QT_VERSION_>6.6.2</QMake_QT_VERSION_>
 <Qt_INCLUDEPATH_
-      >$(Qt_INCLUDEPATH_);x64\Release\moc;x64\Release\uic</Qt_INCLUDEPATH_>
+      >$(Qt_INCLUDEPATH_);x64\Debug\moc</Qt_INCLUDEPATH_>
     <QtBkup_QtInstall
       >6.6.2_msvc2019_64</QtBkup_QtInstall>
     <QtBkup_QtModules
-      >core;gui;widgets;core5compat;webenginecore;webenginewidgets</QtBkup_QtModules>
+      ></QtBkup_QtModules>
     <QtBkup_QtPathBinaries
       >bin</QtBkup_QtPathBinaries>
     <QtBkup_QtPathLibraryExecutables
@@ -51,7 +51,7 @@
     <QtBkup_QMakeCodeLines
       ></QtBkup_QMakeCodeLines>
     <QtBkup_QtBuildConfig
-      >release</QtBkup_QtBuildConfig>
+      >debug</QtBkup_QtBuildConfig>
     <QtVersion>6.6.2</QtVersion>
     <QtVersionMajor>6</QtVersionMajor>
     <QtVersionMinor>6</QtVersionMinor>

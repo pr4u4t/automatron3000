@@ -2,6 +2,8 @@
 #include <QApplication>
 #include <QTranslator>
 #include <QTimer>
+#include <QThread>
+
 #include "settingsdialog.h"
 
 #include "../core/core.h"
@@ -129,6 +131,7 @@ void QLinKonsole::enterPressed(const QString& command) {
     QRegularExpression rx("[\\s]+");
     for (auto it = commands.begin(), end = commands.end(); it != end; ++it) {
         processCommand((*it).trimmed().replace(rx, " "));
+        QThread::msleep(m_settings.commandDelay);
     }
 }
 
@@ -148,12 +151,12 @@ void QLinKonsole::processCommand(const QString& command) {
                 goto FAIL;
             }
 
-            data = QByteArray(2 + (comm[1].size() - 2) / 2, ' ');
+            data = QByteArray(1 + (comm[1].size() - 2) / 2, ' ');
 
             for (int i = 2; i < comm[1].size(); i += 2) {
                 QString tmp = comm[1].mid(i, 2);
                 value = tmp.toUInt(&ok, 16);
-                data[2 + i / 2-1] = value;
+                data[1 + i / 2-1] = value;
             }
 
         case 1:

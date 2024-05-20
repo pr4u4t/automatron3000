@@ -19,6 +19,13 @@ namespace Ui {
 //class QIntValidator;
 QT_END_NAMESPACE
 
+enum class QLinBusState {
+    INITIAL,
+    SCAN,
+    PAUSE,
+    STOP
+};
+
 class QLINBUS_EXPORT QLinBus : public Widget {
     Q_OBJECT
 
@@ -40,12 +47,23 @@ public slots:
 
     void startScan();
 
+    void pauseScan();
+
+    void enableSniff();
+
+    void disableSniff();
+
+    void exportToJson();
+
 private:
     SettingsDialog::LinBusSettings m_settings;
     Ui::QLinBusUI* m_ui = nullptr;
     uint16_t m_scan = 0;
     QSharedPointer<IODevice> m_lin;
     QStandardItemModel* m_model = nullptr;
+    QTimer m_timer;
+    QLinBusState m_state;
+    bool m_sniffEnabled = true;
 };
 
 #endif
