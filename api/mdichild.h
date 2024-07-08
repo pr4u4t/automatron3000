@@ -4,6 +4,8 @@
 #ifndef MDICHILD_H
 #define MDICHILD_H
 
+//#ifndef DAEMON
+
 #include <QWidget>
 #include <QSettings>
 
@@ -29,4 +31,5 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 };
 
-#endif
+//#endif // DAEMON
+#endif // MDICHILD_H

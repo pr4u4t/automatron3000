@@ -1,27 +1,53 @@
 #ifndef SERVICE_MANAGER_H
 #define SERVICE_MANAGER_H
 
-#include <QtGlobal>
+//#define WIN32_LEAN_AND_MEAN
+//#define _WINSOCKAPI_
 
-#include <Winsock2.h>
+#include <winsock2.h>
 #include <windows.h>
 
-#define SERVICE_NAME TEXT("sysinfovault")
+#include <QtGlobal>
+#include <QString>
 
-VOID WINAPI Service_Main(int argc, LPTSTR* argv);
-VOID WINAPI Service_CtrlHandler(DWORD ctrlCode);
-DWORD WINAPI Service_WorkerThread(LPVOID lpParam);
+VOID WINAPI Service_main(int argc, LPTSTR* argv);
+VOID WINAPI Service_ctrlHandler(DWORD ctrlCode);
+DWORD WINAPI Service_workerThread(LPVOID lpParam);
 
 class ServiceManager {
 public:
-    ServiceManager();
+    ServiceManager() = delete;
 
-    bool exists();
-    bool create();
-    bool start();
-    bool stop();
-    bool remove();
-    bool isRunning();
+    ServiceManager(const ServiceManager& other) = delete;
+
+    bool exists() const;
+
+    bool create() const;
+    
+    bool start() const;
+    
+    bool stop() const;
+    
+    bool remove() const;
+    
+    bool isRunning() const;
+
+    QString name() const;
+
+    static ServiceManager* instance(const QString& serviceName = QString()) {
+        if (m_instance != nullptr) {
+            return m_instance;
+        }
+
+        m_instance = new ServiceManager(serviceName);
+        return m_instance;
+    }
+
+private:
+    ServiceManager(const QString& serviceName);
+    
+    QString m_serviceName;
+    static ServiceManager* m_instance;
 };
 
 #endif

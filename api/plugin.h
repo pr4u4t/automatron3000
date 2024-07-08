@@ -11,10 +11,10 @@
 #include <QCloseEvent>
 #include <QLocale>
 #include <QCoreApplication>
+#include "api_global.h"
+
 #include <QGuiApplication>
 #include <QApplication>
-
-#include "api_global.h"
 #include "window.h"
 #include "mdichild.h"
 
@@ -99,7 +99,7 @@ public slots:
 };
 
 class API_EXPORT Widget : public MdiChild
-						, public Plugin {
+	, public Plugin {
 	Q_OBJECT
 
 public:

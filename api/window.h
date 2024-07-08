@@ -1,6 +1,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+//#ifndef DAEMON
+
 #include <QSettings>
 #include <QMainWindow>
 #include <QMenu>
@@ -43,4 +45,5 @@ public slots:
 
 };
 
-#endif
+//#endif // DAEMON
+#endif // WINDOW_H

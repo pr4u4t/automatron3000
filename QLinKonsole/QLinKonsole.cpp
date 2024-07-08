@@ -11,9 +11,8 @@
 struct QLinKonsoleMenu {
     QLinKonsoleMenu(QCoreApplication* app) 
     : m_app(app){
-        //m_serialMenu = new QMenu(m_app->translate("MainWindow", /*"&Serial"*/"DUPA"));
 
-        m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"), m_serialMenu);
+        m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"));
         m_actionConfigure->setData(QVariant("QLinKonsole/Settings"));
         if (app != nullptr && Settings::localeNeeded()) {
             m_translator = new QTranslator();
@@ -27,17 +26,17 @@ struct QLinKonsoleMenu {
     }
 
     QAction* m_console = nullptr;
-    QMenu* m_serialMenu = nullptr;
     QAction* m_actionConfigure = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 };
 
 static bool QLinKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinKonsoleMenu* ctx, Logger* log) {
+    log->message("QLinKonsole_register()");
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QLinKonsole_register(): application is non gui not registering");
         return false;
     }
 
@@ -59,6 +58,7 @@ static bool QLinKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, 
 }
 
 static bool QLinKonsole_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinKonsoleMenu* ctx, Logger* log) {
+    log->message("QLinKonsole_unregister()");
     return true;
 }
 

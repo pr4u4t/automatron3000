@@ -4,11 +4,14 @@
 #include <QCoreApplication>
 #include <QDir>
 
+#include <winsock2.h>
+#include <windows.h>
 #include <shlwapi.h>
 #include <shlobj.h>
 
 #include "../api/api.h"
 #include "ServiceManager.h"
+#include "CmdHandler.h"
 
 class Main : public QCoreApplication {
 
@@ -19,7 +22,7 @@ public:
     static constexpr const char* AutoUpdateKey = "AutoUpdate";
     static constexpr const bool AutoUpdateValue = false;
 
-    Main(int argc, char** argv);
+    Main(int& argc, char** argv);
 
     int exec();
 

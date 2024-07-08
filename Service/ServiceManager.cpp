@@ -1,14 +1,18 @@
 #include "ServiceManager.h"
+#include "ServiceThread.h"
+#include <QCoreApplication>
+#include <QDebug>
 
 SERVICE_STATUS g_ServiceStatus = { 0 };
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 HANDLE g_ServiceStopEvent = INVALID_HANDLE_VALUE;
+ServiceManager* ServiceManager::m_instance = nullptr;
 
-VOID WINAPI Service_Main(int argc, LPTSTR* argv) {
+VOID WINAPI Service_main(int argc, LPTSTR* argv) {
     DWORD Status = E_FAIL;
 
     // Register our service control handler with the SCM
-    g_StatusHandle = RegisterServiceCtrlHandler((LPWSTR)SERVICE_NAME, Service_CtrlHandler);
+    g_StatusHandle = RegisterServiceCtrlHandler(ServiceManager::instance()->name().toLocal8Bit().data(), Service_ctrlHandler);
 
     if (g_StatusHandle == NULL) {
         return;
@@ -24,7 +28,7 @@ VOID WINAPI Service_Main(int argc, LPTSTR* argv) {
     g_ServiceStatus.dwCheckPoint = 0;
 
     if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
-        OutputDebugString(L"SetServiceStatus returned error");
+        qCritical() << "SetServiceStatus returned error";
     }
 
     /*
@@ -42,8 +46,9 @@ VOID WINAPI Service_Main(int argc, LPTSTR* argv) {
         g_ServiceStatus.dwCheckPoint = 1;
 
         if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
-            OutputDebugString(L"SetServiceStatus returned error");
+            qCritical() << "SetServiceStatus returned error";
         }
+
         return;
     }
 
@@ -54,16 +59,16 @@ VOID WINAPI Service_Main(int argc, LPTSTR* argv) {
     g_ServiceStatus.dwCheckPoint = 0;
 
     if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
-        OutputDebugString(L"SetServiceStatus returned error");
+        qCritical() << "SetServiceStatus returned error";
     }
 
-    // Start a thread that will perform the main task of the service
-    HANDLE hThread = CreateThread(NULL, 0, Service_WorkerThread, NULL, 0, NULL);
+    //QThread* th = QThread::create<DWORD WINAPI(LPVOID), LPVOID>(Service_workerThread, nullptr);
+    ServiceThread* th = new ServiceThread();
+    th->start();
 
     // Wait until our worker thread exits signaling that the service needs to stop
-    WaitForSingleObject(hThread, INFINITE);
-
-
+    //WaitForSingleObject(hThread, INFINITE);
+    th->wait();
     /*
      * Perform any cleanup tasks
      */
@@ -77,12 +82,12 @@ VOID WINAPI Service_Main(int argc, LPTSTR* argv) {
     g_ServiceStatus.dwCheckPoint = 3;
 
     if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
-        OutputDebugString(L"SetServiceStatus returned error");
+        qCritical() << "SetServiceStatus returned error";
     }
 
 }
 
-VOID WINAPI Service_CtrlHandler(DWORD ctrlCode) {
+VOID WINAPI Service_ctrlHandler(DWORD ctrlCode) {
     switch (ctrlCode) {
     case SERVICE_CONTROL_STOP:
 
@@ -112,18 +117,21 @@ VOID WINAPI Service_CtrlHandler(DWORD ctrlCode) {
     }
 }
 
-DWORD WINAPI Service_WorkerThread(LPVOID lpParam) {
-    for (;;) {
+DWORD WINAPI Service_workerThread(LPVOID lpParam) {
+    for (;WaitForSingleObject(g_ServiceStopEvent, 250) != WAIT_OBJECT_0;) {
     
-        Sleep(1000);
         
     }
+
+    return 0;
 }
 
-ServiceManager::ServiceManager() {
-}
+//---------------------------------------------------------------------------
 
-bool ServiceManager::exists() {
+ServiceManager::ServiceManager(const QString& serviceName) 
+: m_serviceName(serviceName){}
+
+bool ServiceManager::exists() const  {
     bool result = true;
     SC_HANDLE manager = OpenSCManager(NULL, SERVICES_ACTIVE_DATABASE, GENERIC_READ);
 
@@ -131,7 +139,7 @@ bool ServiceManager::exists() {
         return false;
     }
 
-    SC_HANDLE service = OpenService(manager, SERVICE_NAME, GENERIC_READ);
+    SC_HANDLE service = OpenServiceA(manager, m_serviceName.toLocal8Bit().data(), GENERIC_READ);
 
     if (service == NULL) {
         DWORD error = GetLastError();
@@ -155,22 +163,25 @@ bool ServiceManager::exists() {
 
     return result;
 }
-bool ServiceManager::create() {
+
+bool ServiceManager::create() const  {
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
     TCHAR szUnquotedPath[MAX_PATH];
 
-    if (!GetModuleFileName(NULL, szUnquotedPath, MAX_PATH)) {
-        printf("Cannot install service (%d)\n", GetLastError());
-        return false;
-    }
+    //if (!GetModuleFileName(NULL, szUnquotedPath, MAX_PATH)) {
+    //    qCritical() << "Cannot install service " << GetLastError();
+    //    return false;
+    //}
 
     // In case the path contains a space, it must be quoted so that
     // it is correctly interpreted. For example,
     // "d:\my share\myservice.exe" should be specified as
     // ""d:\my share\myservice.exe"".
-    TCHAR szPath[MAX_PATH];
-    StringCbPrintf(szPath, MAX_PATH, TEXT("\"%s\""), szUnquotedPath);
+    //TCHAR szPath[MAX_PATH];
+    //StringCbPrintf(szPath, MAX_PATH, TEXT("\"%s\""), szUnquotedPath);
+
+    QString path = QCoreApplication::applicationFilePath();
 
     // Get a handle to the SCM database. 
 
@@ -180,40 +191,44 @@ bool ServiceManager::create() {
         SC_MANAGER_ALL_ACCESS);  // full access rights 
 
     if (NULL == schSCManager) {
-        printf("OpenSCManager failed (%d)\n", GetLastError());
+        qCritical() << "OpenSCManager failed: " << GetLastError();
         return false;
     }
 
     // Create the service
 
-    schService = CreateService(
-        schSCManager,              // SCM database 
-        SERVICE_NAME,              // name of service 
-        SERVICE_NAME,              // service name to display 
-        SERVICE_ALL_ACCESS,        // desired access 
-        SERVICE_WIN32_OWN_PROCESS, // service type 
-        SERVICE_AUTO_START,        // start type 
-        SERVICE_ERROR_NORMAL,      // error control type 
-        szPath,                    // path to service's binary 
-        NULL,                      // no load ordering group 
-        NULL,                      // no tag identifier 
-        NULL,                      // no dependencies 
-        NULL,                      // LocalSystem account 
-        NULL);                     // no password 
+    schService = CreateServiceA(
+        schSCManager,                       // SCM database 
+        m_serviceName.toLocal8Bit().data(), // name of service 
+        m_serviceName.toLocal8Bit().data(), // service name to display 
+        SERVICE_ALL_ACCESS,                 // desired access 
+        SERVICE_WIN32_OWN_PROCESS,          // service type 
+        SERVICE_AUTO_START,                 // start type 
+        SERVICE_ERROR_NORMAL,               // error control type 
+        path.toLocal8Bit().data(),          // path to service's binary 
+        NULL,                               // no load ordering group 
+        NULL,                               // no tag identifier 
+        NULL,                               // no dependencies 
+        NULL,                               // LocalSystem account 
+        NULL                                // no password 
+    );
 
     if (schService == NULL) {
-        printf("CreateService failed (%d)\n", GetLastError());
+        qCritical() << "CreateService: " << m_serviceName << " failed :" << GetLastError();
         CloseServiceHandle(schSCManager);
         return false;
     }
-    else printf("Service installed successfully\n");
+
+    qInfo() << "Service: " << m_serviceName << " installed successfully";
+    
 
     CloseServiceHandle(schService);
     CloseServiceHandle(schSCManager);
+
     return true;
 }
 
-bool ServiceManager::start() {
+bool ServiceManager::start() const {
     SERVICE_STATUS_PROCESS ssStatus;
     DWORD dwOldCheckPoint;
     DWORD dwStartTickCount;
@@ -227,24 +242,24 @@ bool ServiceManager::start() {
     schSCManager = OpenSCManager(
         NULL,                    // local computer
         NULL,                    // servicesActive database 
-        SC_MANAGER_ALL_ACCESS);  // full access rights 
+        SC_MANAGER_ALL_ACCESS    // full access rights 
+    );
 
-    if (NULL == schSCManager)
-    {
-        printf("OpenSCManager failed (%d)\n", GetLastError());
+    if (NULL == schSCManager){
+        qCritical() << "OpenSCManager failed " << GetLastError();
         return false;
     }
 
     // Get a handle to the service.
 
     schService = OpenService(
-        schSCManager,         // SCM database 
-        SERVICE_NAME,         // name of service 
-        SERVICE_ALL_ACCESS);  // full access 
+        schSCManager,                       // SCM database 
+        m_serviceName.toLocal8Bit().data(), // name of service 
+        SERVICE_ALL_ACCESS                  // full access 
+    );
 
-    if (schService == NULL)
-    {
-        printf("OpenService failed (%d)\n", GetLastError());
+    if (schService == NULL){
+        qCritical() << "OpenService: " << m_serviceName << " failed " << GetLastError();
         CloseServiceHandle(schSCManager);
         return false;
     }
@@ -256,20 +271,19 @@ bool ServiceManager::start() {
         SC_STATUS_PROCESS_INFO,         // information level
         (LPBYTE)&ssStatus,             // address of structure
         sizeof(SERVICE_STATUS_PROCESS), // size of structure
-        &dwBytesNeeded))              // size needed if buffer is too small
-    {
-        printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+        &dwBytesNeeded)) {              // size needed if buffer is too small
+        qCritical() << "QueryServiceStatusEx failed " << GetLastError();
         CloseServiceHandle(schService);
         CloseServiceHandle(schSCManager);
+
         return false;
     }
 
     // Check if the service is already running. It would be possible 
     // to stop the service here, but for simplicity this example just returns. 
 
-    if (ssStatus.dwCurrentState != SERVICE_STOPPED && ssStatus.dwCurrentState != SERVICE_STOP_PENDING)
-    {
-        printf("Cannot start the service because it is already running\n");
+    if (ssStatus.dwCurrentState != SERVICE_STOPPED && ssStatus.dwCurrentState != SERVICE_STOP_PENDING){
+        qCritical() << "Cannot start the service: " << m_serviceName << " because it is already running";
         CloseServiceHandle(schService);
         CloseServiceHandle(schSCManager);
         return false;
@@ -282,18 +296,18 @@ bool ServiceManager::start() {
 
     // Wait for the service to stop before attempting to start it.
 
-    while (ssStatus.dwCurrentState == SERVICE_STOP_PENDING)
-    {
+    while (ssStatus.dwCurrentState == SERVICE_STOP_PENDING) {
         // Do not wait longer than the wait hint. A good interval is 
         // one-tenth of the wait hint but not less than 1 second  
         // and not more than 10 seconds. 
 
         dwWaitTime = ssStatus.dwWaitHint / 10;
 
-        if (dwWaitTime < 1000)
+        if (dwWaitTime < 1000) {
             dwWaitTime = 1000;
-        else if (dwWaitTime > 10000)
+        } else if (dwWaitTime > 10000) {
             dwWaitTime = 10000;
+        }
 
         Sleep(dwWaitTime);
 
@@ -306,24 +320,20 @@ bool ServiceManager::start() {
             sizeof(SERVICE_STATUS_PROCESS), // size of structure
             &dwBytesNeeded))              // size needed if buffer is too small
         {
-            printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+            qCritical() << "QueryServiceStatusEx failed " << GetLastError();
             CloseServiceHandle(schService);
             CloseServiceHandle(schSCManager);
             return false;
         }
 
-        if (ssStatus.dwCheckPoint > dwOldCheckPoint)
-        {
+        if (ssStatus.dwCheckPoint > dwOldCheckPoint) {
             // Continue to wait and check.
 
             dwStartTickCount = GetTickCount();
             dwOldCheckPoint = ssStatus.dwCheckPoint;
-        }
-        else
-        {
-            if (GetTickCount() - dwStartTickCount > ssStatus.dwWaitHint)
-            {
-                printf("Timeout waiting for service to stop\n");
+        } else {
+            if (GetTickCount() - dwStartTickCount > ssStatus.dwWaitHint) {
+                qCritical() << "Timeout waiting for service to stop";
                 CloseServiceHandle(schService);
                 CloseServiceHandle(schSCManager);
                 return false;
@@ -336,15 +346,14 @@ bool ServiceManager::start() {
     if (!StartService(
         schService,  // handle to service 
         0,           // number of arguments 
-        NULL))      // no arguments 
-    {
-        printf("StartService failed (%d)\n", GetLastError());
+        NULL)) {     // no arguments 
+        qCritical() << "StartService failed: " << GetLastError();
         CloseServiceHandle(schService);
         CloseServiceHandle(schSCManager);
         return false;
+    } else {
+        qInfo() << "Service start pending..";
     }
-    else printf("Service start pending...\n");
-
     // Check the status until the service is no longer start pending. 
 
     if (!QueryServiceStatusEx(
@@ -354,7 +363,7 @@ bool ServiceManager::start() {
         sizeof(SERVICE_STATUS_PROCESS), // size of structure
         &dwBytesNeeded))              // if buffer too small
     {
-        printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
+        qCritical() << "QueryServiceStatusEx failed: " << GetLastError();
         CloseServiceHandle(schService);
         CloseServiceHandle(schSCManager);
         return false;
@@ -365,45 +374,40 @@ bool ServiceManager::start() {
     dwStartTickCount = GetTickCount();
     dwOldCheckPoint = ssStatus.dwCheckPoint;
 
-    while (ssStatus.dwCurrentState == SERVICE_START_PENDING)
-    {
+    while (ssStatus.dwCurrentState == SERVICE_START_PENDING){
         // Do not wait longer than the wait hint. A good interval is 
         // one-tenth the wait hint, but no less than 1 second and no 
         // more than 10 seconds. 
 
         dwWaitTime = ssStatus.dwWaitHint / 10;
 
-        if (dwWaitTime < 1000)
+        if (dwWaitTime < 1000) {
             dwWaitTime = 1000;
-        else if (dwWaitTime > 10000)
+        } else if (dwWaitTime > 10000) {
             dwWaitTime = 10000;
+        }
 
         Sleep(dwWaitTime);
 
         // Check the status again. 
 
         if (!QueryServiceStatusEx(
-            schService,             // handle to service 
-            SC_STATUS_PROCESS_INFO, // info level
-            (LPBYTE)&ssStatus,             // address of structure
-            sizeof(SERVICE_STATUS_PROCESS), // size of structure
-            &dwBytesNeeded))              // if buffer too small
-        {
-            printf("QueryServiceStatusEx failed (%d)\n", GetLastError());
-            break;
+            schService,                         // handle to service 
+            SC_STATUS_PROCESS_INFO,             // info level
+            (LPBYTE)&ssStatus,                  // address of structure
+            sizeof(SERVICE_STATUS_PROCESS),     // size of structure
+            &dwBytesNeeded)) {                  // if buffer too small
+                qCritical() << "QueryServiceStatusEx failed: " << GetLastError();
+                break;
         }
 
-        if (ssStatus.dwCheckPoint > dwOldCheckPoint)
-        {
+        if (ssStatus.dwCheckPoint > dwOldCheckPoint){
             // Continue to wait and check.
 
             dwStartTickCount = GetTickCount();
             dwOldCheckPoint = ssStatus.dwCheckPoint;
-        }
-        else
-        {
-            if (GetTickCount() - dwStartTickCount > ssStatus.dwWaitHint)
-            {
+        } else{
+            if (GetTickCount() - dwStartTickCount > ssStatus.dwWaitHint) {
                 // No progress made within the wait hint.
                 break;
             }
@@ -412,17 +416,15 @@ bool ServiceManager::start() {
 
     // Determine whether the service is running.
 
-    if (ssStatus.dwCurrentState == SERVICE_RUNNING)
-    {
-        printf("Service started successfully.\n");
-    }
-    else
-    {
-        printf("Service not started. \n");
-        printf("  Current State: %d\n", ssStatus.dwCurrentState);
-        printf("  Exit Code: %d\n", ssStatus.dwWin32ExitCode);
-        printf("  Check Point: %d\n", ssStatus.dwCheckPoint);
-        printf("  Wait Hint: %d\n", ssStatus.dwWaitHint);
+    if (ssStatus.dwCurrentState == SERVICE_RUNNING) { 
+
+        qCritical() << "Service started successfully.";
+    } else{
+        qCritical() << "Service not started.";
+        qCritical() << "  Current State: " << ssStatus.dwCurrentState;
+        qCritical() << "  Exit Code: " << ssStatus.dwWin32ExitCode;
+        qCritical() << "  Check Point: %d" << ssStatus.dwCheckPoint;
+        qCritical() << "  Wait Hint: %d" << ssStatus.dwWaitHint;
     }
 
     CloseServiceHandle(schService);
@@ -430,20 +432,20 @@ bool ServiceManager::start() {
     return true;
 }
 
-bool ServiceManager::stop() {
+bool ServiceManager::stop() const  {
     SC_HANDLE hSCManager = NULL;
     SC_HANDLE hService = NULL;
 
     hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
     if (!hSCManager) {
-        wprintf(L"Open Service Manager failed\n");
+        qCritical() << "Open Service Manager failed: " << GetLastError();
         return false;
     }
 
-    hService = OpenService(hSCManager, SERVICE_NAME, DELETE | SERVICE_STOP);
+    hService = OpenService(hSCManager, m_serviceName.toLocal8Bit().data(), DELETE | SERVICE_STOP);
     if (hService == NULL) {
         CloseServiceHandle(hSCManager);
-        wprintf(L"Open service failed\n");
+        qCritical() << "Open service failed: " << GetLastError();
         return false;
     }
 
@@ -457,32 +459,33 @@ bool ServiceManager::stop() {
     return true;
 }
 
-bool ServiceManager::remove() {
+bool ServiceManager::remove() const  {
     SC_HANDLE hSCManager = NULL;
     SC_HANDLE hService = NULL;
 
     hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
     if (!hSCManager) {
-        wprintf(L"Open Service Manager failed\n");
+        qCritical() << "Open Service Manager failed: " << GetLastError();
         return false;
     }
 
-    hService = OpenService(hSCManager, SERVICE_NAME, DELETE | SERVICE_STOP);
+    hService = OpenService(hSCManager, m_serviceName.toLocal8Bit().data(), DELETE | SERVICE_STOP);
     if (hService == NULL) {
         CloseServiceHandle(hSCManager);
-        wprintf(L"Open service failed\n");
+        qCritical() << "Open service:" << m_serviceName << " failed: " << GetLastError();
         return false;
     }
 
 
     // Deleting the service
-    if (!DeleteService(hService)) {
+    if (DeleteService(hService) == false) {
         CloseServiceHandle(hService);
         CloseServiceHandle(hSCManager);
-        wprintf(L"Delete service failed\n");
+        qCritical() << "Delete service:" << m_serviceName << " failed:" << GetLastError();
         return false;
     }
-    wprintf(L"Service deleted\n");
+
+    qInfo() << "Service:" << m_serviceName << " deleted";
 
     // Stopping the service  
     g_ServiceStatus = { 0 };
@@ -493,7 +496,7 @@ bool ServiceManager::remove() {
     return true;
 }
 
-bool ServiceManager::isRunning() {
+bool ServiceManager::isRunning() const  {
     SERVICE_STATUS_PROCESS ssStatus;
     DWORD dwBytesNeeded;
 
@@ -502,7 +505,7 @@ bool ServiceManager::isRunning() {
         return false;
     }
 
-    SC_HANDLE service = OpenService(manager, SERVICE_NAME, SERVICE_QUERY_STATUS);
+    SC_HANDLE service = OpenService(manager, m_serviceName.toLocal8Bit().data(), SERVICE_QUERY_STATUS);
     if (!service) {
         CloseServiceHandle(manager);
         return false;
@@ -520,4 +523,8 @@ bool ServiceManager::isRunning() {
     }
 
     return ssStatus.dwCurrentState != SERVICE_STOPPED;
+}
+
+QString ServiceManager::name() const {
+    return m_serviceName;
 }
