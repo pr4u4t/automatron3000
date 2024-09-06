@@ -45,7 +45,7 @@ static bool QLinBus_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLin
     QObject::connect(ctx->m_linbusAction, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
     QMenu* menu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
     //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
-    menu->addSeparator();
+    menu->addSection(ctx->m_app->translate("MainWindow", "Sniffer/Scanner"));
     menu->insertAction(nullptr, ctx->m_linbusAction);
     menu->insertAction(nullptr, ctx->m_linbusSettings);
 

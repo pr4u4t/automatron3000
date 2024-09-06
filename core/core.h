@@ -5,6 +5,7 @@
 
 #include <QString>
 #include <QHash>
+#include <QMultiHash>
 #include <QLibrary>
 #include <QDirIterator>
 #include <QMainWindow>
@@ -65,7 +66,7 @@ public:
 			return nullptr;
 		}
 
-		m_instances[name] = ret;
+		m_instances.insert(name, ret);
 
 		connect(dynamic_cast<QObject*>(ret.data()), SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
 		emit loaded(ret.data());
@@ -218,7 +219,7 @@ private:
 	}
 
 	QHash<QString, QLibrary*> m_libraries;
-	QHash<QString, PluginType> m_instances;
+	QMultiHash<QString, PluginType> m_instances;
 	static QHash<QString, T*> m_loaders;
 	ModuleLoaderContext* m_ctx = nullptr;
 	Logger* m_logger = nullptr;

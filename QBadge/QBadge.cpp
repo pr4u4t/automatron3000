@@ -49,7 +49,7 @@ static bool QBadge_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QBadg
         gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_badgesMenu);
     }
 
-    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin){
         if (plugin->name() != "QBadge") {
             return;

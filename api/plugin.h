@@ -99,7 +99,7 @@ public slots:
 };
 
 class API_EXPORT Widget : public MdiChild
-	, public Plugin {
+						, public Plugin {
 	Q_OBJECT
 
 public:

@@ -8,8 +8,6 @@
 struct QKonsoleMenu {
     QKonsoleMenu(QCoreApplication* app) 
     : m_app(app){
-        //m_serialMenu = new QMenu(m_app->translate("MainWindow", /*"&Serial"*/"DUPA"));
-
         m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"), m_serialMenu);
         m_actionConfigure->setData(QVariant("QKonsole/Settings"));
         if (app != nullptr && Settings::localeNeeded()) {

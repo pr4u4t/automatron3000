@@ -31,6 +31,7 @@ public:
     ~QBadge();
     
 public slots:
+
     void settingsChanged();
 
 //protected:

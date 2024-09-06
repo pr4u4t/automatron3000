@@ -31,6 +31,8 @@ class QLINREADBYID_EXPORT QLinReadByID : public Widget
 public:
     QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
+    ~QLinReadByID();
+
 public slots:
     void settingsChanged();
 

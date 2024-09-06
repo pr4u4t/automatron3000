@@ -26,18 +26,46 @@
 
 struct MainWindowSettings {
 
-    static constexpr const char* geometryKey = "geometry";
-    static constexpr const char* geometryValue = "";
+    static constexpr const char* const geometryKey = "geometry";
+    static constexpr const char* const geometryValue = nullptr;
+    static constexpr const char* const fontSizeKey = "fontSize";
+    static constexpr const int fontSizeValue = -1;
+    static constexpr const char* const statusTimeoutKey = "statusTimeout";
+    static constexpr const int statusTimeoutValue = 2000;
+    static constexpr const char* const translationsKey = "translations";
+    static constexpr const bool translationsValue = false;
+    static constexpr const char* const hideMenuKey = "hideMenu";
+    static constexpr const bool hideMenuValue = false;
 
-    MainWindowSettings() 
-    : geometry(geometryValue,strlen(geometryValue)){
+    MainWindowSettings()
+        : geometry(geometryValue)
+        , fontSize(fontSizeValue)
+        , statusTimeout(statusTimeoutValue)
+        , translations(translationsValue)
+        , hideMenu(hideMenuValue){
     }
 
     MainWindowSettings(const QSettings& settings, const QString& settingsPath) 
-    : geometry(){
+        : geometry(settings.value(geometryKey, geometryValue).toByteArray())
+        , fontSize(settings.value(fontSizeKey, fontSizeValue).toInt())
+        , statusTimeout(settings.value(statusTimeoutKey, statusTimeoutValue).toInt())
+        , translations(settings.value(translationsKey, translationsValue).toBool())
+        , hideMenu(settings.value(hideMenuKey, hideMenuValue).toBool()){
+    }
+
+    void save(QSettings& settings, const QString& settingsPath) {
+        settings.setValue(geometryKey, geometry);
+        settings.setValue(fontSizeKey, fontSize);
+        settings.setValue(statusTimeoutKey, statusTimeout);
+        settings.setValue(translationsKey, translations);
+        settings.setValue(hideMenuKey, hideMenu);
     }
 
     QByteArray geometry;
+    int fontSize;
+    int statusTimeout;
+    bool translations;
+    bool hideMenu;
 };
 
 class MainWindow : public Window {
@@ -49,9 +77,7 @@ signals:
     void settingsChanged();
     
 public:
-    static constexpr const char* winTitle = "szpuler";
-    static constexpr const char* fatalError = "Fatal error occurred please contact support";
-
+   
     MainWindow(MLoader* plugins = nullptr, Logger* logger = nullptr);
 
     ~MainWindow();
@@ -59,8 +85,6 @@ public:
     QSettings& settings();  
     
     MainWindow& operator<< (const QString& msg);
-    
-    //Logger* logger();
     
     MLoader* plugins();
 
@@ -88,6 +112,8 @@ public slots:
 
     void createOrActivate() override;
 
+    void create() override;
+
     void showStatusMessage(const QString& msg, int timeout = 0) override;
 
     void createPreferences();
@@ -100,19 +126,19 @@ private slots:
 
 private:
 
-    bool createWindowByName(const QString& name);
+    int findFreeIndex(const QString& name) const;
+
+    bool createWindowByName(const QString& name, bool newInstance = false);
 
     void createActions();
     
     void createStatusBar();
     
-    void readSettings();
-    
     void writeSettings();
     
     ads::CDockWidget* findChildWindow(const QString& name) const;
     
-    static constexpr const int statusTimeOut = 2000;
+    static constexpr const char* winTitle = "Automatron 3000";
     static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
                                              "document interface applications using Qt.";
     static constexpr int QSlotInvalid = -1;
@@ -135,6 +161,8 @@ private:
     MLoader* m_plugins = nullptr;
     //QMdiSubWindow* m_current = nullptr;
     Logger* m_logger = nullptr;
+    MainWindowSettings m_winSettings;
+
 };
 
 #endif

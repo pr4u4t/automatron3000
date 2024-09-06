@@ -20,7 +20,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Ui_QBadgeUI
+class Ui_QLinReadByIDUI
 {
 public:
     QVBoxLayout *verticalLayout;
@@ -76,16 +76,16 @@ public:
 
     void retranslateUi(QWidget *QLinReadByIDUI)
     {
-        QLinReadByIDUI->setWindowTitle(QCoreApplication::translate("QBadgeUI", "Form", nullptr));
-        title->setText(QCoreApplication::translate("QBadgeUI", "TextLabel", nullptr));
-        result->setText(QCoreApplication::translate("QBadgeUI", "TextLabel", nullptr));
-        pushButton->setText(QCoreApplication::translate("QBadgeUI", "Read", nullptr));
+        QLinReadByIDUI->setWindowTitle(QCoreApplication::translate("QLinReadByIDUI", "Form", nullptr));
+        title->setText(QCoreApplication::translate("QLinReadByIDUI", "TextLabel", nullptr));
+        result->setText(QCoreApplication::translate("QLinReadByIDUI", "TextLabel", nullptr));
+        pushButton->setText(QCoreApplication::translate("QLinReadByIDUI", "Read", nullptr));
     } // retranslateUi
 
 };
 
 namespace Ui {
-    class QBadgeUI: public Ui_QBadgeUI {};
+    class QLinReadByIDUI: public Ui_QLinReadByIDUI {};
 } // namespace Ui
 
 QT_END_NAMESPACE
