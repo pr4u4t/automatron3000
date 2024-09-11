@@ -38,8 +38,11 @@ public:
             , title(titleValue){
         }
 
+        virtual ~BadgeSettings() = default;
+
         BadgeSettings(const QSettings& settings, const QString& settingsPath)
-            : imagePath(settings.value(settingsPath + "/" + imagePathKey, imagePathValue).toString())
+            : PluginSettings(settings, settingsPath)
+            , imagePath(settings.value(settingsPath + "/" + imagePathKey, imagePathValue).toString())
             , text(settings.value(settingsPath + "/" + textKey, textValue).toString())
             , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString()){
         }
@@ -48,6 +51,8 @@ public:
             settings.setValue(settingsPath + "/" + imagePathKey, imagePath);
             settings.setValue(settingsPath + "/" + textKey, text);
             settings.setValue(settingsPath + "/" + titleKey, title);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         QString imagePath;

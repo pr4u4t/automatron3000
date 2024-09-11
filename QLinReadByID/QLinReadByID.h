@@ -42,8 +42,10 @@ public slots:
 
     void init();
 
+    void readById(bool checked = true);
+
 private:
-    SettingsDialog::LinReadByIDSettings m_settings;
+    
     Ui::QLinReadByIDUI* m_ui = nullptr;
     uint16_t m_test = 0;
     QSharedPointer<IODevice> m_lin;

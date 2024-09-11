@@ -11,6 +11,8 @@
 #include "logger.h"
 #include "api_global.h"
 
+class Widget;
+
 class API_EXPORT Window : public QMainWindow{
 
 	Q_OBJECT
@@ -22,6 +24,8 @@ public:
 	virtual ~Window() {}
 
 	virtual bool addSubWindow(QWidget* widget, const QString& title = QString()) = 0;
+
+	virtual bool addSubWindow(Widget* widget) = 0;
 
 	QMenu* findMenu(const QString& title) {
 		QList<QMenu*> menus = menuBar()->findChildren<QMenu*>(Qt::FindDirectChildrenOnly);

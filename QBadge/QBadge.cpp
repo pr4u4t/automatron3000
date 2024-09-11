@@ -87,8 +87,14 @@ REGISTER_PLUGIN(
     true
 )
 
-QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath)
+QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath)
+    : Widget(
+        ld, 
+        plugins, 
+        parent, 
+        sPath, 
+        new SettingsDialog::BadgeSettings(Settings::get(), sPath)
+    )
     , m_ui(new Ui::QBadgeUI) {
     m_ui->setupUi(this);
     settingsChanged();
@@ -115,16 +121,13 @@ QBadge::~QBadge() {
 
 void QBadge::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    m_settings = SettingsDialog::BadgeSettings(Settings::get(), settingsPath());
-    
-    //m_ui->label->clear();
-    //m_ui->image->clear();
+    updateSettings(SettingsDialog::BadgeSettings(Settings::get(), settingsPath()));
 
-    m_ui->label->setText(m_settings.text);
-    m_ui->title->setText(m_settings.title);
+    m_ui->label->setText(settings<SettingsDialog::BadgeSettings>()->text);
+    m_ui->title->setText(settings<SettingsDialog::BadgeSettings>()->title);
 
     QPixmap pix;
-    if (m_settings.imagePath.isEmpty() == false && pix.load(m_settings.imagePath)) {
+    if (settings<SettingsDialog::BadgeSettings>()->imagePath.isEmpty() == false && pix.load(settings<SettingsDialog::BadgeSettings>()->imagePath)) {
         m_ui->image->setPixmap(pix);
     }
 }

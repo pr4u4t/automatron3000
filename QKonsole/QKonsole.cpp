@@ -73,7 +73,7 @@ REGISTER_PLUGIN(
 )
 
 QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path)
+    : Widget(ld, plugins, parent, path, new SettingsDialog::KonsoleSettings(Settings::get(), path))
     , m_terminal(new QTerminal(this, tr("<b>Welcome to serial (rs-232) terminal</b>"))) {
     settingsChanged();
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
@@ -104,6 +104,6 @@ void QKonsole::enterPressed(const QString& command) {
 }
 
 void QKonsole::settingsChanged() {
-    m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
-    m_terminal->setPrompt(m_settings.prompt); //setLocalEchoEnabled(m_settings.localEcho);
+    *(settings<SettingsDialog::KonsoleSettings>()) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+    m_terminal->setPrompt(settings<SettingsDialog::KonsoleSettings>()->prompt); //setLocalEchoEnabled(m_settings.localEcho);
 }

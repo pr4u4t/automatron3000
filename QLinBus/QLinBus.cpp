@@ -77,11 +77,10 @@ REGISTER_PLUGIN(
 )
 
 QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-	: Widget(ld, plugins, parent, path)
+	: Widget(ld, plugins, parent, path, new SettingsDialog::LinBusSettings(Settings::get(), settingsPath()))
     , m_ui(new Ui::QLinBusUI)
     , m_model(new QStandardItemModel(0,5))
     , m_state(QLinBusState::INITIAL)
-    , m_settings(SettingsDialog::LinBusSettings(Settings::get(), settingsPath()))
     , m_sniffEnabled(true){
     m_ui->setupUi(this);
     
@@ -115,7 +114,7 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
 
 void QLinBus::settingsChanged() {
     emit message("QLinBus::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    m_settings = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
+    *(settings<SettingsDialog::LinBusSettings>()) = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
 }
 
 void QLinBus::init() {
@@ -162,13 +161,13 @@ void QLinBus::startScan() {
 void QLinBus::scanStep() {
     emit message("QLinBus::scanStep()");
 
-    if (m_scan <= m_settings.scanStopID) {
+    if (m_scan <= settings<SettingsDialog::LinBusSettings>()->scanStopID) {
         QByteArray data(1, static_cast<char>(m_scan));
         m_lin->write(data);
 
         QList<QStandardItem*> cells;
         cells << new QStandardItem("0x" + QString::number(m_scan, 16)) << new QStandardItem("REQUEST") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem("-");
-        if (m_settings.enableColors == true) {
+        if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
             for (QStandardItem* item : cells) {
                 item->setData(QColor(177, 194, 239), Qt::BackgroundRole);
             }
@@ -179,7 +178,7 @@ void QLinBus::scanStep() {
         ++m_scan;
     } else {
         m_state = QLinBusState::STOP;
-        m_scan = m_settings.scanStartID;
+        m_scan = settings<SettingsDialog::LinBusSettings>()->scanStartID;
         m_ui->startButton->setEnabled(true);
         m_ui->stopButton->setEnabled(false);
         m_ui->pauseButton->setEnabled(false);
@@ -202,7 +201,7 @@ void QLinBus::dataReady(const QByteArray& data) {
         }
         QList<QStandardItem*> cells;
         cells << new QStandardItem(list[0]) << new QStandardItem("NOANS") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[2]);
-        if (m_settings.enableColors == true) {
+        if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
             for (QStandardItem* item : cells) {
                 item->setData(QColor(239, 177, 184), Qt::BackgroundRole);
             }
@@ -215,7 +214,7 @@ void QLinBus::dataReady(const QByteArray& data) {
         }
         QList<QStandardItem*> cells;
         cells << new QStandardItem(list[0]) << new QStandardItem("ANS") << new QStandardItem(list[1].removeIf([](QChar ch) { return ch == '\'';  })) << new QStandardItem(list[2]) << new QStandardItem(list[3]);
-        if (m_settings.enableColors == true) {
+        if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
             for (QStandardItem* item : cells) {
                 item->setData(QColor(177, 239, 188), Qt::BackgroundRole);
             }
@@ -229,7 +228,7 @@ void QLinBus::dataReady(const QByteArray& data) {
 void QLinBus::scanStop() {
     emit message("QLinBus::scanStop()", LoggerSeverity::LOG_DEBUG);
     m_state = QLinBusState::STOP;
-    m_scan = m_settings.scanStartID;
+    m_scan = settings<SettingsDialog::LinBusSettings>()->scanStartID;
     m_timer.stop();
     m_ui->startButton->setEnabled(true);
     m_ui->stopButton->setEnabled(false);

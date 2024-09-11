@@ -14,6 +14,13 @@ class Instances : public Widget {
 
 public:
 
+	enum Columns : qint32 {
+		NAME,
+		OBJECT,
+		VERSION,
+		UUID
+	};
+
 	Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
 
 	bool saveSettings();
@@ -23,6 +30,10 @@ public:
 public slots:
 
 	void loaded(const Plugin* plugin);
+
+protected slots:
+
+	void activated(const QModelIndex& index);
 
 private:
 

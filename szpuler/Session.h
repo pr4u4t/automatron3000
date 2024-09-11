@@ -12,6 +12,11 @@ class Session : public QObject {
 
 public:
 
+    struct SessionSettings {
+
+
+    };
+
     Session(MLoader* plugins, Logger* log, const QString& path, MainWindow* win);
 
     QSettings& settings();

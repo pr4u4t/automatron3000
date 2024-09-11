@@ -91,7 +91,7 @@ REGISTER_PLUGIN(
 )
 
 QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path)
+    : Widget(ld, plugins, parent, path, new  SettingsDialog::DataSettings(Settings::get(), path))
     , m_ui(new Ui::QDataUI) {
     m_ui->setupUi(this);
     m_db = QSqlDatabase::database();
@@ -146,9 +146,9 @@ void QData::timeout() {
         return;
     }
         
-    if (m_settings.serialPrefix.isEmpty() == false) {
-        auto res = io->write(m_settings.serialPrefix + '\n');
-        emit message(QString("QData::timeout: prefix write %1 %2").arg(res).arg(m_settings.serialPrefix));
+    if (settings<SettingsDialog::DataSettings>()->serialPrefix.isEmpty() == false) {
+        auto res = io->write(settings<SettingsDialog::DataSettings>()->serialPrefix + '\n');
+        emit message(QString("QData::timeout: prefix write %1 %2").arg(res).arg(settings<SettingsDialog::DataSettings>()->serialPrefix));
     }
 
     auto res = io->write(m_selected + '\n');
@@ -171,7 +171,7 @@ void QData::exportAsCsv(bool checked) {
         return;
     }
 
-    queryToCsv(fileName, QString(exportQuery).arg(m_settings.dbTable));
+    queryToCsv(fileName, QString(exportQuery).arg(settings<SettingsDialog::DataSettings>()->dbTable));
 
     QMessageBox::information(this, tr(title),
         tr("Database export successful"),
@@ -255,7 +255,7 @@ void QData::importFromCsv(bool checked) {
 
         QSqlQuery query;
         query.prepare(QString("INSERT INTO %1 (id, part, shelf) VALUES (%2, %3, %4)")
-            .arg(m_settings.dbTable)
+            .arg(settings<SettingsDialog::DataSettings>()->dbTable)
             .arg(columns[0])
             .arg(columns[1])
             .arg(columns[2])
@@ -333,7 +333,7 @@ void QData::importFromFiles(bool checked) {
 
         QSqlQuery query;
         query.prepare(QString("INSERT INTO %1 (part, shelf) VALUES (%2, %3)")
-            .arg(m_settings.dbTable)
+            .arg(settings<SettingsDialog::DataSettings>()->dbTable)
             .arg(part)
             .arg(shelf)
         );
@@ -401,14 +401,14 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
 
 void QData::settingsChanged() {
     Window* win = qobject_cast<Window*>(parent());
-    m_settings = SettingsDialog::DataSettings(Settings::get(), settingsPath());
+    *(settings<SettingsDialog::DataSettings>()) = SettingsDialog::DataSettings(Settings::get(), settingsPath());
 
     if (m_db.isValid() || m_db.isOpen()) {
         m_db.close();
     }
 
-    m_db = QSqlDatabase::addDatabase(m_settings.dbDriver);
-    m_db.setDatabaseName(m_settings.dbUri);
+    m_db = QSqlDatabase::addDatabase(settings<SettingsDialog::DataSettings>()->dbDriver);
+    m_db.setDatabaseName(settings<SettingsDialog::DataSettings>()->dbUri);
 
     bool rc = m_db.open();
 
@@ -418,8 +418,8 @@ void QData::settingsChanged() {
         return;
     }
 
-    if (m_db.tables().contains(m_settings.dbTable, Qt::CaseInsensitive) == false) {
-        m_db.exec(QString(createTable).arg(m_settings.dbTable));
+    if (m_db.tables().contains(settings<SettingsDialog::DataSettings>()->dbTable, Qt::CaseInsensitive) == false) {
+        m_db.exec(QString(createTable).arg(settings<SettingsDialog::DataSettings>()->dbTable));
     } else {
         emit message("QData::QData: table already exists");
     }
@@ -431,7 +431,7 @@ void QData::settingsChanged() {
 
     m_model = new QSqlTableModel(nullptr, m_db);
     m_ui->dbView->setModel(m_model);
-    m_model->setTable(m_settings.dbTable);
+    m_model->setTable(settings<SettingsDialog::DataSettings>()->dbTable);
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     m_model->select();
     m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
@@ -441,15 +441,17 @@ void QData::settingsChanged() {
 
     m_timer.stop();
 
-    if (m_settings.serialInterval != -1) {
-        m_timer.setInterval(m_settings.serialInterval);
+    if (settings<SettingsDialog::DataSettings>()->serialInterval != -1) {
+        m_timer.setInterval(settings<SettingsDialog::DataSettings>()->serialInterval);
     }
 
-    if (m_settings.keepClear == true && m_settings.clearCode != -1) {
-        m_selected = QString::number(m_settings.clearCode);
+    if (settings<SettingsDialog::DataSettings>()->keepClear == true && settings<SettingsDialog::DataSettings>()->clearCode != -1) {
+        m_selected = QString::number(settings<SettingsDialog::DataSettings>()->clearCode);
     }
 
-    if (m_settings.keepClear == true && m_settings.serialInterval != -1 && m_settings.clearCode != -1) {
+    if (settings<SettingsDialog::DataSettings>()->keepClear == true 
+        && settings<SettingsDialog::DataSettings>()->serialInterval != -1 
+        && settings<SettingsDialog::DataSettings>()->clearCode != -1) {
         m_timer.start();
     }
 }
@@ -463,7 +465,7 @@ bool QData::clearData() {
     emit message("QData::clearData()", LoggerSeverity::LOG_DEBUG);
 
     QSqlQuery query(m_db);
-    if (query.exec(QString("DELETE FROM %1").arg(m_settings.dbTable)) == true) {
+    if (query.exec(QString("DELETE FROM %1").arg(settings<SettingsDialog::DataSettings>()->dbTable)) == true) {
         emit message(QString("QData::clearData(): rows affected %1").arg(query.numRowsAffected()));
         return true;
     }
@@ -475,15 +477,15 @@ bool QData::clearData() {
 void QData::send() {
     emit message("QData::send()");
 
-    if (m_settings.clearCode != -1) {
-        emit message(QString("QData::send(): sending clear code: %1").arg(QString::number(m_settings.clearCode)));
+    if (settings<SettingsDialog::DataSettings>()->clearCode != -1) {
+        emit message(QString("QData::send(): sending clear code: %1").arg(QString::number(settings<SettingsDialog::DataSettings>()->clearCode)));
         auto serial = plugins()->instance("QSerial", nullptr);
         auto io = serial.dynamicCast<IODevice>();
-        auto res = io->write(QString::number(m_settings.clearCode) + '\n');
+        auto res = io->write(QString::number(settings<SettingsDialog::DataSettings>()->clearCode) + '\n');
     }
 
-    if (m_settings.serialInterval != -1) {
-        if (m_settings.keepClear == false) {
+    if (settings<SettingsDialog::DataSettings>()->serialInterval != -1) {
+        if (settings<SettingsDialog::DataSettings>()->keepClear == false) {
             emit message("QData::send(): timer start");
             m_timer.start();
         }
@@ -521,9 +523,9 @@ void QData::enterPressed() {
 
     emit message("QData::enterPressed() code: " + str);
 
-    if (m_settings.barcodeRegexp.isEmpty() == false) {
-        emit message("QData::enterPressed(): barcode regexp found "+ m_settings.barcodeRegexp);
-        QRegularExpression regex(m_settings.barcodeRegexp);
+    if (settings<SettingsDialog::DataSettings>()->barcodeRegexp.isEmpty() == false) {
+        emit message("QData::enterPressed(): barcode regexp found "+ settings<SettingsDialog::DataSettings>()->barcodeRegexp);
+        QRegularExpression regex(settings<SettingsDialog::DataSettings>()->barcodeRegexp);
         auto match = regex.match(str);
 
         if (match.hasMatch() && match.capturedLength() > 2) {
@@ -538,9 +540,9 @@ void QData::enterPressed() {
         }
     }
 
-    if (m_settings.removeChars.isEmpty() == false) {
-        emit message("QData::enterPressed(): removing characters: "+m_settings.removeChars);
-        QString toRemove = m_settings.removeChars;
+    if (settings<SettingsDialog::DataSettings>()->removeChars.isEmpty() == false) {
+        emit message("QData::enterPressed(): removing characters: "+settings<SettingsDialog::DataSettings>()->removeChars);
+        QString toRemove = settings<SettingsDialog::DataSettings>()->removeChars;
         str.removeIf([&toRemove](const QChar& ch) {
             return toRemove.contains(ch);
         });
@@ -555,7 +557,7 @@ void QData::enterPressed() {
     int row = findByPart(m_model, str);
     emit message(QString("QData::enterPressed(): find by part: %1").arg(row));
 
-    if (row == -1 && m_settings.omitZeros == true) {
+    if (row == -1 && settings<SettingsDialog::DataSettings>()->omitZeros == true) {
         emit message("QData::enterPressed(): trying search by regexp ommiting 0's at begin and end");
         row = findByPartWithOmit(m_model, str);
     }
@@ -575,8 +577,10 @@ void QData::enterPressed() {
 
 void QData::toggleLock() {
     if (m_ui->unlockButton->text() == tr("Unlock")) {
-        if (m_settings.dbLock == true && m_settings.dbLockPass.isEmpty() == false) {
-            PasswordDialog d(this, m_settings.dbLockPass);
+        if (settings<SettingsDialog::DataSettings>()->dbLock == true 
+            && settings<SettingsDialog::DataSettings>()->dbLockPass.isEmpty() == false
+           ) {
+            PasswordDialog d(this, settings<SettingsDialog::DataSettings>()->dbLockPass);
             if (d.exec() != QDialog::Accepted) {
                 return;
             }
@@ -623,20 +627,20 @@ void QData::clearForm() {
     m_ui->barcodeEdit->clear();
     m_ui->dbView->clearSelection();
     
-    if (m_settings.keepClear == false) {
+    if (settings<SettingsDialog::DataSettings>()->keepClear == false) {
         emit message(QString("QData::clearForm(): clearing selected and stopping timer"));
         m_selected.clear();
         m_timer.stop();
     } else {
         emit message(QString("QData::clearForm(): setting selected to clear code"));
-        m_selected = QString::number(m_settings.clearCode);
+        m_selected = QString::number(settings<SettingsDialog::DataSettings>()->clearCode);
     }
     
-    if (m_settings.clearCode != -1) {
-        emit message(QString("QData::clearForm(): sending clear code: %1").arg(QString::number(m_settings.clearCode)));
+    if (settings<SettingsDialog::DataSettings>()->clearCode != -1) {
+        emit message(QString("QData::clearForm(): sending clear code: %1").arg(QString::number(settings<SettingsDialog::DataSettings>()->clearCode)));
         auto serial = plugins()->instance("QSerial", nullptr);
         auto io = serial.dynamicCast<IODevice>();
-        auto res = io->write(QString::number(m_settings.clearCode) + '\n');
+        auto res = io->write(QString::number(settings<SettingsDialog::DataSettings>()->clearCode) + '\n');
     }
 
     m_model->setFilter(QString());

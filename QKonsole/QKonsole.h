@@ -29,7 +29,6 @@ public slots:
 
 private:
     QTerminal* m_terminal = nullptr;
-    SettingsDialog::KonsoleSettings m_settings;
     QSharedPointer<IODevice> m_serial;
 };
 

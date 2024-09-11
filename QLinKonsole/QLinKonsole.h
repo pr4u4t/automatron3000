@@ -36,8 +36,8 @@ private slots:
     void init();
 
 private:
+
     QTerminal* m_terminal = nullptr;
-    SettingsDialog::KonsoleSettings m_settings;
     QSharedPointer<IODevice> m_lin;
 };
 

@@ -25,6 +25,8 @@ class Ui_QLinReadByIDUI
 public:
     QVBoxLayout *verticalLayout;
     QLabel *title;
+    QHBoxLayout *horizontalLayout_2;
+    QLabel *label;
     QLabel *result;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -44,11 +46,21 @@ public:
 
         verticalLayout->addWidget(title);
 
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName("horizontalLayout_2");
+        label = new QLabel(QLinReadByIDUI);
+        label->setObjectName("label");
+
+        horizontalLayout_2->addWidget(label);
+
         result = new QLabel(QLinReadByIDUI);
         result->setObjectName("result");
         result->setAlignment(Qt::AlignCenter);
 
-        verticalLayout->addWidget(result);
+        horizontalLayout_2->addWidget(result);
+
+
+        verticalLayout->addLayout(horizontalLayout_2);
 
         horizontalLayout = new QHBoxLayout();
         horizontalLayout->setObjectName("horizontalLayout");
@@ -77,8 +89,9 @@ public:
     void retranslateUi(QWidget *QLinReadByIDUI)
     {
         QLinReadByIDUI->setWindowTitle(QCoreApplication::translate("QLinReadByIDUI", "Form", nullptr));
-        title->setText(QCoreApplication::translate("QLinReadByIDUI", "TextLabel", nullptr));
-        result->setText(QCoreApplication::translate("QLinReadByIDUI", "TextLabel", nullptr));
+        title->setText(QCoreApplication::translate("QLinReadByIDUI", "Read By ID", nullptr));
+        label->setText(QCoreApplication::translate("QLinReadByIDUI", "Result:", nullptr));
+        result->setText(QString());
         pushButton->setText(QCoreApplication::translate("QLinReadByIDUI", "Read", nullptr));
     } // retranslateUi
 

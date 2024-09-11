@@ -11,8 +11,8 @@ class API_EXPORT IODevice : public Extension {
 
 public:
 
-	IODevice(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString())
-		: Extension(ld, plugins, parent, path) {}
+	IODevice(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString(), PluginSettings* set = nullptr)
+		: Extension(ld, plugins, parent, path, set) {}
 
 	virtual bool open(const QString& url = QString()) = 0;
 

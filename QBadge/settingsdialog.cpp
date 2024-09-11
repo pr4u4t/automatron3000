@@ -69,10 +69,10 @@ bool SettingsDialog::verifySettings() const {
 
 void SettingsDialog::ok() {
     emit message("SettingsDialog::ok");
-    if (verifySettings() == false) {
-        emit message("SettingsDialog::ok: failed to verify settings");
-        return;
-    }
+    //if (verifySettings() == false) {
+    //    emit message("SettingsDialog::ok: failed to verify settings");
+    //    return;
+    //}
     updateSettings();
     close();
     emit settingsUpdated();

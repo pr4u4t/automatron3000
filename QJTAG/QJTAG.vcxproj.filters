@@ -32,6 +32,23 @@
     <ClCompile Include="QJTAG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="settingsdialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="qjtag.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="settingsdialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="settingsdialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

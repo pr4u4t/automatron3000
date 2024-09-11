@@ -161,7 +161,8 @@ public:
         }
 
         LinSettings(const QSettings& settings, const QString& settingsPath)
-            : linVersion(settings.value(settingsPath + "/" + linVersionKey, linVersionValue).toUInt())
+            : PluginSettings(settings, settingsPath)
+            , linVersion(settings.value(settingsPath + "/" + linVersionKey, linVersionValue).toUInt())
             , slaveID(settings.value(settingsPath + "/" + slaveIDKey, slaveIDValue).toInt())
             , mode(static_cast<Mode>(settings.value(settingsPath + "/" + modeKey, modeValue).toInt()))
             , initialData(settings.value(settingsPath + "/" + initialDataKey, QByteArray((const char*)&initialDataValue[0], sizeof(initialDataValue))).toByteArray())
@@ -188,6 +189,8 @@ public:
             settings.setValue(settingsPath + "/" + channelKey, hwChannel.toByteArray());
             settings.setValue(settingsPath + "/" + queueSizeKey, queueSize);
             settings.setValue(settingsPath + "/" + checksumMethodKey, checksumMethod);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         unsigned int linVersion;

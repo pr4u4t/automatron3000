@@ -98,7 +98,6 @@ private:
     QString m_selected;
     QTimer m_timer;
     QStandardItemModel* m_lmodel = nullptr;
-    SettingsDialog::DataSettings m_settings;
     Ui::QDataUI* m_ui = nullptr;
 };
 

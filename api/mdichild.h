@@ -24,6 +24,8 @@ public:
     
     MdiChild(QWidget* parent = nullptr);
     
+    virtual ~MdiChild() = default;
+
 protected:
 
     void closeEvent(QCloseEvent *event) override;

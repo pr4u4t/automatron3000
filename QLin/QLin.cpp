@@ -128,10 +128,9 @@ REGISTER_PLUGIN(
 )
 
 QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: IODevice(ld, plugins, parent, path)
+	: IODevice(ld, plugins, parent, path, new SettingsDialog::LinSettings(Settings::get(), path))
 	, m_open(false)
-	, m_settings(SettingsDialog::LinSettings(Settings::get(), settingsPath()))
-	, m_lin(new CLin(&m_settings)) {
+	, m_lin(new CLin(settings<SettingsDialog::LinSettings>())) {
 	connect(m_lin, &CLin::message, this, &QLin::message);
 	connect(m_lin, &CLin::dataReady, this, &QLin::dataReady);
 }
@@ -186,7 +185,7 @@ qint64 QLin::write(const QString& data) {
 		return -1;
 	}
 
-	if (m_settings.mode == SettingsDialog::LinSettings::Mode::SLAVE) {
+	if (settings<SettingsDialog::LinSettings>()->mode == SettingsDialog::LinSettings::Mode::SLAVE) {
 		emit message("QLin::write(): SLAVE mode cannot send", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
@@ -239,7 +238,7 @@ qint64 QLin::write(const QByteArray& data) {
 		return -1;
 	}
 
-	if (m_settings.mode == SettingsDialog::LinSettings::Mode::SLAVE) {
+	if (settings<SettingsDialog::LinSettings>()->mode == SettingsDialog::LinSettings::Mode::SLAVE) {
 		emit message("QLin::write(): not in master mode write unavailable", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
@@ -314,7 +313,7 @@ bool QLin::flush() {
 
 void QLin::settingsChanged() {
 	emit message("QLin::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-	m_settings = SettingsDialog::LinSettings(Settings::get(), settingsPath());
+	*(settings<SettingsDialog::LinSettings>()) = SettingsDialog::LinSettings(Settings::get(), settingsPath());
 	close();
 	open(QString());
 }

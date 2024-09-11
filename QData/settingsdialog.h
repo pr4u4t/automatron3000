@@ -72,7 +72,8 @@ public:
         , keepClear(keepClearValue){}
 
         DataSettings(const QSettings& settings, const QString& settingsPath)
-            : dbDriver(settings.value(settingsPath + "/" + dbDriverKey, dbDriverValue).toString())
+            : PluginSettings(settings, settingsPath)
+            , dbDriver(settings.value(settingsPath + "/" + dbDriverKey, dbDriverValue).toString())
             , dbUri(settings.value(settingsPath + "/" + dbUriKey, dbUriValue).toString())
             , dbName(settings.value(settingsPath + "/" + dbNameKey, dbNameValue).toString())
             , dbTable(settings.value(settingsPath + "/" + dbTableKey, dbTableValue).toString())
@@ -120,6 +121,8 @@ public:
             settings.setValue(settingsPath + "/" + omitZerosKey, omitZeros);
             settings.setValue(settingsPath + "/" + clearCodeKey, clearCode);
             settings.setValue(settingsPath + "/" + keepClearKey, keepClear);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         QString dbDriver;

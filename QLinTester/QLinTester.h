@@ -45,7 +45,7 @@ public slots:
     void init();
 
 private:
-    SettingsDialog::LinTesterSettings m_settings;
+    
     Ui::QLinTesterUI* m_ui = nullptr;
     uint16_t m_test = 0;
     QSharedPointer<IODevice> m_lin;

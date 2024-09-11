@@ -39,7 +39,6 @@ public slots:
 //    void resizeEvent(QResizeEvent* event);
 
 private:
-    SettingsDialog::BadgeSettings m_settings;
     Ui::QBadgeUI* m_ui = nullptr;
 };
 

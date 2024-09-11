@@ -123,22 +123,22 @@ REGISTER_PLUGIN(
 )
 
 QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: IODevice(ld, plugins, parent, path),
+	: IODevice(ld, plugins, parent, path, new SettingsDialog::SerialSettings(Settings::get(), path)),
 	  m_serial(new QSerialPort(this)){
 	emit message("QSerial::QSerial()", LoggerSeverity::LOG_DEBUG);
 
 	Window* win = qobject_cast<Window*>(parent);
-	m_settings = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
-	m_serial->setPortName(m_settings.name);
-	m_serial->setBaudRate(m_settings.baudRate);
-	m_serial->setDataBits(m_settings.dataBits);
-	m_serial->setParity(m_settings.parity);
-	m_serial->setStopBits(m_settings.stopBits);
-	m_serial->setFlowControl(m_settings.flowControl);
+
+	m_serial->setPortName(settings<SettingsDialog::SerialSettings>()->name);
+	m_serial->setBaudRate(settings<SettingsDialog::SerialSettings>()->baudRate);
+	m_serial->setDataBits(settings<SettingsDialog::SerialSettings>()->dataBits);
+	m_serial->setParity(settings<SettingsDialog::SerialSettings>()->parity);
+	m_serial->setStopBits(settings<SettingsDialog::SerialSettings>()->stopBits);
+	m_serial->setFlowControl(settings<SettingsDialog::SerialSettings>()->flowControl);
 
 	QObject::connect(m_serial, &QSerialPort::readyRead, this, &QSerial::readData);
 
-	if (m_settings.autoConnect) {
+	if (settings<SettingsDialog::SerialSettings>()->autoConnect) {
 		emit message(QString("QSerial::QSerial serial port open: %1").arg(open(QString()) ? tr("Success") : tr("Failed")));
 	}
 }
@@ -226,13 +226,16 @@ void QSerial::settingsChanged() {
 	}
 
 	Window* win = qobject_cast<Window*>(parent());
-	m_settings = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+	*(settings<SettingsDialog::SerialSettings>()) = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+	
+	/*
 	m_serial->setPortName(m_settings.name);
 	m_serial->setBaudRate(m_settings.baudRate);
 	m_serial->setDataBits(m_settings.dataBits);
 	m_serial->setParity(m_settings.parity);
 	m_serial->setStopBits(m_settings.stopBits);
 	m_serial->setFlowControl(m_settings.flowControl);
+	*/
 
 	if (wasOpened == true) {
 		if (m_serial->open(QIODevice::ReadWrite) == true) {

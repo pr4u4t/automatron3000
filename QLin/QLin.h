@@ -39,7 +39,6 @@ protected slots:
 
 private:
 
-	SettingsDialog::LinSettings m_settings;
 	CLin* m_lin = nullptr;
 	bool m_open = false;
 };

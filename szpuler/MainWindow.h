@@ -92,6 +92,10 @@ public:
 
     bool addSubWindow(QWidget* widget, const QString& title = QString()) override;
 
+    bool addSubWindow(Widget* widget);
+
+    Widget* find(const QString& uuid) const;
+
 protected:
 
     QByteArray state() const;
@@ -125,6 +129,8 @@ private slots:
     void switchLayoutDirection();
 
 private:
+
+    std::optional<QString> windowTitleByInstance(const Widget* instance) const;
 
     int findFreeIndex(const QString& name) const;
 

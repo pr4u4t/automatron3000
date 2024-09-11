@@ -56,7 +56,7 @@ public slots:
     void exportToJson();
 
 private:
-    SettingsDialog::LinBusSettings m_settings;
+
     Ui::QLinBusUI* m_ui = nullptr;
     uint16_t m_scan = 0;
     QSharedPointer<IODevice> m_lin;

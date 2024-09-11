@@ -37,7 +37,8 @@ public:
             , commandDelay(commandDelayValue){}
 
         KonsoleSettings(const QSettings& settings, const QString& settingsPath)
-            : prompt(settings.value(settingsPath + "/" + promptKey, promptValue).toString())
+            : PluginSettings(settings, settingsPath)
+            , prompt(settings.value(settingsPath + "/" + promptKey, promptValue).toString())
             , localEcho(settings.value(settingsPath + "/" + localEchoKey, localEchoValue).toBool())
             , commandDelay(settings.value(settingsPath + "/" + commandDelayKey, commandDelayValue).toInt()){}
 
@@ -45,6 +46,8 @@ public:
             settings.setValue(settingsPath + "/" + promptKey, prompt);
             settings.setValue(settingsPath + "/" + localEchoKey, localEcho);
             settings.setValue(settingsPath + "/" + commandDelayKey, commandDelay);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         QString prompt;

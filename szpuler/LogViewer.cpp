@@ -89,7 +89,7 @@ static bool LogViewer_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, Lo
     ctx->m_logviewer->setData(QVariant("LogViewer"));
     ctx->m_logviewer->setText(ctx->m_app->translate("MainWindow", "Log Viewer"));
 
-    QMenu* fileMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&File"));
+    QMenu* fileMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
     ctx->m_logviewer->setParent(fileMenu);
     QObject::connect(ctx->m_logviewer, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
 

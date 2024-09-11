@@ -73,7 +73,7 @@ REGISTER_PLUGIN(
 )
 
 QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-	: Widget(ld, plugins, parent, settingsPath)
+	: Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinTesterSettings(Settings::get(), settingsPath))
     , m_ui(new Ui::QLinTesterUI) {
     settingsChanged();
     m_ui->setupUi(this);
@@ -82,7 +82,7 @@ QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
 
 void QLinTester::settingsChanged() {
     emit message("QLinTester::settingsChanged()");
-    m_settings = SettingsDialog::LinTesterSettings(Settings::get(), settingsPath());
+    *(settings<SettingsDialog::LinTesterSettings>()) = SettingsDialog::LinTesterSettings(Settings::get(), settingsPath());
 }
 
 void QLinTester::dataReady(const QByteArray& data) {
@@ -105,6 +105,11 @@ void QLinTester::dataReady(const QByteArray& data) {
 
 void QLinTester::startTest() {
     emit message("QLinTester::startScan()", LoggerSeverity::LOG_DEBUG);
+
+//TODO:
+    m_ui->passedLabel->setEnabled(true);
+    m_ui->passedLabel->setStyleSheet("QLabel { color : green; }");
+    return;
 
     if (m_lin.isNull() || m_lin->isOpen() == false) {
         emit message("QLinTester::startTest(): failed LIN device not open");
@@ -132,7 +137,7 @@ void QLinTester::startTest() {
 void QLinTester::testStep() {
     emit message("QLinTester::testStep()");
 
-    if (m_test <= m_settings.scanStopID) {
+    if (m_test <= settings<SettingsDialog::LinTesterSettings>()->scanStopID) {
         QByteArray data(1, static_cast<char>(m_test));
         m_lin->write(data);
 
@@ -140,7 +145,7 @@ void QLinTester::testStep() {
         ++m_test;
     } else {
         m_state = QLinTesterState::STOP;
-        m_test = m_settings.scanStartID;
+        m_test = settings<SettingsDialog::LinTesterSettings>()->scanStartID;
         m_timer.stop();
     }
 }
@@ -148,7 +153,7 @@ void QLinTester::testStep() {
 void QLinTester::testStop() {
     emit message("QLinTester::scanStop()", LoggerSeverity::LOG_DEBUG);
     m_state = QLinTesterState::STOP;
-    m_test = m_settings.scanStartID;
+    m_test = settings<SettingsDialog::LinTesterSettings>()->scanStartID;
     m_timer.stop();
     //m_ui->startButton->setEnabled(true);
     //m_ui->stopButton->setEnabled(false);

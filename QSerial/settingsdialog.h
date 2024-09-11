@@ -63,7 +63,8 @@ public:
             , autoConnect(autoConnectValue){}
         
         SerialSettings(const QSettings& settings, const QString& settingsPath) 
-            : name(settings.value(settingsPath + "/" + nameKey, nameValue).toString())
+            : PluginSettings(settings, settingsPath)
+            , name(settings.value(settingsPath + "/" + nameKey, nameValue).toString())
             , baudRate(settings.value(settingsPath + "/" + bRateKey, bRateValue).toInt())
             , dataBits(static_cast<QSerialPort::DataBits>(settings.value(settingsPath + "/" + dataBitsKey, dataBitsValue).toInt()))
             , parity(static_cast<QSerialPort::Parity>(settings.value(settingsPath + "/" + parityKey, parityValue).toInt()))
@@ -81,6 +82,8 @@ public:
             settings.setValue(settingsPath + "/" + flowControlKey, flowControl);
             settings.setValue(settingsPath + "/" + localEchoEnabledKey, localEchoEnabled);
             settings.setValue(settingsPath + "/" + autoConnectKey, autoConnect);
+
+            PluginSettings::save(settings, settingsPath);
         }
         
         QString name;

@@ -43,7 +43,6 @@ protected slots:
 private:
 
 	QSerialPort* m_serial = nullptr;
-	SettingsDialog::SerialSettings m_settings;
 };
 
 #endif

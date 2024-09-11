@@ -34,12 +34,15 @@ public:
             , localEcho(localEchoValue){}
 
         KonsoleSettings(const QSettings& settings, const QString& settingsPath)
-            : prompt(promptValue)
+            : PluginSettings(settings, settingsPath)
+            , prompt(promptValue)
             , localEcho(localEchoValue) {}
 
         void save(QSettings& settings, const QString& settingsPath) const {
             settings.setValue(settingsPath + "/" + promptKey, prompt);
             settings.setValue(settingsPath + "/" + localEchoKey, localEcho);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         QString prompt;

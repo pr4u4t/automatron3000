@@ -41,6 +41,7 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
     dockWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
     dockWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
+
     // Add the toggleViewAction of the dock widget to the menu to give
     // the user the possibility to show the dock widget if it has been closed
     
@@ -198,21 +199,15 @@ bool MainWindow::createWindowByName(const QString& name, bool newInstance){
         return false;
     }
     
-    ads::CDockWidget* w = addSubWindowInternal(child, name);
-    if (w == nullptr) {
-        return false;
-    }
+    Widget* w = plugin.dynamicCast<Widget>().data();
 
-    return true;
+    return addSubWindow(w);
 }
 
 ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QString& title) {
     m_logger->message(QString("MainWindow::addSubWindowInternal(%1, %2)").arg((long long)widget, 0, 16).arg(title), LoggerSeverity::LOG_DEBUG);
 
-    const int idx = findFreeIndex(title);
-    const QString newTitle = idx > 0 ? QString("%1 %2").arg(title).arg(idx) : title;
-
-    ads::CDockWidget* child = new ads::CDockWidget(newTitle);
+    ads::CDockWidget* child = new ads::CDockWidget(title);
     if (child == nullptr) {
         m_logger->message("MainWindow::addSubWindow: failed to add subwindow");
         return nullptr;
@@ -220,6 +215,7 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
     
     child->setWidget(widget);
     child->setFeature(ads::CDockWidget::DontDeleteContent, true);
+    child->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
     m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
 
     //const QMetaObject* mu = widget->metaObject();
@@ -232,6 +228,17 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
     return child;
 }
 
+std::optional<QString> MainWindow::windowTitleByInstance(const Widget* instance) const {
+    QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
+    for (auto it : map) {
+        if (it->widget() == static_cast<const QWidget*>(instance)) {
+            return std::optional<QString>(it->objectName());
+        }
+    }
+
+    return std::nullopt;
+}
+
 int MainWindow::findFreeIndex(const QString& name) const {
     int ret = -1;
     QRegularExpression rx("[0-9]+$");
@@ -239,7 +246,7 @@ int MainWindow::findFreeIndex(const QString& name) const {
     for (auto it : map) {
         auto match = rx.match(it->objectName());
         if (match.hasMatch() == false) {
-            if (it->objectName().startsWith(name)) {
+            if (it->objectName() == name) {
                 ++ret;
             }
             continue;
@@ -254,8 +261,29 @@ int MainWindow::findFreeIndex(const QString& name) const {
     return ++ret;
 }
 
+Widget* MainWindow::find(const QString& uuid) const {
+    QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
+    for (const auto it : map) { 
+        Widget* w = dynamic_cast<Widget*>(it->widget());
+        if (w == nullptr) {
+            continue;
+        }
+        
+        if (w->uuid() == uuid) {
+            return w;
+        }
+    }
+
+    return nullptr;
+}
+
+bool MainWindow::addSubWindow(Widget* widget) {
+    return addSubWindowInternal(widget, widget->objectName()) != nullptr;
+}
+
 bool MainWindow::addSubWindow(QWidget* widget, const QString& title) {
-    return addSubWindowInternal(widget, title) != nullptr;
+    const int idx = findFreeIndex(title);
+    return addSubWindowInternal(widget, idx > 0 ? QString("%1 %2").arg(title).arg(idx) : title) != nullptr;
 }
 
 void MainWindow::createActions(){

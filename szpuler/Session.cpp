@@ -1,5 +1,6 @@
 #include "Session.h"
 #include "MainWindow.h"
+#include "../api/plugin.h"
 
 Session::Session(MLoader* plugins, Logger* log, const QString& path, MainWindow* win)
     : m_plugins(plugins)
@@ -48,12 +49,18 @@ qint64 Session::store() {
         for (auto item : order) {
             for (auto instance : instances) {
                 if (instance->name() == item) {
-                    result << instance->name() + "-" + instance->uuid();
+                    if (instance->type() == Plugin::Type::WIDGET) {
+                        result << instance->name() + "-" + instance->uuid() + "@" + m_win->windowTitleByInstance(dynamic_cast<Widget*>(instance.data())).value();
+                    } else {
+                        result << instance->name() + "-" + instance->uuid();
+                    }
+
+                    break;
                 }
             }
         }
 
-        settings().setValue("session/plugins", result.join(" "));
+        settings().setValue("session/plugins", result);
         if (settings().status() != QSettings::NoError) {
             m_logger->message("Session::store(): failed to save session/plugins");
         }
@@ -64,18 +71,20 @@ qint64 Session::store() {
 qint64 Session::restore() {
     m_logger->message("Session::restore()");
 
-    QString session = settings().value("session/plugins").toString();
-    QStringList list = session.split(" ", Qt::SkipEmptyParts);
+    const QVariant value = settings().value("session/plugins");
+    const QStringList list = value.toStringList();
     qint64 ret = 0;
     QRegExp rx("^([A-Za-z0-9]+)");
 
     if (list.size() > 0) {
-        m_logger->message("Session::restore(): restore plugins instances: " + session);
+        m_logger->message("Session::restore(): restore plugins instances: " + list.join(","));
             for (auto it = list.begin(), end = list.end(); it != end; ++it, ++ret) {
                 m_logger->message("Session::restore(): creating plugin: " + *it);
                 if (rx.indexIn(*it) != -1) {
                     QString name = rx.cap(1);
-                    auto plugin = plugins()->instance(name, window(), *it);
+                    const QStringList lst = it->split("@");
+
+                    auto plugin = plugins()->instance(name, window(), lst[0]);
 
                     if (plugin.isNull()) {
                         m_logger->message("Session::restore(): failed to create plugin: " + *it);
@@ -85,7 +94,7 @@ qint64 Session::restore() {
                     if (plugin->type() == Plugin::Type::WIDGET) {
                         m_logger->message("Session::restore(): adding widget: " + *it);
                         
-                        window()->addSubWindow(dynamic_cast<Widget*>(plugin.data()), plugin->name());
+                        window()->addSubWindowInternal(dynamic_cast<Widget*>(plugin.data()), lst[1]);
 
                         //ads::CDockWidget* dockWidget = new ads::CDockWidget(plugin->name());
                         //dockWidget->setWidget(dynamic_cast<Widget*>(plugin.data()));

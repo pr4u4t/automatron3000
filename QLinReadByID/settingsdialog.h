@@ -41,7 +41,8 @@ public:
         }
 
         LinReadByIDSettings(const QSettings& settings, const QString& settingsPath)
-            : frameData(settings.value(settingsPath + "/" + frameDataKey, frameDataValue).toByteArray())
+            : PluginSettings(settings, settingsPath)
+            , frameData(settings.value(settingsPath + "/" + frameDataKey, frameDataValue).toByteArray())
             , interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
             , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
             , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString()) {
@@ -52,6 +53,8 @@ public:
             settings.setValue(settingsPath + "/" + intervalKey, interval);
             settings.setValue(settingsPath + "/" + triesKey, tries);
             settings.setValue(settingsPath + "/" + titleKey, title);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         QByteArray frameData;

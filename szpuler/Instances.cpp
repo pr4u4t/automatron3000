@@ -1,4 +1,5 @@
 #include "Instances.h"
+#include "MainWindow.h"
 #include <QCoreApplication>
 
 struct InstancesMenu {
@@ -58,7 +59,7 @@ REGISTER_STATIC_PLUGIN(
 
 Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
 	: Widget(ld, plugins, parent, settingsPath)
-    , m_model(new QStandardItemModel(0, 3))
+    , m_model(new QStandardItemModel(0, 4))
     , m_view(new QTableView()){
 
     connect(plugins, &PluginsLoader::loaded, this, &Instances::loaded);
@@ -69,15 +70,17 @@ Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
 		for (auto it = list.begin(), end = list.end(); it != end; ++it) {
 			QList<QStandardItem*> row;
 			row << new QStandardItem((*it)->name());
+            row << new QStandardItem(dynamic_cast<QObject*>((*it).data())->objectName());
 			row << new QStandardItem((*it)->version());
             row << new QStandardItem((*it)->uuid());
 			m_model->appendRow(row);
 		}
 	}
 
-	m_model->setHeaderData(0, Qt::Horizontal, tr("name"));
-	m_model->setHeaderData(1, Qt::Horizontal, tr("version"));
-    m_model->setHeaderData(2, Qt::Horizontal, tr("uuid"));
+	m_model->setHeaderData(Columns::NAME, Qt::Horizontal, tr("name"));
+    m_model->setHeaderData(Columns::OBJECT, Qt::Horizontal, tr("object"));
+	m_model->setHeaderData(Columns::VERSION, Qt::Horizontal, tr("version"));
+    m_model->setHeaderData(Columns::UUID, Qt::Horizontal, tr("uuid"));
 
 	m_view->setShowGrid(true);
 	m_view->setModel(m_model);
@@ -90,6 +93,8 @@ Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
 	QBoxLayout* lay = new QVBoxLayout();
 	setLayout(lay);
 	lay->addWidget(m_view);
+
+    QObject::connect(m_view, &QTableView::activated, this, &Instances::activated);
 }
 
 bool Instances::saveSettings() {
@@ -102,7 +107,26 @@ void Instances::settingsChanged() {
 void Instances::loaded(const Plugin* plugin) {
     QList<QStandardItem*> row;
     row << new QStandardItem(plugin->name());
+    row << new QStandardItem(dynamic_cast<const QObject*>(plugin)->objectName());
     row << new QStandardItem(plugin->version());
     row << new QStandardItem(plugin->uuid());
     m_model->appendRow(row);
+}
+
+void Instances::activated(const QModelIndex& index) {
+    QModelIndex idx = index.siblingAtColumn(Columns::NAME);
+    const QString name = index.data().toString();
+    const QString uuid = idx.siblingAtColumn(Columns::UUID).data().toString();
+    
+    PluginsLoader* pld = plugins();
+    MLoader* mld = reinterpret_cast<ModuleLoader<Loader>*>(pld);
+    MainWindow* win = qobject_cast<MainWindow*>(mld->context()->to<GuiLoaderContext>()->m_win);
+    Widget* widget = win->find(uuid);
+    if (widget != nullptr) {
+        return;
+    }
+
+    auto p = mld->find(uuid);
+    widget = dynamic_cast<Widget*>(p.data());
+    win->addSubWindow(widget);
 }

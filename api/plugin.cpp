@@ -1,13 +1,14 @@
 #include "plugin.h"
 
-PluginPrivate::PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path)
+PluginPrivate::PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set)
 	: m_loader(ld)
 	, m_plugins(plugins)
-	, m_settingsPath(path) {
+	, m_settingsPath(path)
+	, m_settings(set){
 }
 
-Plugin::Plugin(Loader* ld, PluginsLoader* plugins, const QString& path)
-	:  m_d(ld, plugins, path){
+Plugin::Plugin(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set)
+	:  m_d(ld, plugins, path, set){
 	QRegExp rx("([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})");
 	int idx;
 
@@ -64,15 +65,45 @@ bool Plugin::multipleInstances() const {
 	return m_d.m_loader->multipleInstances();
 }
 
-
-
-Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: Plugin(ld, plugins, path) {
+void Plugin::updateSettings(const PluginSettings& settings) {
+	*(m_d.m_settings) = settings;
 }
 
-Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-	: Plugin(ld, plugins, path)
-	, MdiChild() {
+Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, PluginSettings* set)
+	: QObject(parent)
+	, Plugin(ld, plugins, path, set) {
+
+	QObject::connect(this, &QObject::objectNameChanged, this, &Extension::nameChanged);
+
+	if (set != nullptr && set->m_objectName.isEmpty() == false) {
+		setObjectName(set->m_objectName);
+	}
+}
+
+void Extension::nameChanged(const QString& name) {
+	if (settings<PluginSettings>() != nullptr) {
+		settings<PluginSettings>()->m_objectName = name;
+		QSettings s = Settings::get();
+		settings<PluginSettings>()->save(s, settingsPath());
+	}
+}
+
+Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, PluginSettings* set)
+	: Plugin(ld, plugins, path, set)
+	, MdiChild(parent) {
+	QObject::connect(this, &QObject::objectNameChanged, this, &Widget::nameChanged);
+	
+	if (set != nullptr && set->m_objectName.isEmpty() == false) {
+		setObjectName(set->m_objectName);
+	}
+}
+
+void Widget::nameChanged(const QString& name) {
+	if (settings<PluginSettings>() != nullptr) {
+		settings<PluginSettings>()->m_objectName = name;
+		QSettings s = Settings::get();
+		settings<PluginSettings>()->save(s, settingsPath());
+	}
 }
 
 LoaderPrivate::LoaderPrivate(const QString& name, Plugin::Type type, const QString& version,

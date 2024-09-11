@@ -76,7 +76,7 @@ REGISTER_PLUGIN(
 )
 
 QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path)
+    : Widget(ld, plugins, parent, path, new SettingsDialog::KonsoleSettings(Settings::get(), path))
     , m_terminal(new QTerminal(this, tr("<b>Welcome to LIN terminal</b>"))) {
     settingsChanged();
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
@@ -131,7 +131,7 @@ void QLinKonsole::enterPressed(const QString& command) {
     QRegularExpression rx("[\\s]+");
     for (auto it = commands.begin(), end = commands.end(); it != end; ++it) {
         processCommand((*it).trimmed().replace(rx, " "));
-        QThread::msleep(m_settings.commandDelay);
+        QThread::msleep(settings<SettingsDialog::KonsoleSettings>()->commandDelay);
     }
 }
 
@@ -181,6 +181,6 @@ FAIL:
 
 void QLinKonsole::settingsChanged() {
     emit message("QLinKonsole::settingsChanged()");
-    m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
-    m_terminal->setPrompt(m_settings.prompt); //setLocalEchoEnabled(m_settings.localEcho);
+    *(settings<SettingsDialog::KonsoleSettings>()) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+    m_terminal->setPrompt(settings<SettingsDialog::KonsoleSettings>()->prompt); //setLocalEchoEnabled(m_settings.localEcho);
 }

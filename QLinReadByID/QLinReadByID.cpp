@@ -98,10 +98,11 @@ REGISTER_PLUGIN(
 
 
 QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath)
+    : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath))
     , m_ui(new Ui::QLinReadByIDUI) {
     m_ui->setupUi(this);
     settingsChanged();
+    QObject::connect(m_ui->pushButton, &QPushButton::clicked, this, &QLinReadByID::readById);
 }
 
 QLinReadByID::~QLinReadByID() {
@@ -121,6 +122,10 @@ void QLinReadByID::init() {
 
 void QLinReadByID::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    m_settings = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
-    
+    *(settings<SettingsDialog::LinReadByIDSettings>()) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
+    m_ui->title->setText(settings<SettingsDialog::LinReadByIDSettings>()->title);
+}
+
+void QLinReadByID::readById(bool checked) {
+    m_ui->result->setText("0xf18c6547");
 }

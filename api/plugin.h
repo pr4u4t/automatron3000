@@ -21,14 +21,34 @@
 class Loader;
 class PluginsLoader;
 
+struct API_EXPORT PluginSettings {
+
+public:
+
+	PluginSettings() = default;
+
+	PluginSettings(const QSettings& settings, const QString& settingsPath)
+		: m_objectName(settings.value(settingsPath + "/objectName").toString()) {
+	}
+
+	virtual void save(QSettings& settings, const QString& settingsPath) const {
+		settings.setValue(settingsPath + "/objectName", m_objectName);
+	}
+
+	virtual ~PluginSettings() = default;
+
+	QString m_objectName;
+};
+
 struct PluginPrivate {
 
-	PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path = QString());
+	PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path = QString(), PluginSettings* set = nullptr);
 
 	Loader* m_loader = nullptr;
 	PluginsLoader* m_plugins = nullptr;
 	QString m_uuid = 0;
 	QString m_settingsPath;
+	PluginSettings* m_settings = nullptr;
 };
 
 class API_EXPORT Plugin {
@@ -46,7 +66,9 @@ public:
 	static constexpr qint64 InvalidUUID = -1;
 	static constexpr const char* const settings_path = "plugins/";
 
-	Plugin(Loader* ld, PluginsLoader* plugins, const QString& path = QString());
+	Plugin(Loader* ld, PluginsLoader* plugins, const QString& path = QString(), PluginSettings* set = nullptr);
+
+	virtual ~Plugin() = default;
 
 	QString name() const;
 
@@ -62,8 +84,6 @@ public:
 
 	QString uuid() const;
 
-	virtual ~Plugin() = default;
-
 	QString settingsPath() const;
 
 	bool multipleInstances() const;
@@ -74,6 +94,18 @@ protected:
 
 	Loader* loader() const;
 
+	template<typename T>
+	T* settings() const {
+		return dynamic_cast<T*>(m_d.m_settings);
+	}
+
+	template<>
+	PluginSettings* settings() const {
+		return m_d.m_settings;
+	}
+
+	void updateSettings(const PluginSettings& settings);
+
 private:
 	PluginPrivate m_d;
 };
@@ -83,7 +115,7 @@ class API_EXPORT Extension	: public QObject
 	Q_OBJECT
 
 public:
-	Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString());
+	Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString(), PluginSettings* set = nullptr);
 
 	virtual ~Extension() = default;
 
@@ -96,6 +128,10 @@ signals:
 public slots:
 
 	virtual void settingsChanged() = 0;
+
+protected slots:
+
+	void nameChanged(const QString& name);
 };
 
 class API_EXPORT Widget : public MdiChild
@@ -104,7 +140,7 @@ class API_EXPORT Widget : public MdiChild
 
 public:
 
-	Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString());
+	Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString(), PluginSettings* set = nullptr);
 
 	virtual ~Widget() = default;
 
@@ -115,6 +151,10 @@ signals:
 public slots:
 
 	virtual void settingsChanged() = 0;
+
+protected slots:
+
+	void nameChanged(const QString& name);
 };
 
 class PluginsLoader;
@@ -244,12 +284,14 @@ public:
 	using PluginType = decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr));
 
 	PluginsLoader() = default;
-	
-	virtual bool hasInstance(const QString& name, const QString& settingsPath = QString()) = 0;
+
+	virtual bool hasInstance(const QString& name, const QString& settingsPath = QString()) const = 0;
 
 	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType = 0;
 
 	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType = 0;
+
+	virtual auto find(const QString& uuid) const -> PluginType = 0;
 
 	virtual ~PluginsLoader() = default;
 
@@ -278,17 +320,6 @@ public:
 	static bool isGui() {
 		return qobject_cast<QGuiApplication*>(QCoreApplication::instance()) != nullptr;
 	}
-};
-
-struct API_EXPORT PluginSettings {
-
-public:
-
-	PluginSettings() = default;
-
-	virtual void save(QSettings& settings, const QString& settingsPath) const = 0;
-
-	virtual ~PluginSettings() = default;
 };
 
 #endif

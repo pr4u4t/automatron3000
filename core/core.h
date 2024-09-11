@@ -24,7 +24,7 @@ public:
 		: m_path(dir.isEmpty() ? QDir::currentPath() + "/plugins" : dir)
 		, m_logger(log) {}
 
-	~ModuleLoader() {
+	virtual ~ModuleLoader() {
 
 		m_instances.clear();
 		m_loaders.clear();
@@ -48,12 +48,12 @@ public:
 		return m_ctx;
 	}
 
-	bool hasInstance(const QString& name, const QString& settingsPath = QString()) {
-		return m_instances.contains(name);
+	bool hasInstance(const QString& name, const QString& settingsPath = QString()) const {
+		return hasInstanceInternal(name, settingsPath) != nullptr;
 	}
 
 	auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType {
-		return (m_instances.contains(name) == true) ? m_instances[name] : newInstance(name, parent, settingsPath);
+		return (hasInstanceInternal(name, settingsPath) != nullptr) ? hasInstanceInternal(name, settingsPath) : newInstance(name, parent, settingsPath);
 	}
 
 	auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType {
@@ -67,10 +67,28 @@ public:
 		}
 
 		m_instances.insert(name, ret);
+		
+		QObject* o = dynamic_cast<QObject*>(ret.data());
+		connect(o, SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
 
-		connect(dynamic_cast<QObject*>(ret.data()), SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
+		if (o->objectName().isEmpty() == true) {
+			const int count = m_instances.count(name) - 1;
+			const QString objName = (count == 0) ? name : QString("%1 %2").arg(name).arg(count);
+			o->setObjectName(objName);
+		}
+
 		emit loaded(ret.data());
 		return ret;
+	}
+
+	auto find(const QString& uuid) const -> PluginType {
+		for (QMultiHash<QString, PluginType>::const_iterator i = m_instances.begin(); i != m_instances.end(); ++i) {
+			if (i->data()->uuid() == uuid) {
+				return i.value();
+			}
+		}
+
+		return nullptr;
 	}
 
 	const QList<const T*> loaders() const {
@@ -212,6 +230,22 @@ public:
 	Logger* logger() const {
 		return m_logger;
 	}
+
+protected:
+
+	PluginType hasInstanceInternal(const QString& name, const QString& settingsPath) const {
+		if (settingsPath.isEmpty()) {
+			return m_instances.contains(name) ? m_instances[name] : nullptr;
+		}
+
+		for (QMultiHash<QString, PluginType>::const_iterator i = m_instances.find(name); i != m_instances.end() && i.key() == name; ++i) {
+			if (i->data()->settingsPath() == settingsPath) {
+				return i.value();
+			}
+		}
+
+		return nullptr;
+	}	
 
 private:
 	inline bool hasLoader(const QString& name) const {

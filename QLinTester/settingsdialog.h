@@ -45,7 +45,8 @@ public:
         }
 
         LinTesterSettings(const QSettings& settings, const QString& settingsPath)
-            : scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
+            : PluginSettings(settings, settingsPath)
+            , scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
             , scanStopID(settings.value(settingsPath + "/" + scanStopIDKey, scanStopIDValue).toUInt())
             , scanInterval(settings.value(settingsPath + "/" + scanIntervalKey, scanIntervalValue).toInt())
             , enableColors(settings.value(settingsPath + "/" + colorsKey, colorsValue).toString() == "true" ? true : false)
@@ -58,6 +59,8 @@ public:
             settings.setValue(settingsPath + "/" + scanIntervalKey, scanInterval);
             settings.setValue(settingsPath + "/" + colorsKey, enableColors);
             settings.setValue(settingsPath + "/" + triesKey, tries);
+
+            PluginSettings::save(settings, settingsPath);
         }
 
         uint8_t scanStartID;

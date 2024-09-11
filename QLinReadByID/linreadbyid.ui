@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="title">
      <property name="text">
-      <string>TextLabel</string>
+      <string>Read By ID</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -25,14 +25,25 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="result">
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Result:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="result">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
