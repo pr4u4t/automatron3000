@@ -46,9 +46,14 @@ static bool QLinTester_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, Q
 
     QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
         QSharedPointer<Plugin> tester = ld->instance("QLinTester", gtx->m_win);
+
+        if (gtx->m_win->toggleWindow(dynamic_cast<const QLinTester*>(tester.data())->objectName() + "/Settings")) {
+            return;
+        }
+
         SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, tester->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, tester.dynamicCast<QLinTester>().data(), &QLinTester::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "LinTester/Settings"));
+        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinTester*>(tester.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinTester/Settings"));
     });
 
     return true;
@@ -69,7 +74,8 @@ REGISTER_PLUGIN(
     QLinTester_unregister,
     QLinTesterMenu,
     { "QLin" },
-    false
+    false,
+    1000
 )
 
 QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
@@ -83,6 +89,12 @@ QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
 void QLinTester::settingsChanged() {
     emit message("QLinTester::settingsChanged()");
     *(settings<SettingsDialog::LinTesterSettings>()) = SettingsDialog::LinTesterSettings(Settings::get(), settingsPath());
+}
+
+SettingsMdi* QLinTester::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinTester::settingsChanged);
+    return ret;
 }
 
 void QLinTester::dataReady(const QByteArray& data) {

@@ -198,11 +198,25 @@ public:
 			}
 		}
 
-		for (auto item : order) {
-			m_loaders[item]->registerPlugin(context(), this, logger());
+		QList<T*> lds = m_loaders.values();
+		std::sort(lds.begin(), lds.end(), [](T* lhs, T* rhs) {
+			return lhs->weight() < rhs->weight();
+		});
+		for (auto item : lds) {
+			item->registerPlugin(context(), this, logger());
 		}
 
 		return ret;
+	}
+
+	void deleteInstance(const QString& uuid) {
+		m_instances.removeIf([uuid](QMultiHash<QString, PluginType>::iterator it) {
+			if (it->data()->uuid() == uuid) {
+				return true;
+			}
+
+			return false;
+		});
 	}
 
 	QList<PluginType> instances() const {
@@ -264,8 +278,8 @@ typedef ModuleLoader<Loader> MLoader;
 template<typename T>
 QHash<QString, T*> ModuleLoader<T>::m_loaders = QHash<QString, T*>();
 
-#define REGISTER_STATIC_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple) \
-	PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends, multiple); \
+#define REGISTER_STATIC_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight) \
+	PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); \
 	RegisterStaticPlugin name##RegisterLoader(&name##Loader);
 
 class RegisterStaticPlugin {

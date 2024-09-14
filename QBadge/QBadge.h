@@ -30,6 +30,8 @@ public:
     */
     ~QBadge();
     
+    SettingsMdi* settingsWindow() const override;
+
 public slots:
 
     void settingsChanged();

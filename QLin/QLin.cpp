@@ -64,11 +64,14 @@ static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMen
 	}
 
 	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx, log] {
-		QSharedPointer<Plugin> serial = ld->instance("QLin", gtx->m_win);
-		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, serial->settingsPath());
+		QSharedPointer<Plugin> lin = ld->instance("QLin", gtx->m_win);
+		if (gtx->m_win->toggleWindow(dynamic_cast<const QLin*>(lin.data())->objectName() + "/Settings")) {
+			return;
+		}
+		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, lin->settingsPath());
 		QObject::connect(dialog, &MdiChild::message, log, &Logger::message);
-		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QLin>().data(), &QLin::settingsChanged);
-		gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Lin/Settings"));
+		QObject::connect(dialog, &SettingsDialog::settingsUpdated, lin.dynamicCast<QLin>().data(), &QLin::settingsChanged);
+		gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLin*>(lin.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "Lin/Settings"));
 	});
 
 	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, gtx, ctx, log] {
@@ -124,7 +127,8 @@ REGISTER_PLUGIN(
 	QLin_unregister,
 	QLinMenu,
 	{},
-	false
+	false,
+	600
 )
 
 QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
@@ -169,6 +173,12 @@ bool QLin::open(const QString& url) {
 	}
 
 	return (m_open = true);
+}
+
+SettingsMdi* QLin::settingsWindow() const {
+	auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+	QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLin::settingsChanged);
+	return ret;
 }
 
 qint64 QLin::write(const QString& data) {

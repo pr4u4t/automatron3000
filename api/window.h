@@ -39,7 +39,9 @@ public:
 		return nullptr;
 	}
 
+	virtual Widget* find(const QString& uuid) const = 0;
 
+	virtual bool toggleWindow(const QString& title) = 0;
 
 public slots:
 

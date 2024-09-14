@@ -107,7 +107,7 @@ void Widget::nameChanged(const QString& name) {
 }
 
 LoaderPrivate::LoaderPrivate(const QString& name, Plugin::Type type, const QString& version,
-	const QString& author, const QString& description, const QStringList& depends, bool multiple)
+	const QString& author, const QString& description, const QStringList& depends, bool multiple, qint32 weight)
 	: m_name(name)
 	, m_type(type)
 	, m_version(version)
@@ -115,12 +115,13 @@ LoaderPrivate::LoaderPrivate(const QString& name, Plugin::Type type, const QStri
 	, m_description(description)
 	, m_depends(depends)
 	, m_enabled(true)
-	, m_multiple(multiple){
+	, m_multiple(multiple)
+	, m_weight(weight){
 }
 
 Loader::Loader(const QString& name, Plugin::Type type, const QString& version,
-	const QString& author, const QString& description, const QStringList& depends, bool multiple)
-	: m_d(name, type, version, author, description, depends, multiple){
+	const QString& author, const QString& description, const QStringList& depends, bool multiple, qint32 weight)
+	: m_d(name, type, version, author, description, depends, multiple, weight){
 	}
 
 QString Loader::name() const {	
@@ -157,6 +158,10 @@ void Loader::setEnabled(bool enabled) {
 
 bool Loader::multipleInstances() const {
 	return m_d.m_multiple;
+}
+
+qint32 Loader::weight() const {
+	return m_d.m_weight;
 }
 
 ModuleLoaderContext::ModuleLoaderContext() {

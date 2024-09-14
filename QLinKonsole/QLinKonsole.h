@@ -22,6 +22,8 @@ public:
 
     void processCommand(const QString& commands);
 
+    SettingsMdi* settingsWindow() const override;
+
 public slots:
     void settingsChanged();
 

@@ -29,6 +29,10 @@ LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
     }
 }
 
+SettingsMdi* LogViewer::settingsWindow() const {
+    return nullptr;
+}
+
 void LogViewer::settingsChanged(){
 
 }
@@ -114,5 +118,6 @@ REGISTER_STATIC_PLUGIN(
     LogViewer_unregister, 
     LogViewerMenu,
     {},
-    false
+    false,
+    1400
 )

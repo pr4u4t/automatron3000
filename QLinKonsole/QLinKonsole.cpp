@@ -49,9 +49,12 @@ static bool QLinKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, 
     
     QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
         QSharedPointer<Plugin> konsole = ld->instance("QLinKonsole", gtx->m_win);
+        if (gtx->m_win->toggleWindow(dynamic_cast<const QLinKonsole*>(konsole.data())->objectName() + "/Settings")) {
+            return;
+        }
         SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, konsole->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, konsole.dynamicCast<QLinKonsole>().data(), &QLinKonsole::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "LinKonsole/Settings"));
+        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinKonsole*>(konsole.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinKonsole/Settings"));
     });
 
 	return true;
@@ -72,7 +75,8 @@ REGISTER_PLUGIN(
 	QLinKonsole_unregister,
     QLinKonsoleMenu,
     {"QLin"},
-    false
+    false,
+    800
 )
 
 QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
@@ -92,6 +96,12 @@ QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, co
     m_lin = io.dynamicCast<IODevice>();
 
     QTimer::singleShot(0, this, &QLinKonsole::init);
+}
+
+SettingsMdi* QLinKonsole::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinKonsole::settingsChanged);
+    return ret;
 }
 
 void QLinKonsole::init() {

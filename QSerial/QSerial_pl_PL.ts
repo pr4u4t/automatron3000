@@ -19,9 +19,9 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="66"/>
-        <source>Serial Port-Settings</source>
-        <translation>Port szeregowy - Ustawienia</translation>
+        <source>QSerial/Settings</source>
+        <oldsource>Serial Port-Settings</oldsource>
+        <translation type="obsolete">Port szeregowy - Ustawienia</translation>
     </message>
     <message>
         <location filename="QSerial.cpp" line="24"/>
@@ -41,12 +41,12 @@
         <translation type="vanished">Błąd otwarcia portu szeregowego</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="142"/>
+        <location filename="QSerial.cpp" line="148"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="142"/>
+        <location filename="QSerial.cpp" line="148"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>

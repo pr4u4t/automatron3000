@@ -50,19 +50,22 @@ static bool QBadge_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QBadg
     }
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
-    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin){
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
         if (plugin->name() != "QBadge") {
             return;
         }
-        
+
         QAction* settings = new QAction(plugin->settingsPath(), ctx->m_badgesMenu);
         settings->setData(QVariant(plugin->settingsPath()));
         ctx->m_settings->addAction(settings);
 
         QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
+            if (gtx->m_win->toggleWindow(dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings")) {
+                return;
+            }
             SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
             QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QBadge*>(plugin), &QBadge::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings"); // ctx->m_app->translate("MainWindow", dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings"));
         });
     });
 
@@ -84,7 +87,8 @@ REGISTER_PLUGIN(
     QBadge_unregister,
     QBadgeMenu,
     {},
-    true
+    true,
+    100
 )
 
 QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath)
@@ -130,4 +134,10 @@ void QBadge::settingsChanged() {
     if (settings<SettingsDialog::BadgeSettings>()->imagePath.isEmpty() == false && pix.load(settings<SettingsDialog::BadgeSettings>()->imagePath)) {
         m_ui->image->setPixmap(pix);
     }
+}
+
+SettingsMdi* QBadge::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QBadge::settingsChanged);
+    return ret;
 }

@@ -64,9 +64,14 @@ static bool QData_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QDataM
 
     QObject::connect(ctx->m_dbSettings, &QAction::triggered, [ld, gtx, ctx] {
         QSharedPointer<Plugin> data = ld->instance("QData", gtx->m_win);
+
+        if (gtx->m_win->toggleWindow(dynamic_cast<const QData*>(data.data())->objectName() + "/Settings")) {
+            return;
+        }
+
         SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, data->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, data.dynamicCast<QData>().data(), &QData::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QData*>(data.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "Database-Settings"));
     });
 
 	return true;
@@ -87,7 +92,8 @@ REGISTER_PLUGIN(
 	QData_unregister,
     QDataMenu,
     {"QSerial"},
-    true
+    true,
+    300
 )
 
 QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
@@ -123,6 +129,12 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
 
     settingsChanged();
     QTimer::singleShot(0, this, &QData::timeout);
+}
+
+SettingsMdi* QData::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QData::settingsChanged);
+    return ret;
 }
 
 void QData::timeout() {

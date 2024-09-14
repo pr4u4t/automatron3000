@@ -8,6 +8,8 @@
 #include "../api/api.h"
 #include "../core/core.h"
 
+class MainWindow;
+
 class Instances : public Widget {
 
 	Q_OBJECT
@@ -27,6 +29,8 @@ public:
 
 	void settingsChanged();
 
+	SettingsMdi* settingsWindow() const override;
+
 public slots:
 
 	void loaded(const Plugin* plugin);
@@ -34,6 +38,16 @@ public slots:
 protected slots:
 
 	void activated(const QModelIndex& index);
+
+	void customMenuRequested(QPoint point);
+
+	void settingsRequested();
+
+	void deletRequested();
+
+protected:
+
+	MainWindow* mainWindow() const;
 
 private:
 

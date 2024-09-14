@@ -54,6 +54,8 @@ public:
         return true;
     }
 
+    SettingsMdi* settingsWindow() const override;
+
     /*!
       \brief Destructor
       \param none

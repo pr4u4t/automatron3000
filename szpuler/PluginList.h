@@ -24,6 +24,8 @@ public:
 		return true;
 	}
 
+	SettingsMdi* settingsWindow() const override;
+
 public slots:
 
 	void settingsChanged();

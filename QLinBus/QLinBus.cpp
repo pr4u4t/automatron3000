@@ -51,9 +51,12 @@ static bool QLinBus_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLin
 
     QObject::connect(ctx->m_linbusSettings, &QAction::triggered, [ld, gtx, ctx] {
         QSharedPointer<Plugin> linbus = ld->instance("QLinBus", gtx->m_win);
+        if (gtx->m_win->toggleWindow(dynamic_cast<const QLinBus*>(linbus.data())->objectName() + "/Settings")) {
+            return;
+        }
         SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, linbus->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, linbus.dynamicCast<QLinBus>().data(), &QLinBus::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Linbus-Settings"));
+        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinBus*>(linbus.data())->objectName() + "/Settings");  //ctx->m_app->translate("MainWindow", "Linbus-Settings"));
     });
 
     return true;
@@ -73,7 +76,8 @@ REGISTER_PLUGIN(
     QLinBus_unregister,
     QLinBusMenu,
     {"QLin"},
-    true
+    true,
+    700
 )
 
 QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
@@ -110,6 +114,12 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
     m_ui->scanTable->setModel(m_model);
 
     connect(&m_timer, &QTimer::timeout, this, &QLinBus::scanStep);
+}
+
+SettingsMdi* QLinBus::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinBus::settingsChanged);
+    return ret;
 }
 
 void QLinBus::settingsChanged() {

@@ -68,9 +68,13 @@ static bool QLinReadByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
         ctx->m_settings->addAction(settings);
 
         QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
+            if (gtx->m_win->toggleWindow(dynamic_cast<const QLinReadByID*>(plugin)->objectName() + "/Settings")) {
+                return;
+            }
+
             SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
             QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QLinReadByID*>(plugin), &QLinReadByID::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinReadByID*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinReadByID/Settings"));
             });
         });
         
@@ -93,9 +97,9 @@ REGISTER_PLUGIN(
     QLinReadByID_unregister,
     QLinReadByIDMenu,
     {"QLin"},
-    true
+    true,
+    900
 )
-
 
 QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
     : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath))
@@ -103,6 +107,12 @@ QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
     m_ui->setupUi(this);
     settingsChanged();
     QObject::connect(m_ui->pushButton, &QPushButton::clicked, this, &QLinReadByID::readById);
+}
+
+SettingsMdi* QLinReadByID::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinReadByID::settingsChanged);
+    return ret;
 }
 
 QLinReadByID::~QLinReadByID() {

@@ -20,6 +20,7 @@
 
 class Loader;
 class PluginsLoader;
+class SettingsMdi;
 
 struct API_EXPORT PluginSettings {
 
@@ -87,6 +88,8 @@ public:
 	QString settingsPath() const;
 
 	bool multipleInstances() const;
+
+	virtual SettingsMdi* settingsWindow() const = 0;
 
 protected:
 
@@ -173,7 +176,7 @@ struct API_EXPORT ModuleLoaderContext {
 struct LoaderPrivate {
 
 	LoaderPrivate(const QString& name, Plugin::Type type, const QString& version,
-		const QString& author, const QString& description, const QStringList& depends = QStringList(), bool multiple = false);
+		const QString& author, const QString& description, const QStringList& depends = QStringList(), bool multiple = false, qint32 weight = 100);
 
 	QString m_name;
 	Plugin::Type m_type;
@@ -183,13 +186,14 @@ struct LoaderPrivate {
 	QStringList m_depends;
 	bool m_enabled;
 	bool m_multiple;
+	qint32 m_weight;
 };
 
 class API_EXPORT Loader {
 
 public:
 	Loader(const QString& name, Plugin::Type type, const QString& version,
-		const QString& author, const QString& description, const QStringList& depends = QStringList(), bool multiple = false);
+		const QString& author, const QString& description, const QStringList& depends = QStringList(), bool multiple = false, qint32 weight = 100);
 
 	QString name() const;
 
@@ -216,6 +220,8 @@ public:
 	virtual ~Loader() = default;
 
 	void setEnabled(bool enabled);
+
+	qint32 weight() const;
 
 private:
 
@@ -244,8 +250,8 @@ class PluginLoader : public Loader {
 
 public:
 	PluginLoader(const QString& name, Plugin::Type type, const QString& version, const QString& author, const QString& description,
-		RegHandler reg, RegHandler unreg, const QStringList& depends, bool multiple)
-		: Loader(name, type, version, author, description, depends, multiple)
+		RegHandler reg, RegHandler unreg, const QStringList& depends, bool multiple, qint32 weight)
+		: Loader(name, type, version, author, description, depends, multiple, weight)
 		, m_d(reg, unreg, D(QCoreApplication::instance())) {
 	}
 
@@ -293,14 +299,16 @@ public:
 
 	virtual auto find(const QString& uuid) const -> PluginType = 0;
 
+	virtual void deleteInstance(const QString& uuid) = 0;
+
 	virtual ~PluginsLoader() = default;
 
 signals:
 	void loaded(const Plugin* plugin);
 };
 
-#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple) \
-extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends, multiple); }
+#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight) \
+extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); }
 
 class API_EXPORT Settings {
 

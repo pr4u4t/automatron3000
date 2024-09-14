@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     ld.loadPlugins();
 
     Session session(&ld, &log, "configuration.ini", &mainWin);
-    
+    QObject::connect(&mainWin, &MainWindow::sessionStore, &session, &Session::store);
     Tray tray(&mainWin);
 
     mainWin.setPlugins(&ld);

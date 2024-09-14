@@ -54,7 +54,8 @@ REGISTER_STATIC_PLUGIN(
     Instances_unregister,
     InstancesMenu,
     {},
-    false
+    false,
+    1300
 )
 
 Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
@@ -95,6 +96,9 @@ Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
 	lay->addWidget(m_view);
 
     QObject::connect(m_view, &QTableView::activated, this, &Instances::activated);
+    m_view->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_view, SIGNAL(customContextMenuRequested(QPoint)),
+        SLOT(customMenuRequested(QPoint)));
 }
 
 bool Instances::saveSettings() {
@@ -102,6 +106,10 @@ bool Instances::saveSettings() {
 }
 
 void Instances::settingsChanged() {
+}
+
+SettingsMdi* Instances::settingsWindow() const {
+    return nullptr; //new SettingsDialog(nullptr, nullptr, settingsPath());
 }
 
 void Instances::loaded(const Plugin* plugin) {
@@ -129,4 +137,65 @@ void Instances::activated(const QModelIndex& index) {
     auto p = mld->find(uuid);
     widget = dynamic_cast<Widget*>(p.data());
     win->addSubWindow(widget);
+}
+
+void Instances::customMenuRequested(QPoint point) {
+    QMenu menu;
+    menu.addAction(tr("Close"), this, &Instances::deletRequested);
+    menu.addSeparator();
+    menu.addAction(tr("Settings"), this, &Instances::settingsRequested);
+    menu.exec(m_view->mapToGlobal(point));
+}
+
+MainWindow* Instances::mainWindow() const {
+    const QWidgetList& list = QApplication::topLevelWidgets();
+
+    for (QWidget* w : list) {
+        MainWindow* mainWindow = qobject_cast<MainWindow*>(w);
+        if (mainWindow) {
+            return mainWindow;
+        }
+    }
+
+    return nullptr;
+}
+
+void Instances::settingsRequested() {
+    QItemSelectionModel* selected = m_view->selectionModel();
+
+    if (selected->hasSelection() != true) {
+        return;
+    }
+
+    QModelIndexList list = selected->selectedRows();
+
+    if (list.size() != 1) {
+        return;
+    }
+    
+    MainWindow* win = mainWindow();
+
+    if (win == nullptr) {
+        return;
+    }
+
+    const QString name = list[0].siblingAtColumn(Columns::NAME).data().toString();
+    const QString uuid = list[0].siblingAtColumn(Columns::UUID).data().toString();
+    auto plugin = plugins()->find(uuid);
+    
+    if (plugin.isNull() == true) {
+        return;
+    }
+
+    SettingsMdi* dialog = plugin->settingsWindow();
+
+    if (dialog == nullptr) {
+        return;
+    }
+
+    win->addSubWindow(dialog, name+"/Settings");
+}
+
+void Instances::deletRequested() {
+
 }

@@ -61,9 +61,14 @@ static bool QSerial_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QSer
 	
 	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
 		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
+
+		if (gtx->m_win->toggleWindow(dynamic_cast<const QSerial*>(serial.data())->objectName() + "/Settings")) {
+			return;
+		}
+
 		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, serial->settingsPath());
 		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QSerial>().data(), &QSerial::settingsChanged);
-		gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Serial Port-Settings"));
+		gtx->m_win->addSubWindow(dialog, dynamic_cast<const QSerial*>(serial.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QSerial/Settings"));
 	});
 	
 	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, gtx, ctx, log] {
@@ -119,7 +124,8 @@ REGISTER_PLUGIN(
 	QSerial_unregister,
 	QSerialMenu,
 	{},
-	true
+	true,
+	500
 )
 
 QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
@@ -141,6 +147,12 @@ QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QStr
 	if (settings<SettingsDialog::SerialSettings>()->autoConnect) {
 		emit message(QString("QSerial::QSerial serial port open: %1").arg(open(QString()) ? tr("Success") : tr("Failed")));
 	}
+}
+
+SettingsMdi* QSerial::settingsWindow() const {
+	auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+	QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QSerial::settingsChanged);
+	return ret;
 }
 
 bool QSerial::open(const QString& url) {

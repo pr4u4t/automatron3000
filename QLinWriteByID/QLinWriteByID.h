@@ -35,6 +35,8 @@ public:
 
     ~QLinWriteByID();
 
+    SettingsMdi* settingsWindow() const override;
+
 public slots:
     void settingsChanged();
 

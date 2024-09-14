@@ -46,6 +46,8 @@ public:
         return true;
     }
 
+    SettingsMdi* settingsWindow() const override;
+
 protected:
 
     int findByPart(QSqlTableModel* model, const QString& part);

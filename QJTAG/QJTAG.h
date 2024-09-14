@@ -29,6 +29,8 @@ public:
     */
     ~QJTAG();
 
+    SettingsMdi* settingsWindow() const;
+
 public slots:
 
     void settingsChanged();

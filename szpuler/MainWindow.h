@@ -96,6 +96,8 @@ public:
 
     Widget* find(const QString& uuid) const;
 
+    bool toggleWindow(const QString& title);
+
 protected:
 
     QByteArray state() const;
@@ -112,6 +114,8 @@ signals:
 
     void aboutToQuit();
 
+    void sessionStore();
+
 public slots:
 
     void createOrActivate() override;
@@ -127,6 +131,8 @@ private slots:
     void about();
 
     void switchLayoutDirection();
+
+    void subWindowClosed(QObject* ptr = nullptr);
 
 private:
 

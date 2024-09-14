@@ -54,7 +54,8 @@ REGISTER_STATIC_PLUGIN(
 	PluginList_unregister,
 	PluginListMenu,
 	{},
-	false
+	false,
+	1500
 )
 
 PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
@@ -96,4 +97,8 @@ PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
 }
 
 void PluginList::settingsChanged() {
+}
+
+SettingsMdi* PluginList::settingsWindow() const {
+	return nullptr; // new SettingsDialog(nullptr, nullptr, settingsPath());
 }

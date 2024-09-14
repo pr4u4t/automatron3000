@@ -47,9 +47,12 @@ static bool QKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QKo
     
     QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
         QSharedPointer<Plugin> konsole = ld->instance("QKonsole", gtx->m_win);
+        if (gtx->m_win->toggleWindow(dynamic_cast<const QKonsole*>(konsole.data())->objectName() + "/Settings")) {
+            return;
+        }
         SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, konsole->settingsPath());
         QObject::connect(dialog, &SettingsDialog::settingsUpdated, konsole.dynamicCast<QKonsole>().data(), &QKonsole::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Konsole-Settings"));
+        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QKonsole*>(konsole.data())->objectName() + "/Settings");//ctx->m_app->translate("MainWindow", "Konsole-Settings"));
     });
 
 	return true;
@@ -69,7 +72,8 @@ REGISTER_PLUGIN(
 	QKonsole_unregister,
     QKonsoleMenu,
     {"QSerial"},
-    true
+    true,
+    1200
 )
 
 QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
@@ -86,6 +90,12 @@ QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     auto io = plugins->instance("QSerial", nullptr);
     QObject::connect(dynamic_cast<IODevice*>(io.data()), &IODevice::dataReady, this, &QKonsole::putData);
     m_serial = io.dynamicCast<IODevice>();
+}
+
+SettingsMdi* QKonsole::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QKonsole::settingsChanged);
+    return ret;
 }
 
 void QKonsole::putData(const QByteArray& data) {

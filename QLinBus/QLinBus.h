@@ -32,6 +32,8 @@ class QLINBUS_EXPORT QLinBus : public Widget {
 public:
     QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
+    SettingsMdi* settingsWindow() const override;
+
 public slots:
     void settingsChanged();
 

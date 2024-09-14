@@ -14,6 +14,8 @@ public:
     
     LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
 
+    SettingsMdi* settingsWindow() const override;
+
 public slots:
     void settingsChanged();
     

@@ -8,6 +8,7 @@
 class MainWindow;
 
 class Session : public QObject {
+    
     Q_OBJECT
 
 public:

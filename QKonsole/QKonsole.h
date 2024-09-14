@@ -20,6 +20,8 @@ signals:
 public:
     QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
+    SettingsMdi* settingsWindow() const override;
+
 public slots:
     void settingsChanged();
 

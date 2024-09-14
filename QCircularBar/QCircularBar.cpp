@@ -74,7 +74,8 @@ REGISTER_PLUGIN(
     QCircularBar_unregister,
     QCircularBarMenu,
     {},
-    true
+    true,
+    200
 )
 
 QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
@@ -114,6 +115,10 @@ QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
 
 QCircularBar::~QCircularBar() {
     delete m_lcd;
+}
+
+SettingsMdi* QCircularBar::settingsWindow() const {
+    return nullptr; //new SettingsDialog(nullptr, nullptr, settingsPath());
 }
 
 int QCircularBar::digits(int val) {

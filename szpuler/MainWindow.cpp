@@ -4,6 +4,7 @@
 #include <QtWidgets>
 #include <QWebEngineView>
 #include <QRegularExpression>
+#include <QVariant>
 
 #include "logviewer.h"
 #include "Instances.h"
@@ -79,6 +80,10 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
 
 MainWindow::~MainWindow() {
     m_logger->message("MainWindow::~MainWindow", LoggerSeverity::LOG_DEBUG);
+    QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
+    for (auto it : map) {
+        disconnect(it, &ads::CDockWidget::destroyed, this, &MainWindow::subWindowClosed);
+    }
 }
 
 MLoader* MainWindow::plugins() {
@@ -222,10 +227,27 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
     //if (child->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
     //    connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));
     //}
-
+    connect(child, &ads::CDockWidget::destroyed, this, &MainWindow::subWindowClosed);
     connect(widget, &QObject::destroyed, child, &ads::CDockWidget::close);
-
+    QAction* tmp = m_windowMenu->addAction(title, this, [child]() {
+        child->toggleView();
+    });
+    tmp->setData(QVariant::fromValue(child));
     return child;
+}
+
+void MainWindow::subWindowClosed(QObject* ptr) {
+    const QString name = ptr->objectName();
+    QList<QAction*> actions = m_windowMenu->actions();
+
+    for (auto act : actions) {
+        const QVariant var = act->data();
+        const ads::CDockWidget* child = var.value<ads::CDockWidget*>();
+        
+        if (child->objectName() == name) {
+            m_windowMenu->removeAction(act);
+        }
+    }
 }
 
 std::optional<QString> MainWindow::windowTitleByInstance(const Widget* instance) const {
@@ -295,6 +317,8 @@ void MainWindow::createActions(){
     }
 
     if (fileMenu) {
+        fileMenu->addAction(tr("Save session"), this, &MainWindow::sessionStore);
+
         fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
         fileMenu->addSeparator();
 
@@ -305,11 +329,15 @@ void MainWindow::createActions(){
         fileMenu->addAction(exitAct);
     }
 
+    m_windowMenu = menuBar()->addMenu(tr("&Window"));
+
     QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
     //QAction* pluginsList = new QAction(tr("Plugins"), this);
     //pluginsList->setData(QVariant("PluginsList"));
     //connect(pluginsList, &QAction::triggered, this, &MainWindow::createOrActivatePlugins);
     //settingsMenu->addAction(pluginsList);
+
+
 
     QAction* preferences = new QAction(tr("Preferences"), this);
     //instances->setData(QVariant("Instances"));
@@ -327,6 +355,18 @@ void MainWindow::createActions(){
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
 }
 
+bool MainWindow::toggleWindow(const QString& title) {
+    QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
+    for (auto it = map.cbegin(), end = map.cend(); it != end; ++it) {
+        if (it.value()->objectName() == title) {
+            it.value()->toggleView();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void MainWindow::createPreferences() {
     m_logger->message(QString("MainWindow::createPreferences()"));
 
@@ -342,43 +382,6 @@ void MainWindow::createPreferences() {
     m_logger->message("creating new instance: Preferences");
     //createWindowByName(name);
 }
-
-/*
-void MainWindow::createOrActivatePlugins() {
-    ads::CDockWidget* win;
-    m_logger->message("MainWindow::createOrActivatePlugins()", LoggerSeverity::LOG_DEBUG);
-
-    if ((win = findChildWindow(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
-        m_logger->message("MainWindow::createOrActivatePlugins: activating plugins subwindow", LoggerSeverity::LOG_DEBUG);
-        m_dockManager->addDockWidget(ads::CenterDockWidgetArea, win, m_area);
-        return;
-    }
-
-    MdiChild *child = new PluginList(m_dockManager, this, plugins());
-    addSubWindow(child, "Plugins");
-}
-*/
-
-/*
-void MainWindow::createOrActivateInstances() {
-    ads::CDockWidget* win = nullptr;
-    m_logger->message("MainWindow::createOrActivateInstances()");
-
-    if ((win = findChildWindow(qobject_cast<QAction*>(QObject::sender())->data().toString()))) {
-        m_logger->message("MainWindow::createOrActivateInstances: activating subwindow");
-        m_dockManager->addDockWidget(ads::CenterDockWidgetArea, win, m_area);
-        return;
-    }
-
-    MdiChild* child = new Instances(m_dockManager, this, plugins());
-    if (child == nullptr) {
-        m_logger->message("MainWindow::createOrActivateInstances: failed to create instance");
-        return;
-    }
-
-    addSubWindow(child, "Instances");
-}
-*/
 
 void MainWindow::setPlugins(MLoader* loader) {
     m_plugins = loader;
@@ -408,8 +411,8 @@ void MainWindow::writeSettings(){
 
 ads::CDockWidget* MainWindow::findChildWindow(const QString& name) const {
     m_logger->message(QString("MainWindow::findMdiChild(%1)").arg(name));
-    
-    //ads::CDockWidget* ret = m_dockManager->findDockWidget(name);
+    //TODO: check this
+   
     ads::CDockWidget* ret = nullptr;
 
     QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();

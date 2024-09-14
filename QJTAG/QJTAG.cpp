@@ -60,9 +60,12 @@ static bool QJTAG_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QJTAGM
         ctx->m_settings->addAction(settings);
 
         QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
+            if (gtx->m_win->toggleWindow(dynamic_cast<const QJTAG*>(plugin)->objectName() + "/Settings")) {
+                return;
+            }
             SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
             QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QJTAG*>(plugin), &QJTAG::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "QJTAG-Settings"));
+            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QJTAG*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QJTAG-Settings"));
         });
     });
 
@@ -84,7 +87,8 @@ REGISTER_PLUGIN(
     QJTAG_unregister,
     QJTAGMenu,
     {},
-    true
+    true,
+    400
 )
 
 QJTAG::QJTAG(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath) 
@@ -107,4 +111,10 @@ void QJTAG::settingsChanged() {
 
     m_ui->execButton->setText(settings<SettingsDialog::QJTAGSettings>()->buttonLabel);
     m_ui->title->setText(settings<SettingsDialog::QJTAGSettings>()->title);
+}
+
+SettingsMdi* QJTAG::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QJTAG::settingsChanged);
+    return ret;
 }

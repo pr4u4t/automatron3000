@@ -32,6 +32,8 @@ public:
 
 	bool flush();
 
+	SettingsMdi* settingsWindow() const override;
+
 public slots:
 
 	void settingsChanged();

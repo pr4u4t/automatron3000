@@ -68,9 +68,12 @@ static bool QLinWriteByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld
         ctx->m_settings->addAction(settings);
 
         QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
+            if (gtx->m_win->toggleWindow(dynamic_cast<const QLinWriteByID*>(plugin)->objectName() + "/Settings")) {
+                return;
+            }
             SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
             QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QLinWriteByID*>(plugin), &QLinWriteByID::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinWriteByID*>(plugin)->objectName() + "/Settings");  //ctx->m_app->translate("MainWindow", "QLinWriteByID/Settings"));
             });
         });
 
@@ -93,7 +96,8 @@ REGISTER_PLUGIN(
     QLinWriteByID_unregister,
     QLinWriteByIDMenu,
     { "QLin" },
-    true
+    true,
+    1100
 )
 
 
@@ -105,6 +109,12 @@ QLinWriteByID::QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent
 }
 
 QLinWriteByID::~QLinWriteByID() {
+}
+
+SettingsMdi* QLinWriteByID::settingsWindow() const {
+   auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+   QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinWriteByID::settingsChanged);
+   return ret;
 }
 
 void QLinWriteByID::dataReady(const QByteArray& data) {
