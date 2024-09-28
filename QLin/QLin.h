@@ -31,6 +31,8 @@ public:
 
 	SettingsMdi* settingsWindow() const override;
 
+	Q_INVOKABLE int slaveID() const;
+
 public slots:
 
 	void settingsChanged();

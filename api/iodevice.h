@@ -37,6 +37,8 @@ signals:
 	void closed();
 
 	void dataReady(const QByteArray& data);
+
+	void error(const QByteArray& data);
 };
 
 #endif

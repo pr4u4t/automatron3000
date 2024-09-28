@@ -36,6 +36,8 @@ public:
     QSpinBox *tries;
     QLabel *label_4;
     QLineEdit *title;
+    QLabel *label_5;
+    QLineEdit *dataSource;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -92,6 +94,16 @@ public:
 
         formLayout->setWidget(5, QFormLayout::FieldRole, title);
 
+        label_5 = new QLabel(SettingsDialog);
+        label_5->setObjectName("label_5");
+
+        formLayout->setWidget(6, QFormLayout::LabelRole, label_5);
+
+        dataSource = new QLineEdit(SettingsDialog);
+        dataSource->setObjectName("dataSource");
+
+        formLayout->setWidget(6, QFormLayout::FieldRole, dataSource);
+
 
         verticalLayout->addLayout(formLayout);
 
@@ -136,6 +148,7 @@ public:
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Interval [ms]", nullptr));
         label_3->setText(QCoreApplication::translate("SettingsDialog", "Tries", nullptr));
         label_4->setText(QCoreApplication::translate("SettingsDialog", "Title", nullptr));
+        label_5->setText(QCoreApplication::translate("SettingsDialog", "Data Source", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

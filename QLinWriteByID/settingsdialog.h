@@ -23,21 +23,24 @@ class SettingsDialog : public SettingsMdi {
 public:
 
 
-    static constexpr const char* frameDataKey = "frameData";
-    static constexpr const char* intervalKey = "Interval";
-    static constexpr const char* triesKey = "tries";
-    static constexpr const char* titleKey = "title";
+    static constexpr const char* const frameDataKey = "frameData";
+    static constexpr const char* const intervalKey = "Interval";
+    static constexpr const char* const triesKey = "tries";
+    static constexpr const char* const titleKey = "title";
+    static constexpr const char* const dataSourceKey = "dataSource";
 
-    static constexpr const char* frameDataValue = "0x6522f18c";
+    static constexpr const char* const frameDataValue = "0x6522f18c";
     static constexpr const qint64 intervalValue = 0;
     static constexpr const uint8_t triesValue = 3;
-    static constexpr const char* titleValue = "Write By Identifier";
+    static constexpr const char* const titleValue = "Write By Identifier";
+    static constexpr const char* const dataSourceValue = "";
 
     struct LinWriteByIDSettings : public PluginSettings {
         LinWriteByIDSettings()
             : frameData(frameDataValue)
             , interval(intervalValue)
-            , tries(triesValue) {
+            , tries(triesValue)
+            , dataSource(dataSourceValue){
         }
 
         LinWriteByIDSettings(const QSettings& settings, const QString& settingsPath)
@@ -45,7 +48,8 @@ public:
             , frameData(settings.value(settingsPath + "/" + frameDataKey, frameDataValue).toByteArray())
             , interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
             , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
-            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString()) {
+            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
+            , dataSource(settings.value(settingsPath + "/" + dataSourceKey, dataSourceValue).toString()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -53,6 +57,7 @@ public:
             settings.setValue(settingsPath + "/" + intervalKey, interval);
             settings.setValue(settingsPath + "/" + triesKey, tries);
             settings.setValue(settingsPath + "/" + titleKey, title);
+            settings.setValue(settingsPath + "/" + dataSourceKey, dataSource);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -61,6 +66,7 @@ public:
         qint64 interval;
         uint8_t tries;
         QString title;
+        QString dataSource;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

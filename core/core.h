@@ -91,6 +91,16 @@ public:
 		return nullptr;
 	}
 
+	auto findByObjectName(const QString& name) const -> PluginType {
+		for (QMultiHash<QString, PluginType>::const_iterator i = m_instances.begin(); i != m_instances.end(); ++i) {
+			if (dynamic_cast<QObject*>(i->data())->objectName() == name) {
+				return i.value();
+			}
+		}
+
+		return nullptr;
+	}
+
 	const QList<const T*> loaders() const {
 		QList<const T*> ret;
 
@@ -246,6 +256,10 @@ public:
 	}
 
 protected:
+
+	QString findUnusedPath() const {
+		return QString();
+	}
 
 	PluginType hasInstanceInternal(const QString& name, const QString& settingsPath) const {
 		if (settingsPath.isEmpty()) {

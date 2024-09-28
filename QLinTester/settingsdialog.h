@@ -23,51 +23,45 @@ class SettingsDialog : public SettingsMdi {
 public:
 
 
-    static constexpr const char* scanStartIDKey = "scanStartID";
-    static constexpr const char* scanStopIDKey = "scanStopID";
-    static constexpr const char* scanIntervalKey = "scanInterval";
-    static constexpr const char* colorsKey = "enableColors";
+    static constexpr const char* testStartIDKey = "testStartID";
+    static constexpr const char* testStopIDKey = "testStopID";
+    static constexpr const char* testIntervalKey = "testInterval";
     static constexpr const char* triesKey = "tries";
 
-    static constexpr const uint8_t scanStartIDValue = 0;
-    static constexpr const uint8_t scanStopIDValue = 63;
-    static constexpr const qint64 scanIntervalValue = 0;
-    static constexpr const bool colorsValue = true;
+    static constexpr const uint8_t testStartIDValue = 0;
+    static constexpr const uint8_t testStopIDValue = 63;
+    static constexpr const qint64 testIntervalValue = 0;
     static constexpr const uint8_t triesValue = 3;
 
     struct LinTesterSettings : public PluginSettings {
         LinTesterSettings()
-            : scanStartID(scanStartIDValue)
-            , scanStopID(scanStopIDValue)
-            , scanInterval(scanIntervalValue)
-            , enableColors(colorsValue)
+            : testStartID(testStartIDValue)
+            , testStopID(testStopIDValue)
+            , testInterval(testIntervalValue)
             , tries(triesValue){
         }
 
         LinTesterSettings(const QSettings& settings, const QString& settingsPath)
             : PluginSettings(settings, settingsPath)
-            , scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
-            , scanStopID(settings.value(settingsPath + "/" + scanStopIDKey, scanStopIDValue).toUInt())
-            , scanInterval(settings.value(settingsPath + "/" + scanIntervalKey, scanIntervalValue).toInt())
-            , enableColors(settings.value(settingsPath + "/" + colorsKey, colorsValue).toString() == "true" ? true : false)
-            , tries(settings.value(settingsPath + "/" + colorsKey, colorsValue).toUInt()){
+            , testStartID(settings.value(settingsPath + "/" + testStartIDKey, testStartIDValue).toUInt())
+            , testStopID(settings.value(settingsPath + "/" + testStopIDKey, testStopIDValue).toUInt())
+            , testInterval(settings.value(settingsPath + "/" + testIntervalKey, testIntervalValue).toInt())
+            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt()) {
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + scanStartIDKey, scanStartID);
-            settings.setValue(settingsPath + "/" + scanStopIDKey, scanStopID);
-            settings.setValue(settingsPath + "/" + scanIntervalKey, scanInterval);
-            settings.setValue(settingsPath + "/" + colorsKey, enableColors);
+            settings.setValue(settingsPath + "/" + testStartIDKey, testStartID);
+            settings.setValue(settingsPath + "/" + testStopIDKey, testStopID);
+            settings.setValue(settingsPath + "/" + testIntervalKey, testInterval);
             settings.setValue(settingsPath + "/" + triesKey, tries);
 
             PluginSettings::save(settings, settingsPath);
         }
 
-        uint8_t scanStartID;
-        uint8_t scanStopID;
-        qint64 scanInterval;
-        bool enableColors;
-        uint8_t tries;
+        uint8_t testStartID = 0;
+        uint8_t testStopID = 0;
+        qint64 testInterval = 0;
+        uint8_t tries = 0;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

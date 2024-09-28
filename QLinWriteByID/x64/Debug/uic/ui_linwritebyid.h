@@ -26,6 +26,12 @@ class Ui_QLinWriteByIDUI
 public:
     QVBoxLayout *verticalLayout;
     QLabel *title;
+    QHBoxLayout *horizontalLayout_2;
+    QSpacerItem *horizontalSpacer_3;
+    QLabel *failedLabel;
+    QLabel *progressLabel;
+    QLabel *successLabel;
+    QSpacerItem *horizontalSpacer_4;
     QLineEdit *valueEdit;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -44,6 +50,43 @@ public:
         title->setAlignment(Qt::AlignCenter);
 
         verticalLayout->addWidget(title);
+
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName("horizontalLayout_2");
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_3);
+
+        failedLabel = new QLabel(QLinWriteByIDUI);
+        failedLabel->setObjectName("failedLabel");
+        failedLabel->setEnabled(false);
+        failedLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
+        failedLabel->setAlignment(Qt::AlignCenter);
+
+        horizontalLayout_2->addWidget(failedLabel);
+
+        progressLabel = new QLabel(QLinWriteByIDUI);
+        progressLabel->setObjectName("progressLabel");
+        progressLabel->setEnabled(false);
+        progressLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
+        progressLabel->setAlignment(Qt::AlignCenter);
+
+        horizontalLayout_2->addWidget(progressLabel);
+
+        successLabel = new QLabel(QLinWriteByIDUI);
+        successLabel->setObjectName("successLabel");
+        successLabel->setEnabled(false);
+        successLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
+        successLabel->setAlignment(Qt::AlignCenter);
+
+        horizontalLayout_2->addWidget(successLabel);
+
+        horizontalSpacer_4 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_4);
+
+
+        verticalLayout->addLayout(horizontalLayout_2);
 
         valueEdit = new QLineEdit(QLinWriteByIDUI);
         valueEdit->setObjectName("valueEdit");
@@ -78,6 +121,9 @@ public:
     {
         QLinWriteByIDUI->setWindowTitle(QCoreApplication::translate("QLinWriteByIDUI", "Form", nullptr));
         title->setText(QCoreApplication::translate("QLinWriteByIDUI", "TextLabel", nullptr));
+        failedLabel->setText(QCoreApplication::translate("QLinWriteByIDUI", "FAILED", nullptr));
+        progressLabel->setText(QCoreApplication::translate("QLinWriteByIDUI", "IN PROGRESS", nullptr));
+        successLabel->setText(QCoreApplication::translate("QLinWriteByIDUI", "SUCCESS", nullptr));
         pushButton->setText(QCoreApplication::translate("QLinWriteByIDUI", "Write", nullptr));
     } // retranslateUi
 

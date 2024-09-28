@@ -83,7 +83,12 @@ QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
     , m_ui(new Ui::QLinTesterUI) {
     settingsChanged();
     m_ui->setupUi(this);
+    QTimer::singleShot(0, this, &QLinTester::init);
     connect(m_ui->testButton, &QPushButton::clicked, this, &QLinTester::startTest);
+    connect(m_ui->pushButton, &QPushButton::clicked, this, &QLinTester::testStop);
+    connect(&m_timer, &QTimer::timeout, this, &QLinTester::testStep);
+    m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
 }
 
 void QLinTester::settingsChanged() {
@@ -98,6 +103,13 @@ SettingsMdi* QLinTester::settingsWindow() const {
 }
 
 void QLinTester::dataReady(const QByteArray& data) {
+    emit message("QLinTester::dataReady()");
+
+    if (m_state != QLinTesterState::SCAN) {
+        emit message("QLinTester::dataReady(): not in scan state");
+        return;
+    }
+
     emit message("QLinTester::dataReady(): " + data, LoggerSeverity::LOG_DEBUG);
 
     if (data.startsWith("LIN NOANS")) {
@@ -106,22 +118,12 @@ void QLinTester::dataReady(const QByteArray& data) {
     }
 
     if (data.startsWith("ID")) {
-        QByteArrayList list = data.split(',');
-        for (auto& item : list) {
-            item = item.mid(item.indexOf(':') + 1);
-        }
-        
-        //
+        ++m_responses;
     }
 }
 
 void QLinTester::startTest() {
     emit message("QLinTester::startScan()", LoggerSeverity::LOG_DEBUG);
-
-//TODO:
-    m_ui->passedLabel->setEnabled(true);
-    m_ui->passedLabel->setStyleSheet("QLabel { color : green; }");
-    return;
 
     if (m_lin.isNull() || m_lin->isOpen() == false) {
         emit message("QLinTester::startTest(): failed LIN device not open");
@@ -135,40 +137,95 @@ void QLinTester::startTest() {
         return;
     }
 
+    if (m_try == 0) {
+        QMetaObject::invokeMethod(m_lin.data(), "slaveID", Qt::DirectConnection,
+            Q_RETURN_ARG(int, m_slaveID));
+    }
+
+    auto set = settings<SettingsDialog::LinTesterSettings>();
 
     switch (m_state) {
     case QLinTesterState::STOP:
     case QLinTesterState::INITIAL:
         m_responses = 0;
-        break;
+        m_ui->testProgress->setRange(0, set->tries*(set->testStopID-set->testStartID));
+        m_ui->testProgress->setValue(0);
+        m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+        m_ui->failedLabel->setEnabled(false);
+        m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+        m_ui->passedLabel->setEnabled(false);
+    case QLinTesterState::NEXT_TRY:
     case QLinTesterState::PAUSE:
+        m_state = QLinTesterState::SCAN;
+        m_timer.start();
+        m_ui->testButton->setEnabled(false);
+        m_ui->pushButton->setEnabled(true);
         break;
     }
+}
+
+void QLinTester::linClosed() {
+    m_responses = 0;
+    m_ui->testProgress->setValue(0);
+    m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->failedLabel->setEnabled(false);
+    m_ui->passedLabel->setEnabled(false);
+    m_try = 0;
+    m_state = QLinTesterState::INITIAL;
 }
 
 void QLinTester::testStep() {
     emit message("QLinTester::testStep()");
 
-    if (m_test <= settings<SettingsDialog::LinTesterSettings>()->scanStopID) {
-        QByteArray data(1, static_cast<char>(m_test));
-        m_lin->write(data);
+    auto set = settings<SettingsDialog::LinTesterSettings>();
 
-        m_ui->testProgress->setValue(m_test);
+    if (m_test <= set->testStopID) {
+        if (m_test != m_slaveID) {
+            QByteArray data(1, static_cast<char>(m_test));
+            m_lin->write(data);
+
+            m_ui->testProgress->setValue(m_try * (set->testStopID - set->testStartID)+m_test);
+        }
         ++m_test;
     } else {
         m_state = QLinTesterState::STOP;
-        m_test = settings<SettingsDialog::LinTesterSettings>()->scanStartID;
+        m_test = set->testStartID;
         m_timer.stop();
+        ++m_try;
+        if (m_try < set->tries) {
+            m_state = QLinTesterState::NEXT_TRY;
+            startTest();
+        } else {
+            m_state = QLinTesterState::INITIAL;
+            m_try = 0;
+            if (m_responses > 0) {
+                m_ui->passedLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
+                m_ui->passedLabel->setEnabled(true);
+                m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+                m_ui->failedLabel->setEnabled(false);
+                m_ui->testProgress->setValue(m_ui->testProgress->maximum());
+            } else {
+                m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
+                m_ui->failedLabel->setEnabled(true);
+                m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+                m_ui->passedLabel->setEnabled(false);
+                m_ui->testProgress->setValue(m_ui->testProgress->maximum());
+            }
+            m_ui->testButton->setEnabled(true);
+            m_ui->pushButton->setEnabled(false);
+        }
     }
 }
 
 void QLinTester::testStop() {
     emit message("QLinTester::scanStop()", LoggerSeverity::LOG_DEBUG);
     m_state = QLinTesterState::STOP;
-    m_test = settings<SettingsDialog::LinTesterSettings>()->scanStartID;
+    m_test = settings<SettingsDialog::LinTesterSettings>()->testStartID;
     m_timer.stop();
-    //m_ui->startButton->setEnabled(true);
-    //m_ui->stopButton->setEnabled(false);
+    m_ui->testButton->setEnabled(true);
+    m_ui->pushButton->setEnabled(false);
+    
     //m_ui->pauseButton->setEnabled(false);
 }
 
@@ -181,4 +238,6 @@ void QLinTester::init() {
     if (lin->isOpen() == false) {
         lin->open();
     }
+
+    QObject::connect(lin.data(), &IODevice::closed, this, &QLinTester::linClosed);
 }

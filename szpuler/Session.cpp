@@ -43,6 +43,7 @@ qint64 Session::store() {
             }
         }
 
+        order.removeDuplicates();
         QStringList result;
         auto instances = plugins()->instances();
 
@@ -54,8 +55,6 @@ qint64 Session::store() {
                     } else {
                         result << instance->name() + "-" + instance->uuid();
                     }
-
-                    break;
                 }
             }
         }

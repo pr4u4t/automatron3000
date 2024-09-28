@@ -8,9 +8,24 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     , m_currentSettings(Settings::get(), settingsPath)
     , m_ui(new Ui::SettingsDialog)
     , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_settingsPath(settingsPath)
+    , m_model(new QStandardItemModel(0,2)){
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
+
+    m_model->setHeaderData(0, Qt::Horizontal, tr("Argument"));
+    m_model->setHeaderData(1, Qt::Horizontal, tr("Value"));
+    m_ui->arguments->setShowGrid(true);
+    m_ui->arguments->setAlternatingRowColors(true);
+    m_ui->arguments->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_ui->arguments->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_ui->arguments->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_ui->arguments->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_ui->arguments->setModel(m_model);
+
+    m_ui->arguments->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_ui->arguments, SIGNAL(customContextMenuRequested(QPoint)),
+        SLOT(customMenuRequested(QPoint)));
 
     connect(m_ui->okButton, &QPushButton::clicked,
         this, &SettingsDialog::ok);
@@ -40,8 +55,8 @@ void SettingsDialog::fillFromSettings() {
     m_ui->programPathEdit->setText(m_currentSettings.programPath);
     m_ui->buttonLabelEdit->setText(m_currentSettings.buttonLabel);
     m_ui->titleEdit->setText(m_currentSettings.title);
-    m_ui->argumentsEdit->setPlainText(m_currentSettings.arguments);
-
+    
+    fillModel(m_currentSettings.arguments);
 }
 
 void SettingsDialog::updateSettings() {
@@ -50,7 +65,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.programPath = m_ui->programPathEdit->text();
     m_currentSettings.buttonLabel = m_ui->buttonLabelEdit->text();
     m_currentSettings.title = m_ui->titleEdit->text();
-    m_currentSettings.arguments = m_ui->argumentsEdit->toPlainText();
+    m_currentSettings.arguments = arguments<QJsonArray>(m_model);
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
@@ -93,4 +108,72 @@ void SettingsDialog::apply() {
 void SettingsDialog::cancel() {
     emit message("SettingsDialog::cancel");
     close();
+}
+
+void SettingsDialog::customMenuRequested(QPoint point) {
+    QMenu menu;
+    menu.addAction(tr("Add"), this, &SettingsDialog::addArgument);
+    menu.addAction(tr("Insert Before"), this, &SettingsDialog::insBeforeArgument);
+    menu.addAction(tr("Insert After"), this, &SettingsDialog::insAfterArgument);
+    menu.addSeparator();
+    menu.addAction(tr("Remove"), this, &SettingsDialog::removeArgument);
+    menu.exec(m_ui->arguments->mapToGlobal(point));
+}
+
+void SettingsDialog::insBeforeArgument() {
+    QItemSelectionModel* selected = m_ui->arguments->selectionModel();
+
+    if (selected->hasSelection() != true) {
+        return;
+    }
+
+    QModelIndexList list = selected->selectedRows();
+
+    if (list.size() != 1) {
+        return;
+    }
+
+    QList<QStandardItem*> items;
+    items << new QStandardItem() << new QStandardItem();
+    m_model->insertRow(list[0].row(), items);
+}
+
+void SettingsDialog::insAfterArgument() {
+    QItemSelectionModel* selected = m_ui->arguments->selectionModel();
+
+    if (selected->hasSelection() != true) {
+        return;
+    }
+
+    QModelIndexList list = selected->selectedRows();
+
+    if (list.size() != 1) {
+        return;
+    }
+
+    QList<QStandardItem*> items;
+    items << new QStandardItem() << new QStandardItem();
+    m_model->insertRow(list[0].row()+1, items);
+}
+
+void SettingsDialog::addArgument() {
+    QList<QStandardItem*> items;
+    items << new QStandardItem() << new QStandardItem();
+    m_model->appendRow(items);
+}
+
+void SettingsDialog::removeArgument() {
+    QItemSelectionModel* selected = m_ui->arguments->selectionModel();
+
+    if (selected->hasSelection() != true) {
+        return;
+    }
+
+    QModelIndexList list = selected->selectedRows();
+
+    if (list.size() != 1) {
+        return;
+    }
+
+    m_model->removeRow(list[0].row());
 }

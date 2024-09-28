@@ -47,7 +47,7 @@ void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
     m_currentSettings.imagePath = m_ui->imagePathEdit->text();
-    m_currentSettings.text = m_ui->textEdit->document()->toHtml();
+    m_currentSettings.text = m_ui->textEdit->document()->toMarkdown();
     m_currentSettings.title = m_ui->titleEdit->text();
 
     QSettings s = Settings::get();
@@ -80,10 +80,10 @@ void SettingsDialog::ok() {
 
 void SettingsDialog::apply() {
     emit message("SettingsDialog::apply");
-    if (verifySettings() == false) {
-        emit message("SettingsDialog::ok: failed to verify settings");
-        return;
-    }
+    //if (verifySettings() == false) {
+    //    emit message("SettingsDialog::ok: failed to verify settings");
+    //    return;
+    //}
     updateSettings();
     emit settingsUpdated();
 }

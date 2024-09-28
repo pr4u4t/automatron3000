@@ -81,7 +81,7 @@ REGISTER_PLUGIN(
 )
 
 QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-	: Widget(ld, plugins, parent, path, new SettingsDialog::LinBusSettings(Settings::get(), settingsPath()))
+	: Widget(ld, plugins, parent, path, new SettingsDialog::LinBusSettings(Settings::get(), path))
     , m_ui(new Ui::QLinBusUI)
     , m_model(new QStandardItemModel(0,5))
     , m_state(QLinBusState::INITIAL)
@@ -125,6 +125,7 @@ SettingsMdi* QLinBus::settingsWindow() const {
 void QLinBus::settingsChanged() {
     emit message("QLinBus::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     *(settings<SettingsDialog::LinBusSettings>()) = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
+    m_timer.setInterval(settings<SettingsDialog::LinBusSettings>()->scanInterval);
 }
 
 void QLinBus::init() {
@@ -133,6 +134,7 @@ void QLinBus::init() {
     auto lin = plugin.dynamicCast<IODevice>();
     m_lin = lin;
     connect(lin.data(), &IODevice::dataReady, this, &QLinBus::dataReady);
+    connect(lin.data(), &IODevice::error, this, &QLinBus::errorReady);
     if (lin->isOpen() == false) {
         lin->open();
     }
@@ -154,6 +156,9 @@ void QLinBus::startScan() {
     }
 
 
+    QMetaObject::invokeMethod(m_lin.data(), "slaveID", Qt::DirectConnection,
+        Q_RETURN_ARG(int, m_slaveID));
+
     switch (m_state) {
     case QLinBusState::STOP:
     case QLinBusState::INITIAL:
@@ -172,19 +177,25 @@ void QLinBus::scanStep() {
     emit message("QLinBus::scanStep()");
 
     if (m_scan <= settings<SettingsDialog::LinBusSettings>()->scanStopID) {
-        QByteArray data(1, static_cast<char>(m_scan));
-        m_lin->write(data);
+        if (m_scan != m_slaveID) {
+            QByteArray data(1, static_cast<char>(m_scan));
+            m_lin->write(data);
 
-        QList<QStandardItem*> cells;
-        cells << new QStandardItem("0x" + QString::number(m_scan, 16)) << new QStandardItem("REQUEST") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem("-");
-        if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
-            for (QStandardItem* item : cells) {
-                item->setData(QColor(177, 194, 239), Qt::BackgroundRole);
+            QList<QStandardItem*> cells;
+            QString lid = QString::number(m_scan, 16);
+            if (lid.size() == 1) {
+                lid = "0" + lid;
             }
-        }
-        m_model->appendRow(cells);
+            cells << new QStandardItem("0x" + lid) << new QStandardItem("REQUEST") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem("-");
+            if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
+                for (QStandardItem* item : cells) {
+                    item->setData(QColor(177, 211, 239), Qt::BackgroundRole);
+                }
+            }
+            m_model->appendRow(cells);
 
-        m_ui->scanProgress->setValue(m_scan);
+            m_ui->scanProgress->setValue(m_scan);
+        }
         ++m_scan;
     } else {
         m_state = QLinBusState::STOP;
@@ -194,6 +205,41 @@ void QLinBus::scanStep() {
         m_ui->pauseButton->setEnabled(false);
         m_timer.stop();
     }
+}
+
+void QLinBus::errorReady(const QByteArray& data) {
+    emit message("QLinBus::errorReady()", LoggerSeverity::LOG_DEBUG);
+
+    if (m_sniffEnabled == false && m_state != QLinBusState::SCAN) {
+        emit message("QLinBus::errorReady(): sniffer disabled while data arrived", LoggerSeverity::LOG_DEBUG);
+        return;
+    }
+
+    QList<QStandardItem*> cells;
+    
+    if (data.startsWith("LIN ERROR")) {
+        QByteArrayList list = data.split(',');
+        for (auto& item : list) {
+            item = item.mid(item.indexOf(':') + 1);
+        }
+
+        cells << new QStandardItem("-") << new QStandardItem("ERR") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[0]);
+    } else if (data.startsWith("LIN SYNCERR")) {
+        QByteArrayList list = data.split(',');
+        for (auto& item : list) {
+            item = item.mid(item.indexOf(':') + 1);
+        }
+
+        cells << new QStandardItem("-") << new QStandardItem("SYNCERR") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[0]);
+    }
+
+    if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
+        for (QStandardItem* item : cells) {
+            item->setData(QColor(239, 177, 184), Qt::BackgroundRole);
+        }
+    }
+
+    m_model->appendRow(cells);
 }
 
 void QLinBus::dataReady(const QByteArray& data) {
@@ -210,10 +256,10 @@ void QLinBus::dataReady(const QByteArray& data) {
             item = item.mid(item.indexOf(':') + 1);
         }
         QList<QStandardItem*> cells;
-        cells << new QStandardItem(list[0]) << new QStandardItem("NOANS") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[2]);
+        cells << new QStandardItem(list[0].trimmed()) << new QStandardItem("NOANS") << new QStandardItem("-") << new QStandardItem("-") << new QStandardItem(list[2]);
         if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
             for (QStandardItem* item : cells) {
-                item->setData(QColor(239, 177, 184), Qt::BackgroundRole);
+                item->setData(QColor(239, 228, 184), Qt::BackgroundRole);
             }
         }
         m_model->appendRow(cells);
@@ -222,17 +268,54 @@ void QLinBus::dataReady(const QByteArray& data) {
         for (auto& item : list) {
             item = item.mid(item.indexOf(':') + 1);
         }
+        
         QList<QStandardItem*> cells;
-        cells << new QStandardItem(list[0]) << new QStandardItem("ANS") << new QStandardItem(list[1].removeIf([](QChar ch) { return ch == '\'';  })) << new QStandardItem(list[2]) << new QStandardItem(list[3]);
+        cells   << new QStandardItem(list[0].trimmed()) 
+                << new QStandardItem("ANS") 
+                << new QStandardItem(list[1].removeIf([](QChar ch) { return ch == '\'';  })) 
+                << new QStandardItem(formatData(list[2].trimmed())) 
+                << new QStandardItem(list[3]);
+
+        QFont font("Monospace");
+        font.setStyleHint(QFont::TypeWriter);
+        cells[3]->setFont(font);
+
         if (settings<SettingsDialog::LinBusSettings>()->enableColors == true) {
             for (QStandardItem* item : cells) {
                 item->setData(QColor(177, 239, 188), Qt::BackgroundRole);
             }
         }
         m_model->appendRow(cells);
+    } else if (data.startsWith("LIN WAKEUP")) {
+        QByteArrayList list = data.split(',');
+        for (auto& item : list) {
+            item = item.mid(item.indexOf(':') + 1);
+        }
+
+        emit message("QLinBus::dataReady: WAKEUP");
+    } else if (data.startsWith("LIN SLEEP")) {
+        QByteArrayList list = data.split(',');
+        for (auto& item : list) {
+            item = item.mid(item.indexOf(':') + 1);
+        }
+    
+        emit message("QLinBus::dataReady: SLEEP");
     }
 
     m_ui->scanTable->verticalScrollBar()->setSliderPosition(m_ui->scanTable->verticalScrollBar()->maximum());
+}
+
+QByteArray QLinBus::formatData(const QByteArray& input) const {
+    QByteArray ret;
+
+    for (int i = 2; i < input.size(); ++i) {
+        ret += input[i];
+        if ((i-1) % 2 == 0) {
+            ret += ' ';
+        }
+    }
+    
+    return ret;
 }
 
 void QLinBus::scanStop() {

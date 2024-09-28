@@ -19,7 +19,7 @@ struct QLinReadByIDMenu {
 
 
         m_QLinReadByIDMenu = new QMenu(m_app->translate("MainWindow", "ReadByID"));
-
+        
         m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
         //m_QLinReadByIDMenu->addMenu(m_settings);
 
@@ -48,6 +48,7 @@ static bool QLinReadByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
     ctx->m_QLinReadByIDMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
     //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
     ctx->m_QLinReadByIDMenu->addSection(ctx->m_app->translate("MainWindow", "Read By ID"));
+    ctx->m_QLinReadByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Read By ID"));
     ctx->m_QLinReadByIDMenu->addMenu(ctx->m_settings);
     ctx->m_QLinReadByIDMenu->insertAction(nullptr, ctx->m_newInstance);
 
@@ -63,7 +64,7 @@ static bool QLinReadByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
             return;
         }
 
-        QAction* settings = new QAction(plugin->settingsPath(), ctx->m_QLinReadByIDMenu);
+        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_QLinReadByIDMenu);
         settings->setData(QVariant(plugin->settingsPath()));
         ctx->m_settings->addAction(settings);
 
@@ -103,10 +104,11 @@ REGISTER_PLUGIN(
 
 QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
     : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath))
-    , m_ui(new Ui::QLinReadByIDUI) {
-    m_ui->setupUi(this);
+    , m_data(new Ui::QLinReadByIDUI) {
+    m_data.m_ui->setupUi(this);
     settingsChanged();
-    QObject::connect(m_ui->pushButton, &QPushButton::clicked, this, &QLinReadByID::readById);
+    QObject::connect(m_data.m_ui->pushButton, &QPushButton::clicked, this, &QLinReadByID::readById);
+    QTimer::singleShot(0, this, &QLinReadByID::init);
 }
 
 SettingsMdi* QLinReadByID::settingsWindow() const {
@@ -119,23 +121,278 @@ QLinReadByID::~QLinReadByID() {
 }
 
 void QLinReadByID::dataReady(const QByteArray& data) {
+    if (m_data.m_state != QLinReadByIDState::READ) {
+        return;
+    }
 
+    auto response = dataFromResponse(data);
+    const UDSFrame* frame;
+
+    if (response.has_value() == false) {
+        m_data.m_state = QLinReadByIDState::ERR;
+    }
+
+    switch (m_data.m_state) {
+    case QLinReadByIDState::READ:
+        switch (response.value().ID) {
+        case 0x3c:
+            return;
+
+        case 0x3d:
+            frame = reinterpret_cast<const UDSFrame*>(response.value().payload);
+            switch (static_cast<PCITypes>(frame->df.PCI.type)) {
+            case PCITypes::CF:
+                if (processConsecutiveFrame(&frame->cf) == true) {
+                    return;
+                }
+                break;
+            case PCITypes::FF:
+                if (processFirstFrame(&frame->ff) == true) {
+                    return;
+                }
+                break;
+            case PCITypes::SF:
+                if (processSingleFrame(&frame->sf) == true) {
+                    m_data.m_state = QLinReadByIDState::SUCCESS;
+                    return;
+                }
+                break;
+            }
+        }
+        
+        [[fallthrough]];
+
+    case QLinReadByIDState::ERR:
+        if (m_data.m_try > 0) {
+            --m_data.m_try;
+            startRead();
+        } else {
+            m_data.m_state = QLinReadByIDState::ERR;
+            m_data.m_ui->pushButton->setEnabled(true);
+            m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+            m_data.m_ui->progressLabel->setEnabled(false);
+            m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
+            m_data.m_ui->failedLabel->setEnabled(true);
+        }
+    }
+}
+
+bool QLinReadByID::processSingleFrame(const UDSsingleFrame* frame) {
+    if (frame->SID == 0x7F) {
+        return false;
+    }
+
+    if (frame->SID - m_data.m_frame.data[0] != 0x40) {
+        return false;
+    }
+
+    if (frame->DIDH != m_data.m_frame.data[1] || frame->DIDL != m_data.m_frame.data[2]) {
+        return false;
+    }
+
+    for (int i = 0; i < frame->PCI.len - 3; ++i) {
+        const QString tmp = QString::number(frame->data[i], 16);
+        m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
+    }
+
+    m_data.m_ui->result->setText(m_data.m_result.trimmed());
+    emit success(m_data.m_result.trimmed().toLocal8Bit());
+    m_data.m_ui->pushButton->setEnabled(true);
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; color:green; }");
+    m_data.m_ui->successLabel->setEnabled(true);
+    return true;
+}
+
+bool QLinReadByID::processFirstFrame(const UDSfirstFrame* frame) {
+    if (frame->SID == 0x7F) {
+        return false;
+    }
+
+    if (frame->SID - m_data.m_frame.data[0] != 0x40) {
+        return false;
+    }
+
+    if (frame->DIDH != m_data.m_frame.data[1] || frame->DIDL != m_data.m_frame.data[2]) {
+        return false;
+    }
+
+    auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    m_data.m_remaining = static_cast<int>(frame->LEN) - 5;
+
+    QString tmp = QString::number(frame->data[0], 16);
+    m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
+
+    tmp = QString::number(frame->data[1], 16);
+    m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
+    m_data.m_lin->write(QByteArray(1, 0x3d));
+    QThread::msleep(set->interval);
+
+    return true;
+}
+
+bool QLinReadByID::processConsecutiveFrame(const UDSconsecutiveFrame* frame) {
+    if (frame->NAD != m_data.m_frame.NAD) {
+        return false;
+    }
+
+    auto set = settings<SettingsDialog::LinReadByIDSettings>();
+
+    if (m_data.m_remaining > 6) {
+        for (int i = 0; i < 6; ++i) {
+            const QString tmp = QString::number(frame->data[i], 16);
+            m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
+        }
+        QThread::msleep(set->interval);
+        m_data.m_lin->write(QByteArray(1, 0x3d));
+        m_data.m_remaining -= 6;
+    } else {
+        for (int i = 0; i < m_data.m_remaining; ++i) {
+            const QString tmp = QString::number(frame->data[i], 16);
+            m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
+        }
+
+        m_data.m_ui->result->setText(m_data.m_result);
+        emit success(m_data.m_result.trimmed().toLocal8Bit());
+        m_data.m_ui->pushButton->setEnabled(true);
+        m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+        m_data.m_ui->progressLabel->setEnabled(false);
+        m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; color:green; }");
+        m_data.m_ui->successLabel->setEnabled(true);
+        m_data.m_state = QLinReadByIDState::SUCCESS;
+    }
+
+    return true;
+}
+
+std::optional<LinFrame> QLinReadByID::dataFromResponse(const QByteArray& data) const {
+
+    if (data.startsWith("LIN NOANS")) {
+        return std::nullopt;
+    } 
+    
+    if (data.startsWith("ID")) {
+        QByteArrayList list = data.split(',');
+        for (auto& item : list) {
+            item = item.mid(item.indexOf(':') + 1);
+        }
+        
+        QByteArray ret = QByteArray(1 + (list[2].size() - 2) / 2, 0);
+        quint32 value;
+
+        list[2] = list[2].trimmed();
+
+        for (int i = 2; i < list[2].size(); i += 2) {
+            QString tmp = list[2].mid(i, 2);
+            value = tmp.toUInt(nullptr, 16);
+            ret[1 + i / 2 - 1] = value;
+        }
+
+        LinFrame frame;
+        frame.ID = list[0].toUInt(nullptr, 16);
+        memcpy(frame.payload, ret.constData()+1, ret.size()-1);
+
+        return frame;
+    }
+
+    return std::nullopt;
 }
 
 void QLinReadByID::startRead() {
+    auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    QByteArray data = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
+    quint32 value;
+    
+    m_data.m_ui->pushButton->setEnabled(false);
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; color:blue; }");
+    m_data.m_ui->progressLabel->setEnabled(true);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->successLabel->setEnabled(false);
 
+    QCoreApplication::processEvents();
+    for (int i = 2; i < set->frameData.size(); i += 2) {
+        QString tmp = set->frameData.mid(i, 2);
+        value = tmp.toUInt(nullptr, 16);
+        data[1 + i / 2 - 1] = value;
+    }
+
+    data[0] = QString("0x3c").toUInt(nullptr, 16);
+    if (m_data.m_lin->write(data) == -1) {
+        m_data.m_ui->pushButton->setEnabled(true);
+        emit message("QLinReadByID::startRead: failed to send packet");
+        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
+        m_data.m_ui->successLabel->setStyleSheet("");
+        m_data.m_ui->progressLabel->setStyleSheet("");
+        m_data.m_ui->failedLabel->setEnabled(true);
+        m_data.m_ui->progressLabel->setEnabled(false);
+        return;
+    }
+    memcpy(&m_data.m_frame, data.constData()+1, sizeof(m_data.m_frame));
+    QThread::msleep(set->interval);
+    data = QByteArray(1, 0);
+    data[0] = QString("0x3d").toUInt(nullptr, 16);
+    if(m_data.m_lin->write(data) == -1) {
+        m_data.m_ui->pushButton->setEnabled(true);
+        emit message("QLinReadByID::startRead: failed to send packet");
+        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
+        m_data.m_ui->successLabel->setStyleSheet("");
+        m_data.m_ui->progressLabel->setStyleSheet("");
+        m_data.m_ui->failedLabel->setEnabled(true);
+        m_data.m_ui->progressLabel->setEnabled(false);
+        return;
+    }
+    m_data.m_state = QLinReadByIDState::READ;
+    m_data.m_result.clear();
+}
+
+void QLinReadByID::linClosed() {
+    m_data.m_ui->result->setText("");
+    m_data.m_ui->pushButton->setEnabled(true);
+    m_data.m_state = QLinReadByIDState::INITIAL;
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
+}
+
+void QLinReadByID::linOpened() {
+    m_data.m_ui->result->setText("");
+    m_data.m_ui->pushButton->setEnabled(true);
+    m_data.m_state = QLinReadByIDState::INITIAL;
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
 }
 
 void QLinReadByID::init() {
+    emit message("QLinTester::init()", LoggerSeverity::LOG_DEBUG);
+    auto plugin = plugins()->instance("QLin", 0);
+    auto lin = plugin.dynamicCast<IODevice>();
+    m_data.m_lin = lin;
+    connect(lin.data(), &IODevice::dataReady, this, &QLinReadByID::dataReady);
+    if (lin->isOpen() == false) {
+        lin->open();
+    }
 
+    QObject::connect(lin.data(), &IODevice::closed, this, &QLinReadByID::linClosed);
 }
 
 void QLinReadByID::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     *(settings<SettingsDialog::LinReadByIDSettings>()) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
-    m_ui->title->setText(settings<SettingsDialog::LinReadByIDSettings>()->title);
+    m_data.m_ui->title->setText(settings<SettingsDialog::LinReadByIDSettings>()->title);
 }
 
 void QLinReadByID::readById(bool checked) {
-    m_ui->result->setText("0xf18c6547");
+    const auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    m_data.m_try = set->tries;
+    startRead();
 }

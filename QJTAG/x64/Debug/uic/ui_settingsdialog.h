@@ -13,11 +13,12 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QTableView>
 #include <QtWidgets/QVBoxLayout>
 #include "../api/api.h"
 
@@ -38,7 +39,7 @@ public:
     QHBoxLayout *horizontalLayout_3;
     QLineEdit *programPathEdit;
     QPushButton *programPathButton;
-    QPlainTextEdit *argumentsEdit;
+    QTableView *arguments;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -105,10 +106,10 @@ public:
 
         formLayout->setLayout(2, QFormLayout::FieldRole, horizontalLayout_3);
 
-        argumentsEdit = new QPlainTextEdit(SettingsDialog);
-        argumentsEdit->setObjectName("argumentsEdit");
+        arguments = new QTableView(SettingsDialog);
+        arguments->setObjectName("arguments");
 
-        formLayout->setWidget(3, QFormLayout::FieldRole, argumentsEdit);
+        formLayout->setWidget(3, QFormLayout::FieldRole, arguments);
 
 
         verticalLayout->addLayout(formLayout);

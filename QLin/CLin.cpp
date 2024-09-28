@@ -433,7 +433,7 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 
 				// LIN events
 				case XL_LIN_NOANS:
-					sprintf_s(tmp, sizeof(tmp), "LIN NOANS ID: 0x%x, Ch: '%d', time: %I64u", xlEvent.tagData.linMsgApi.linNoAns.id, xlEvent.chanIndex, xlEvent.timeStamp);
+					sprintf_s(tmp, sizeof(tmp), "LIN NOANS ID: 0x%02x, Ch: '%d', time: %I64u", xlEvent.tagData.linMsgApi.linNoAns.id, xlEvent.chanIndex, xlEvent.timeStamp);
 					clin->postMessage(tmp);
 					clin->postData(tmp);
 					/*
@@ -454,10 +454,13 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 						str1 = "";
 						for (int i = 0; i < xlEvent.tagData.linMsgApi.linMsg.dlc; i++) {
 							str1 = QString::number(xlEvent.tagData.linMsgApi.linMsg.data[i], 16); //Format(_T("%02x"), xlEvent.tagData.linMsgApi.linMsg.data[i]);
+							if (str1.size() == 1) {
+								str1 = "0" + str1;
+							}
 							sData = sData + str1;
 						}
 
-						sprintf_s(tmp, sizeof(tmp), "ID: 0x%x, dlc: '%d', Data: 0x%s, time: %I64u, Ch: '%d'", 
+						sprintf_s(tmp, sizeof(tmp), "ID: 0x%02x, dlc: '%d', Data: 0x%s, time: %I64u, Ch: '%d'", 
 							xlEvent.tagData.linMsgApi.linMsg.id, 
 							xlEvent.tagData.linMsgApi.linMsg.dlc, 
 							sData.toLocal8Bit().data(), 
@@ -483,19 +486,19 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 					break;
 
 				case XL_LIN_ERRMSG:
-					sprintf_s(tmp, sizeof(tmp), "LIN ERROR, Ch: '%d'", xlEvent.chanIndex);
-					clin->postMessage(tmp);
+					sprintf_s(tmp, sizeof(tmp), "LIN ERROR time: %I64u, Ch: '%d'", xlEvent.timeStamp, xlEvent.chanIndex);
+					clin->postError(tmp);
 					//clin->postMessage(QString("RxThread: LIN ERROR, Ch: '%1'").arg(xlEvent.chanIndex));
 					break;
 
 				case XL_LIN_SYNCERR:
-					sprintf_s(tmp, sizeof(tmp), "LIN SYNCERR on Ch: '%d'", xlEvent.chanIndex);
-					clin->postMessage(tmp);
+					sprintf_s(tmp, sizeof(tmp), "LIN SYNCERR time: %I64u, Ch: '%d'", xlEvent.timeStamp, xlEvent.chanIndex);
+					clin->postError(tmp);
 					//clin->postMessage(QString("RxThread: LIN SYNCERR on Ch: '%1'").arg(xlEvent.chanIndex));
 					break;
 
 				case XL_LIN_WAKEUP:
-					sprintf_s(tmp, sizeof(tmp), "LIN WAKEUP flags: 0x%x on Ch: '%d'", xlEvent.tagData.linMsgApi.linWakeUp.flag, xlEvent.chanIndex);
+					sprintf_s(tmp, sizeof(tmp), "LIN WAKEUP time: %I64u, flags: 0x%x, Ch: '%d'", xlEvent.timeStamp, xlEvent.tagData.linMsgApi.linWakeUp.flag, xlEvent.chanIndex);
 					clin->postMessage(tmp);
 					break;
 			}

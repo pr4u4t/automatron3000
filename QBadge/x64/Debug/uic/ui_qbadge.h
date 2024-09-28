@@ -35,6 +35,7 @@ public:
         verticalLayout->setObjectName("verticalLayout");
         title = new QLabel(QBadgeUI);
         title->setObjectName("title");
+        title->setTextFormat(Qt::MarkdownText);
 
         verticalLayout->addWidget(title);
 
@@ -45,6 +46,7 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(label->sizePolicy().hasHeightForWidth());
         label->setSizePolicy(sizePolicy);
+        label->setTextFormat(Qt::MarkdownText);
         label->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
 
         verticalLayout->addWidget(label);

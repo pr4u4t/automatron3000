@@ -107,7 +107,7 @@ protected:
 		return m_d.m_settings;
 	}
 
-	void updateSettings(const PluginSettings& settings);
+	//void updateSettings(const PluginSettings& settings);
 
 private:
 	PluginPrivate m_d;
@@ -298,6 +298,8 @@ public:
 	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType = 0;
 
 	virtual auto find(const QString& uuid) const -> PluginType = 0;
+
+	virtual auto findByObjectName(const QString& name) const->PluginType = 0;
 
 	virtual void deleteInstance(const QString& uuid) = 0;
 

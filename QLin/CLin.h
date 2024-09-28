@@ -129,6 +129,8 @@ signals:
 
 	void dataReady(const QByteArray& data) const;
 
+	void error(const QByteArray& data);
+
 protected:
 
 	void postMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) {
@@ -137,6 +139,10 @@ protected:
 
 	void postData(const QByteArray& data) {
 		emit dataReady(data);
+	}
+
+	void postError(const QByteArray& data) {
+		emit error(data);
 	}
 
 private:

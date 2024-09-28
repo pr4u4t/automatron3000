@@ -11,7 +11,6 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -29,19 +28,13 @@ public:
     QVBoxLayout *verticalLayout;
     QFormLayout *formLayout;
     QLabel *label;
-    QLabel *label_2;
-    QLabel *label_3;
-    QLabel *label_4;
     QSpinBox *interval;
+    QLabel *label_2;
     QSpinBox *tries;
-    QSpinBox *scanStartID;
-    QSpinBox *scanStopID;
-    QLabel *label_5;
-    QCheckBox *enableColors;
     QLabel *label_6;
-    QSpinBox *startID;
+    QSpinBox *testStartID;
     QLabel *label_7;
-    QSpinBox *stopID;
+    QSpinBox *testStopID;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -63,70 +56,40 @@ public:
 
         formLayout->setWidget(0, QFormLayout::LabelRole, label);
 
-        label_2 = new QLabel(SettingsDialog);
-        label_2->setObjectName("label_2");
-
-        formLayout->setWidget(1, QFormLayout::LabelRole, label_2);
-
-        label_3 = new QLabel(SettingsDialog);
-        label_3->setObjectName("label_3");
-
-        formLayout->setWidget(2, QFormLayout::LabelRole, label_3);
-
-        label_4 = new QLabel(SettingsDialog);
-        label_4->setObjectName("label_4");
-
-        formLayout->setWidget(3, QFormLayout::LabelRole, label_4);
-
         interval = new QSpinBox(SettingsDialog);
         interval->setObjectName("interval");
 
         formLayout->setWidget(0, QFormLayout::FieldRole, interval);
+
+        label_2 = new QLabel(SettingsDialog);
+        label_2->setObjectName("label_2");
+
+        formLayout->setWidget(1, QFormLayout::LabelRole, label_2);
 
         tries = new QSpinBox(SettingsDialog);
         tries->setObjectName("tries");
 
         formLayout->setWidget(1, QFormLayout::FieldRole, tries);
 
-        scanStartID = new QSpinBox(SettingsDialog);
-        scanStartID->setObjectName("scanStartID");
-
-        formLayout->setWidget(2, QFormLayout::FieldRole, scanStartID);
-
-        scanStopID = new QSpinBox(SettingsDialog);
-        scanStopID->setObjectName("scanStopID");
-
-        formLayout->setWidget(3, QFormLayout::FieldRole, scanStopID);
-
-        label_5 = new QLabel(SettingsDialog);
-        label_5->setObjectName("label_5");
-
-        formLayout->setWidget(4, QFormLayout::LabelRole, label_5);
-
-        enableColors = new QCheckBox(SettingsDialog);
-        enableColors->setObjectName("enableColors");
-
-        formLayout->setWidget(4, QFormLayout::FieldRole, enableColors);
-
         label_6 = new QLabel(SettingsDialog);
         label_6->setObjectName("label_6");
 
-        formLayout->setWidget(5, QFormLayout::LabelRole, label_6);
+        formLayout->setWidget(2, QFormLayout::LabelRole, label_6);
 
-        startID = new QSpinBox(SettingsDialog);
-        startID->setObjectName("startID");
+        testStartID = new QSpinBox(SettingsDialog);
+        testStartID->setObjectName("testStartID");
 
-        formLayout->setWidget(5, QFormLayout::FieldRole, startID);
+        formLayout->setWidget(2, QFormLayout::FieldRole, testStartID);
 
         label_7 = new QLabel(SettingsDialog);
         label_7->setObjectName("label_7");
 
-        formLayout->setWidget(6, QFormLayout::LabelRole, label_7);
+        formLayout->setWidget(3, QFormLayout::LabelRole, label_7);
 
-        stopID = new QSpinBox(SettingsDialog);
-        stopID->setObjectName("stopID");
+        testStopID = new QSpinBox(SettingsDialog);
+        testStopID->setObjectName("testStopID");
 
-        formLayout->setWidget(6, QFormLayout::FieldRole, stopID);
+        formLayout->setWidget(3, QFormLayout::FieldRole, testStopID);
 
 
         verticalLayout->addLayout(formLayout);
@@ -170,10 +133,6 @@ public:
         SettingsDialog->setWindowTitle(QCoreApplication::translate("SettingsDialog", "Form", nullptr));
         label->setText(QCoreApplication::translate("SettingsDialog", "Iterval [ms]", nullptr));
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Tries", nullptr));
-        label_3->setText(QCoreApplication::translate("SettingsDialog", "Start ID", nullptr));
-        label_4->setText(QCoreApplication::translate("SettingsDialog", "Stop ID", nullptr));
-        label_5->setText(QCoreApplication::translate("SettingsDialog", "Enable colors", nullptr));
-        enableColors->setText(QString());
         label_6->setText(QCoreApplication::translate("SettingsDialog", "Test start ID", nullptr));
         label_7->setText(QCoreApplication::translate("SettingsDialog", "Test stop ID", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));

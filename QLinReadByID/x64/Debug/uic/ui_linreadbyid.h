@@ -13,6 +13,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QVBoxLayout>
@@ -25,9 +26,15 @@ class Ui_QLinReadByIDUI
 public:
     QVBoxLayout *verticalLayout;
     QLabel *title;
+    QHBoxLayout *horizontalLayout_3;
+    QSpacerItem *horizontalSpacer_3;
+    QLabel *failedLabel;
+    QLabel *progressLabel;
+    QLabel *successLabel;
+    QSpacerItem *horizontalSpacer_4;
     QHBoxLayout *horizontalLayout_2;
     QLabel *label;
-    QLabel *result;
+    QLineEdit *result;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
     QPushButton *pushButton;
@@ -46,6 +53,43 @@ public:
 
         verticalLayout->addWidget(title);
 
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setObjectName("horizontalLayout_3");
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_3->addItem(horizontalSpacer_3);
+
+        failedLabel = new QLabel(QLinReadByIDUI);
+        failedLabel->setObjectName("failedLabel");
+        failedLabel->setEnabled(false);
+        failedLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
+        failedLabel->setAlignment(Qt::AlignCenter);
+
+        horizontalLayout_3->addWidget(failedLabel);
+
+        progressLabel = new QLabel(QLinReadByIDUI);
+        progressLabel->setObjectName("progressLabel");
+        progressLabel->setEnabled(false);
+        progressLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
+        progressLabel->setAlignment(Qt::AlignCenter);
+
+        horizontalLayout_3->addWidget(progressLabel);
+
+        successLabel = new QLabel(QLinReadByIDUI);
+        successLabel->setObjectName("successLabel");
+        successLabel->setEnabled(false);
+        successLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
+        successLabel->setAlignment(Qt::AlignCenter);
+
+        horizontalLayout_3->addWidget(successLabel);
+
+        horizontalSpacer_4 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_3->addItem(horizontalSpacer_4);
+
+
+        verticalLayout->addLayout(horizontalLayout_3);
+
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setObjectName("horizontalLayout_2");
         label = new QLabel(QLinReadByIDUI);
@@ -53,9 +97,8 @@ public:
 
         horizontalLayout_2->addWidget(label);
 
-        result = new QLabel(QLinReadByIDUI);
+        result = new QLineEdit(QLinReadByIDUI);
         result->setObjectName("result");
-        result->setAlignment(Qt::AlignCenter);
 
         horizontalLayout_2->addWidget(result);
 
@@ -90,8 +133,10 @@ public:
     {
         QLinReadByIDUI->setWindowTitle(QCoreApplication::translate("QLinReadByIDUI", "Form", nullptr));
         title->setText(QCoreApplication::translate("QLinReadByIDUI", "Read By ID", nullptr));
+        failedLabel->setText(QCoreApplication::translate("QLinReadByIDUI", "FAILED", nullptr));
+        progressLabel->setText(QCoreApplication::translate("QLinReadByIDUI", "IN PROGRESS", nullptr));
+        successLabel->setText(QCoreApplication::translate("QLinReadByIDUI", "SUCCESS", nullptr));
         label->setText(QCoreApplication::translate("QLinReadByIDUI", "Result:", nullptr));
-        result->setText(QString());
         pushButton->setText(QCoreApplication::translate("QLinReadByIDUI", "Read", nullptr));
     } // retranslateUi
 

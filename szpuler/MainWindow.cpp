@@ -76,6 +76,11 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
 
     setWindowTitle(tr(winTitle));
     setUnifiedTitleAndToolBarOnMac(true);
+
+    //if (m_winSettings.lock == true) {
+    //    //QTimer::singleShot(0, m_dockManager, &ads::CDockManager::lockDockWidgetFeaturesGlobally);
+    //    m_dockManager->lockDockWidgetFeaturesGlobally();
+    //}
 }
 
 MainWindow::~MainWindow() {
@@ -221,6 +226,13 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
     child->setWidget(widget);
     child->setFeature(ads::CDockWidget::DontDeleteContent, true);
     child->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
+    if (m_winSettings.lock == true) {
+        child->setFeature(ads::CDockWidget::NoTab, true);
+        child->setFeature(ads::CDockWidget::DockWidgetMovable, false);
+        child->setFeature(ads::CDockWidget::DockWidgetClosable, false);
+        child->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
+        child->setFeature(ads::CDockWidget::DockWidgetPinnable, false);
+    }
     m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
 
     //const QMetaObject* mu = widget->metaObject();
@@ -263,7 +275,7 @@ std::optional<QString> MainWindow::windowTitleByInstance(const Widget* instance)
 
 int MainWindow::findFreeIndex(const QString& name) const {
     int ret = -1;
-    QRegularExpression rx("[0-9]+$");
+    QRegularExpression rx(name+" [0-9]+$");
     QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
     for (auto it : map) {
         auto match = rx.match(it->objectName());

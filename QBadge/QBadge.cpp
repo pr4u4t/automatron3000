@@ -55,7 +55,7 @@ static bool QBadge_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QBadg
             return;
         }
 
-        QAction* settings = new QAction(plugin->settingsPath(), ctx->m_badgesMenu);
+        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_badgesMenu);
         settings->setData(QVariant(plugin->settingsPath()));
         ctx->m_settings->addAction(settings);
 
@@ -125,13 +125,14 @@ QBadge::~QBadge() {
 
 void QBadge::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    updateSettings(SettingsDialog::BadgeSettings(Settings::get(), settingsPath()));
+    const auto set = settings<SettingsDialog::BadgeSettings>();
+    *set = SettingsDialog::BadgeSettings(Settings::get(), settingsPath());
 
-    m_ui->label->setText(settings<SettingsDialog::BadgeSettings>()->text);
-    m_ui->title->setText(settings<SettingsDialog::BadgeSettings>()->title);
+    m_ui->label->setText(set->text);
+    m_ui->title->setText(set->title);
 
     QPixmap pix;
-    if (settings<SettingsDialog::BadgeSettings>()->imagePath.isEmpty() == false && pix.load(settings<SettingsDialog::BadgeSettings>()->imagePath)) {
+    if (set->imagePath.isEmpty() == false && pix.load(set->imagePath)) {
         m_ui->image->setPixmap(pix);
     }
 }

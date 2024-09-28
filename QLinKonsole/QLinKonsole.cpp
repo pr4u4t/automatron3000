@@ -160,7 +160,7 @@ void QLinKonsole::processCommand(const QString& command) {
             if (comm[1].size() % 2 != 0 || comm[1].size() > 18) {
                 goto FAIL;
             }
-
+            //id:60 data: 101 3 34 241 140
             data = QByteArray(1 + (comm[1].size() - 2) / 2, ' ');
 
             for (int i = 2; i < comm[1].size(); i += 2) {

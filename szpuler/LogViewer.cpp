@@ -24,8 +24,9 @@ LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
     setLayout(l);
 
     QContiguousCache<QString> cache = p->logger()->cache();
-    for (int i = 0; i < cache.size(); ++i) {
-        message(cache.at(i));
+    //for (int i = 0; i < cache.size(); ++i) {
+    while(cache.size() > 0){
+        message(cache.takeFirst());
     }
 }
 

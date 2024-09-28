@@ -11,6 +11,7 @@
 enum class QLinTesterState {
     INITIAL,
     SCAN,
+    NEXT_TRY,
     PAUSE,
     STOP
 };
@@ -46,6 +47,10 @@ public slots:
 
     void init();
 
+protected slots:
+
+    void linClosed();
+
 private:
     
     Ui::QLinTesterUI* m_ui = nullptr;
@@ -55,6 +60,7 @@ private:
     int m_responses = 0;
     QTimer m_timer;
     int m_try = 0;
+    int m_slaveID = 0;
 };
 
 #endif

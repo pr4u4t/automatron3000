@@ -46,20 +46,18 @@ SettingsDialog::LinTesterSettings SettingsDialog::lintesterSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->scanStartID->setValue(m_currentSettings.scanStartID);
-    m_ui->scanStopID->setValue(m_currentSettings.scanStopID);
-    m_ui->interval->setValue(m_currentSettings.scanInterval);
-    m_ui->enableColors->setChecked(m_currentSettings.enableColors);
+    m_ui->testStartID->setValue(m_currentSettings.testStartID);
+    m_ui->testStopID->setValue(m_currentSettings.testStopID);
+    m_ui->interval->setValue(m_currentSettings.testInterval);
     m_ui->tries->setValue(m_currentSettings.tries);
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.scanStartID = m_ui->scanStartID->value();
-    m_currentSettings.scanStopID = m_ui->scanStopID->value();
-    m_currentSettings.scanInterval = m_ui->interval->value();
-    m_currentSettings.enableColors = m_ui->enableColors->isChecked();
+    m_currentSettings.testStartID = m_ui->testStartID->value();
+    m_currentSettings.testStopID = m_ui->testStopID->value();
+    m_currentSettings.testInterval = m_ui->interval->value();
     m_currentSettings.tries = m_ui->tries->value();
 
     QSettings s = Settings::get();

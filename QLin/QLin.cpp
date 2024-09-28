@@ -137,6 +137,11 @@ QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& p
 	, m_lin(new CLin(settings<SettingsDialog::LinSettings>())) {
 	connect(m_lin, &CLin::message, this, &QLin::message);
 	connect(m_lin, &CLin::dataReady, this, &QLin::dataReady);
+	connect(m_lin, &CLin::error, this, &QLin::error);
+}
+
+int QLin::slaveID() const {
+	return settings<SettingsDialog::LinSettings>()->slaveID;
 }
 
 bool QLin::open(const QString& url) {
@@ -306,6 +311,8 @@ void QLin::close() {
 		}
 		m_open = false;
 	}
+
+	emit closed();
 }
 
 bool QLin::isOpen() const {

@@ -14,10 +14,10 @@ Plugin::Plugin(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSe
 
 	if (settingsPath().isEmpty()) {
 		m_d.m_uuid = QUuid::createUuid().toString();
-		m_d.m_settingsPath = QString(settings_path) + name() + "-" + m_d.m_uuid;
+		m_d.m_settingsPath = /*QString(settings_path) +*/ name() + "-" + m_d.m_uuid;
 	} else if ((idx = rx.indexIn(path)) != -1) {
 		m_d.m_uuid = "{" + rx.cap(1) + "}";
-		m_d.m_settingsPath = QString(settings_path) + path;
+		m_d.m_settingsPath = /*QString(settings_path) +*/ path;
 	}
 }
 
@@ -65,19 +65,19 @@ bool Plugin::multipleInstances() const {
 	return m_d.m_loader->multipleInstances();
 }
 
-void Plugin::updateSettings(const PluginSettings& settings) {
-	*(m_d.m_settings) = settings;
-}
+//void Plugin::updateSettings(const PluginSettings& settings) {
+//	*(m_d.m_settings) = settings;
+//}
 
 Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, PluginSettings* set)
 	: QObject(parent)
 	, Plugin(ld, plugins, path, set) {
 
-	QObject::connect(this, &QObject::objectNameChanged, this, &Extension::nameChanged);
-
 	if (set != nullptr && set->m_objectName.isEmpty() == false) {
 		setObjectName(set->m_objectName);
 	}
+
+	QObject::connect(this, &QObject::objectNameChanged, this, &Extension::nameChanged);
 }
 
 void Extension::nameChanged(const QString& name) {
@@ -91,18 +91,26 @@ void Extension::nameChanged(const QString& name) {
 Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, PluginSettings* set)
 	: Plugin(ld, plugins, path, set)
 	, MdiChild(parent) {
-	QObject::connect(this, &QObject::objectNameChanged, this, &Widget::nameChanged);
 	
 	if (set != nullptr && set->m_objectName.isEmpty() == false) {
 		setObjectName(set->m_objectName);
 	}
+
+	QObject::connect(this, &QObject::objectNameChanged, this, &Widget::nameChanged);
 }
 
-void Widget::nameChanged(const QString& name) {
+void Widget::nameChanged(const QString& objName) {
 	if (settings<PluginSettings>() != nullptr) {
-		settings<PluginSettings>()->m_objectName = name;
-		QSettings s = Settings::get();
-		settings<PluginSettings>()->save(s, settingsPath());
+		QRegExp rx("^"+name()+"([ ][0-9]+)?$");
+		if (rx.exactMatch(objName)) {
+			settings<PluginSettings>()->m_objectName = objName;
+			QSettings s = Settings::get();
+			settings<PluginSettings>()->save(s, settingsPath());
+		} else {
+			blockSignals(true);
+			setObjectName("");
+			blockSignals(false);
+		}
 	}
 }
 

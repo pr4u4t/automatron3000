@@ -43,6 +43,8 @@ public slots:
 
     void dataReady(const QByteArray& data);
 
+    void errorReady(const QByteArray& data);
+
     void scanStop();
 
     void scanClear();
@@ -57,6 +59,10 @@ public slots:
 
     void exportToJson();
 
+protected:
+
+    QByteArray formatData(const QByteArray& input) const;
+
 private:
 
     Ui::QLinBusUI* m_ui = nullptr;
@@ -66,6 +72,7 @@ private:
     QTimer m_timer;
     QLinBusState m_state;
     bool m_sniffEnabled = true;
+    int m_slaveID;
 };
 
 #endif

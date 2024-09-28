@@ -27,6 +27,9 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="styleSheet">
+           <string notr="true">font-weight:bold;</string>
+          </property>
           <property name="text">
            <string>FAILED</string>
           </property>
@@ -40,8 +43,11 @@
           <property name="enabled">
            <bool>false</bool>
           </property>
+          <property name="styleSheet">
+           <string notr="true">font-weight:bold;</string>
+          </property>
           <property name="text">
-           <string>PASSED</string>
+           <string>SUCCESS</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -81,6 +87,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Stop</string>
           </property>

@@ -146,7 +146,8 @@ public:
         static constexpr const int checksumMethodValue = XL_LIN_CALC_CHECKSUM;
 
         LinSettings()
-            : linVersion(linVersionValue)
+            : PluginSettings()
+            , linVersion(linVersionValue)
             , slaveID(slaveIDValue)
             , mode(modeValue)
             , initialData((const char*)&initialDataValue[0], sizeof(initialDataValue))

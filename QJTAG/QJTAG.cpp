@@ -55,7 +55,7 @@ static bool QJTAG_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QJTAGM
             return;
         }
         
-        QAction* settings = new QAction(plugin->settingsPath(), ctx->m_QJTAGMenu);
+        QAction* settings = new QAction(dynamic_cast<const QJTAG*>(plugin)->objectName(), ctx->m_QJTAGMenu);
         settings->setData(QVariant(plugin->settingsPath()));
         ctx->m_settings->addAction(settings);
 
@@ -93,9 +93,16 @@ REGISTER_PLUGIN(
 
 QJTAG::QJTAG(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath) 
     : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::QJTAGSettings(Settings::get(), settingsPath))
-    , m_ui(new Ui::QJTAGUI) {
-    m_ui->setupUi(this);
+    , m_data(new Ui::QJTAGUI) {
+    m_data.m_ui->setupUi(this);
     settingsChanged();
+    QObject::connect(m_data.m_ui->execButton, &QPushButton::clicked, this, &QJTAG::command);
+    QObject::connect(&m_data.m_process, &QProcess::errorOccurred, this, &QJTAG::errorOccurred);
+    QObject::connect(&m_data.m_process, &QProcess::finished, this, &QJTAG::finished);
+    QObject::connect(&m_data.m_process, &QProcess::readyReadStandardError, this, &QJTAG::readyReadStandardError);
+    QObject::connect(&m_data.m_process, &QProcess::readyReadStandardOutput, this, &QJTAG::readyReadStandardOutput);
+    QObject::connect(&m_data.m_process, &QProcess::started, this, &QJTAG::started);
+    QObject::connect(&m_data.m_process, &QProcess::stateChanged, this, &QJTAG::stateChanged);
 }
 
 QJTAG::~QJTAG() {
@@ -107,14 +114,125 @@ bool QJTAG::saveSettings() {
 
 void QJTAG::settingsChanged() {
     emit message("QJTAG::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    *(settings<SettingsDialog::QJTAGSettings>()) = SettingsDialog::QJTAGSettings(Settings::get(), settingsPath());
+    const auto set = settings<SettingsDialog::QJTAGSettings>();
+    *set = SettingsDialog::QJTAGSettings(Settings::get(), settingsPath());
 
-    m_ui->execButton->setText(settings<SettingsDialog::QJTAGSettings>()->buttonLabel);
-    m_ui->title->setText(settings<SettingsDialog::QJTAGSettings>()->title);
+    m_data.m_ui->execButton->setText(set->buttonLabel);
+    m_data.m_ui->title->setText(set->title);
+
+    m_data.m_arguments = set->processArguments();
 }
 
 SettingsMdi* QJTAG::settingsWindow() const {
     auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QJTAG::settingsChanged);
     return ret;
+}
+
+void QJTAG::command(bool checked) {
+    exec();
+}
+
+void QJTAG::exec() {
+    
+    m_data.m_ui->execButton->setEnabled(false);
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(true);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ color:blue; font-weight:bold; }");
+
+    const auto set = settings<SettingsDialog::QJTAGSettings>();
+    m_data.m_process.start(set->programPath, set->processArguments());
+
+}
+
+void QJTAG::errorOccurred(QProcess::ProcessError error) {
+    emit message("QJTAG::errorOccurred(QProcess::ProcessError error)");
+    emit message("QJTAG::errorOccurred: "+errorString(error));
+}
+
+void QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus) {
+    emit message("QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus)");
+    emit message(QString("QJTAG::finished: %1 %2").arg(exitCode).arg(exitStatusString(exitStatus)));
+    m_data.m_ui->execButton->setEnabled(true);
+
+    switch (exitCode) {
+    case 0:
+        m_data.m_ui->failedLabel->setEnabled(false);
+        m_data.m_ui->successLabel->setEnabled(true);
+        m_data.m_ui->progressLabel->setEnabled(false);
+        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+        m_data.m_ui->successLabel->setStyleSheet("QLabel{ color:green; font-weight:bold; }");
+        m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+        break;
+    default:
+        m_data.m_ui->failedLabel->setEnabled(true);
+        m_data.m_ui->successLabel->setEnabled(false);
+        m_data.m_ui->progressLabel->setEnabled(false);
+        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ color:red; font-weight:bold; }");
+        m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+        m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    }
+}
+
+void QJTAG::readyReadStandardError() {
+    emit message("QJTAG::readyReadStandardError()");
+}
+
+void QJTAG::readyReadStandardOutput() {
+    emit message("QJTAG::readyReadStandardOutput()");
+}
+
+void QJTAG::started() {
+    emit message("QJTAG::started()");
+}
+
+void QJTAG::stateChanged(QProcess::ProcessState newState) {
+    emit message("QJTAG::stateChanged(QProcess::ProcessState newState)");
+    emit message("QJTAG::stateChanged: "+stateString(newState));
+}
+
+QString QJTAG::exitStatusString(QProcess::ExitStatus exitStatus) const {
+    switch (exitStatus) {
+    case QProcess::NormalExit:
+        return "Normal exit";
+    case QProcess::CrashExit:
+        return "Crash exit";
+    }
+
+    return QString("Unknown exit status %1").arg(exitStatus);
+}
+
+QString QJTAG::stateString(QProcess::ProcessState state) const {
+    switch (state) {
+    case QProcess::NotRunning:
+        return "The process is not running.";
+    case QProcess::Starting:
+        return "The process is starting, but the program has not yet been invoked.";
+    case QProcess::Running:
+        return "The process is running and is ready for reading and writing.";
+    }
+
+    return QString("Unknown process state %1").arg(state);
+}
+
+QString QJTAG::errorString(QProcess::ProcessError err) const {
+    switch (err) {
+    case QProcess::FailedToStart:	
+        return "The process failed to start.Either the invoked program is missing, or you may have insufficient permissions or resources to invoke the program.";
+    case QProcess::Crashed: 
+        return "The process crashed some time after starting successfully.";   
+    case QProcess::Timedout: 
+        return "The last waitFor...() function timed out.The state of QProcess is unchanged, and you can try calling waitFor...() again.";
+    case QProcess::WriteError: 
+        return "An error occurred when attempting to write to the process.For example, the process may not be running, or it may have closed its input channel.";
+    case QProcess::ReadError: 
+        return "An error occurred when attempting to read from the process.For example, the process may not be running.";
+    case QProcess::UnknownError: 
+        return "An unknown error occurred.This is the default return value of error().";
+    }
+
+    return QString("Unknown process error %1").arg(err);
 }

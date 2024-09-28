@@ -36,13 +36,16 @@ struct MainWindowSettings {
     static constexpr const bool translationsValue = false;
     static constexpr const char* const hideMenuKey = "hideMenu";
     static constexpr const bool hideMenuValue = false;
+    static constexpr const char* const lockKey = "lock";
+    static constexpr const bool lockValue = false;
 
     MainWindowSettings()
         : geometry(geometryValue)
         , fontSize(fontSizeValue)
         , statusTimeout(statusTimeoutValue)
         , translations(translationsValue)
-        , hideMenu(hideMenuValue){
+        , hideMenu(hideMenuValue)
+        , lock(lockValue){
     }
 
     MainWindowSettings(const QSettings& settings, const QString& settingsPath) 
@@ -50,7 +53,8 @@ struct MainWindowSettings {
         , fontSize(settings.value(fontSizeKey, fontSizeValue).toInt())
         , statusTimeout(settings.value(statusTimeoutKey, statusTimeoutValue).toInt())
         , translations(settings.value(translationsKey, translationsValue).toBool())
-        , hideMenu(settings.value(hideMenuKey, hideMenuValue).toBool()){
+        , hideMenu(settings.value(hideMenuKey, hideMenuValue).toBool())
+        , lock(settings.value(lockKey, lockValue).toBool()){
     }
 
     void save(QSettings& settings, const QString& settingsPath) {
@@ -59,6 +63,7 @@ struct MainWindowSettings {
         settings.setValue(statusTimeoutKey, statusTimeout);
         settings.setValue(translationsKey, translations);
         settings.setValue(hideMenuKey, hideMenu);
+        settings.setValue(lockKey, lock);
     }
 
     QByteArray geometry;
@@ -66,6 +71,7 @@ struct MainWindowSettings {
     int statusTimeout;
     bool translations;
     bool hideMenu;
+    bool lock;
 };
 
 class MainWindow : public Window {

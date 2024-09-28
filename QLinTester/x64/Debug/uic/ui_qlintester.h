@@ -54,6 +54,7 @@ public:
         failedLabel = new QLabel(groupBox);
         failedLabel->setObjectName("failedLabel");
         failedLabel->setEnabled(false);
+        failedLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
         failedLabel->setAlignment(Qt::AlignCenter);
 
         horizontalLayout->addWidget(failedLabel);
@@ -61,6 +62,7 @@ public:
         passedLabel = new QLabel(groupBox);
         passedLabel->setObjectName("passedLabel");
         passedLabel->setEnabled(false);
+        passedLabel->setStyleSheet(QString::fromUtf8("font-weight:bold;"));
         passedLabel->setAlignment(Qt::AlignCenter);
 
         horizontalLayout->addWidget(passedLabel);
@@ -87,6 +89,7 @@ public:
 
         pushButton = new QPushButton(groupBox);
         pushButton->setObjectName("pushButton");
+        pushButton->setEnabled(false);
 
         horizontalLayout_2->addWidget(pushButton);
 
@@ -111,7 +114,7 @@ public:
         QLinTesterUI->setWindowTitle(QCoreApplication::translate("QLinTesterUI", "Form", nullptr));
         groupBox->setTitle(QCoreApplication::translate("QLinTesterUI", "Lin Tester", nullptr));
         failedLabel->setText(QCoreApplication::translate("QLinTesterUI", "FAILED", nullptr));
-        passedLabel->setText(QCoreApplication::translate("QLinTesterUI", "PASSED", nullptr));
+        passedLabel->setText(QCoreApplication::translate("QLinTesterUI", "SUCCESS", nullptr));
         testButton->setText(QCoreApplication::translate("QLinTesterUI", "Test", nullptr));
         pushButton->setText(QCoreApplication::translate("QLinTesterUI", "Stop", nullptr));
     } // retranslateUi

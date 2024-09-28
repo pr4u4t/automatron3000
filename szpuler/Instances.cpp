@@ -122,10 +122,18 @@ void Instances::loaded(const Plugin* plugin) {
 }
 
 void Instances::activated(const QModelIndex& index) {
+    if (index.isValid() == false) {
+        return;
+    }
+
     QModelIndex idx = index.siblingAtColumn(Columns::NAME);
     const QString name = index.data().toString();
     const QString uuid = idx.siblingAtColumn(Columns::UUID).data().toString();
     
+    if (name.isEmpty() || uuid.isEmpty()) {
+        return;
+    }
+
     PluginsLoader* pld = plugins();
     MLoader* mld = reinterpret_cast<ModuleLoader<Loader>*>(pld);
     MainWindow* win = qobject_cast<MainWindow*>(mld->context()->to<GuiLoaderContext>()->m_win);
