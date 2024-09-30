@@ -13,20 +13,31 @@
 #include "../api/api.h"
 #include "main.h"
 
-MainWindow::MainWindow(MLoader* plugins, Logger* logger)
-    : m_settings("configuration.ini", QSettings::IniFormat)
-    , m_plugins(plugins)
-    , m_logger(logger)
-    , m_winSettings(m_settings, "General") {
+static QIcon svgIcon(const QString& File){
+    // This is a workaround, because in item views SVG icons are not
+    // properly scaled and look blurry or pixelate
+    QIcon SvgIcon(File);
+    SvgIcon.addPixmap(SvgIcon.pixmap(92));
+    return SvgIcon;
+}
 
-    m_logger->message(QString("MainWindow::MainWindow: Using configuration: %1").arg(m_settings.fileName()));
+MainWindow::MainWindow(MLoader* plugins, Logger* logger)
+    : m_plugins(plugins)
+    , m_logger(logger)
+    , m_winSettings(Settings::get(), "General")
+    , m_tbar(new QToolBar())
+    , m_perspectiveComboBox(new QComboBox())
+    , m_perspectiveListAction(new QWidgetAction(this)){
+
+    m_logger->message(QString("MainWindow::MainWindow: Using configuration: %1").arg(Settings::settingsPath()));
     
     ads::CDockManager::setConfigFlag(ads::CDockManager::OpaqueSplitterResize, true);
     ads::CDockManager::setConfigFlag(ads::CDockManager::FocusHighlighting, true);
+    ads::CDockManager::setConfigFlag(ads::CDockManager::XmlCompressionEnabled, false);
     ads::CDockManager::setAutoHideConfigFlags(ads::CDockManager::DefaultAutoHideConfig);
     ads::CDockManager::setAutoHideConfigFlag(ads::CDockManager::AutoHideShowOnMouseOver, true);
 
-    m_dockManager = new ads::CDockManager();
+    m_dockManager = new ads::CDockManager(this);
     setCentralWidget(m_dockManager);
     
     QLabel* l = new QLabel();
@@ -48,10 +59,11 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
     
 
     // Add the dock widget to the top dock widget area
-    m_area = m_dockManager->addDockWidget(ads::CenterDockWidgetArea, dockWidget);
+    //m_area = m_dockManager->addDockWidget(ads::CenterDockWidgetArea, dockWidget);
     
     createActions();
     createStatusBar();
+    createToolbar();
 
     if (m_winSettings.geometry.isEmpty()) {
         m_logger->message("MainWindow::MainWindow(): new geometry");
@@ -81,6 +93,7 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
     //    //QTimer::singleShot(0, m_dockManager, &ads::CDockManager::lockDockWidgetFeaturesGlobally);
     //    m_dockManager->lockDockWidgetFeaturesGlobally();
     //}
+    addToolBar(m_tbar);
 }
 
 MainWindow::~MainWindow() {
@@ -110,11 +123,7 @@ void MainWindow::closeEvent(QCloseEvent *event){
         emit aboutToQuit();
         event->accept();
     }
-}
-
-QSettings& MainWindow::settings(){
-    return m_settings;
-}  
+} 
 
 MainWindow& MainWindow::operator<<(const QString& msg){
     statusBar()->showMessage(msg, m_winSettings.statusTimeout);
@@ -232,7 +241,15 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
         child->setFeature(ads::CDockWidget::DockWidgetClosable, false);
         child->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
         child->setFeature(ads::CDockWidget::DockWidgetPinnable, false);
+        
     }
+
+    child->setFeature(ads::CDockWidget::CustomCloseHandling, true);
+
+    QObject::connect(child, &ads::CDockWidget::closeRequested, [child, this]() {
+        child->toggleView(false);
+        });
+
     m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
 
     //const QMetaObject* mu = widget->metaObject();
@@ -341,6 +358,11 @@ void MainWindow::createActions(){
         fileMenu->addAction(exitAct);
     }
 
+    m_viewMenu = menuBar()->addMenu(tr("&View"));
+    m_toggleToolbar = new QAction(tr("Togggle toolbar"), this);
+    connect(m_toggleToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
+    m_viewMenu->addAction(m_toggleToolbar);
+
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
 
     QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
@@ -404,10 +426,13 @@ QByteArray MainWindow::state() const {
 }
 
 void MainWindow::setState(const QByteArray& state) {
-    if (m_dockManager != nullptr) {
-        m_dockManager->restoreState(state);
-        m_area = m_dockManager->dockArea(0);
-    }
+    //if (m_dockManager != nullptr) {
+    //    m_dockManager->restoreState(state);
+    //    m_area = m_dockManager->dockArea(0);
+    //}
+    QString perspective = Settings::get().value("perspective", "Default").toString();
+    m_perspectiveComboBox->setCurrentText(perspective);
+    m_dockManager->openPerspective(perspective);
 }
 
 void MainWindow::createStatusBar(){
@@ -415,10 +440,52 @@ void MainWindow::createStatusBar(){
     statusBar()->showMessage(tr("Ready"));
 }
 
+void MainWindow::createToolbar() {
+    m_perspectiveComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    m_perspectiveComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    m_perspectiveListAction->setDefaultWidget(m_perspectiveComboBox);
+    m_tbar->addAction(m_perspectiveListAction);
+    if (Settings::get().value("perspectiveManage", true).toBool() == true) {
+        m_saveState = new QAction(tr("Save perspective"));
+        m_tbar->addAction(m_saveState);
+        m_tbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        m_saveState->setIcon(svgIcon(":/images/save.svg"));
+        QObject::connect(m_saveState, &QAction::triggered, this, &MainWindow::savePerspective);
+
+        //m_restoreState = new QAction(tr("Restore state"));
+        //m_tbar->addAction(m_restoreState);
+        //m_restoreState->setIcon(svgIcon(":/images/restore.svg"));
+
+        m_tbar->addSeparator();
+
+        QAction* a = m_tbar->addAction("Lock Workspace");
+        a->setIcon(svgIcon(":/images/lock_outline.svg"));
+        a->setCheckable(true);
+        a->setChecked(false);
+        QObject::connect(a, &QAction::triggered, this, &MainWindow::lockWorkspace);
+
+        m_newPerspective = new QAction("Create Perspective");
+        m_newPerspective->setIcon(svgIcon(":/images/picture_in_picture.svg"));
+        QObject::connect(m_newPerspective, &QAction::triggered, this, [this](bool checked = false) {
+            this->newPerspective(checked);
+            });
+        m_tbar->addAction(m_newPerspective);
+    }
+
+    connect(m_perspectiveComboBox, SIGNAL(textActivated(QString)),
+        m_dockManager, SLOT(openPerspective(QString)));
+
+    restorePerspectives();
+    if (m_perspectiveComboBox->currentText().isEmpty()) {
+        newPerspective(QString("Default"));
+    }
+}
+
 void MainWindow::writeSettings(){
     m_logger->message("MainWindow::writeSettings()", LoggerSeverity::LOG_DEBUG);
-    QSettings &setts = settings();
+    QSettings setts = Settings::get();
     setts.setValue("geometry", saveGeometry());
+    setts.setValue("perspective", m_perspectiveComboBox->currentText());
 }
 
 ads::CDockWidget* MainWindow::findChildWindow(const QString& name) const {

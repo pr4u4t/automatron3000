@@ -1,5 +1,7 @@
 #include "plugin.h"
 
+QString Settings::m_confPath = QString();
+
 PluginPrivate::PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set)
 	: m_loader(ld)
 	, m_plugins(plugins)

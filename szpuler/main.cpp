@@ -18,7 +18,8 @@
 #include "Splash.h"
 
 int main(int argc, char *argv[]){
-    Logger log(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/szpuler.log");
+    Settings::setConfigurationPath(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + Main::appName);
+    Logger log(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + Main::appName + "/" + Main::appName  + ".log");
     Main app(argc,argv, &log);
 
     Splash splash(":/res/splash.jpg");
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]){
     ld.setContext(&ctx);
     ld.loadPlugins();
 
-    Session session(&ld, &log, "configuration.ini", &mainWin);
+    Session session(&ld, &log, QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + "configuration.ini", &mainWin);
     QObject::connect(&mainWin, &MainWindow::sessionStore, &session, &Session::store);
     Tray tray(&mainWin);
 

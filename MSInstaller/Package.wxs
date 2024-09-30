@@ -1,9 +1,19 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package Name="MSInstaller" Manufacturer="TODO Manufacturer" Version="1.0.0.0" UpgradeCode="307e79e8-68d9-4d3d-8490-02be0df854c1">
-    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
-
-    <Feature Id="Main">
-      <ComponentGroupRef Id="ExampleComponents" />
-    </Feature>
-  </Package>
+	<Package
+		Name="Automatron 3000"
+		Manufacturer="Local System"
+		Version="$(fun.AutoVersion(1.0))"
+		UpgradeCode="077dd8af-e1af-4bab-a851-c48f7d60851f"
+	>
+		<Icon Id="Automatron3000.exe" SourceFile="..\szpuler\res\arduino.ico" />
+		<MajorUpgrade
+			Schedule="afterInstallInitialize"
+			DowngradeErrorMessage="!(loc.DowngradeError)"
+			AllowSameVersionUpgrades="yes"
+	/>
+		<MediaTemplate EmbedCab="yes" />
+		<Feature Id="Main">
+			<ComponentGroupRef Id="ExampleComponents" />
+		</Feature>
+	</Package>
 </Wix>

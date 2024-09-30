@@ -12,30 +12,25 @@
         <translation type="vanished">&amp;Plik</translation>
     </message>
     <message>
-        <location filename="QKonsole.cpp" line="13"/>
+        <location filename="QKonsole.cpp" line="11"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QKonsole.cpp" line="22"/>
+        <location filename="QKonsole.cpp" line="20"/>
         <source>Konsole</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QKonsole.cpp" line="44"/>
+        <location filename="QKonsole.cpp" line="42"/>
         <source>&amp;Serial</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="QKonsole.cpp" line="54"/>
-        <source>Konsole-Settings</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>QKonsole</name>
     <message>
-        <location filename="QKonsole.cpp" line="79"/>
+        <location filename="QKonsole.cpp" line="81"/>
         <source>&lt;b&gt;Welcome to serial (rs-232) terminal&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>

@@ -5,6 +5,7 @@
 
 #include <QtGlobal>
 #include <QtGui>
+#include <QStyle>
 
 struct QLinWriteByIDMenu {
     QLinWriteByIDMenu(QCoreApplication* app)
@@ -48,7 +49,9 @@ static bool QLinWriteByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld
     ctx->m_QLinWriteByIDMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
     //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
     ctx->m_QLinWriteByIDMenu->addSection(ctx->m_app->translate("MainWindow", "Write By ID"));
-    ctx->m_QLinWriteByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Write By ID"));
+    if (ctx->m_QLinWriteByIDMenu->style()->styleHint(QStyle::SH_Menu_SupportsSections) == 0) {
+        ctx->m_QLinWriteByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Write By ID"));
+    }
     ctx->m_QLinWriteByIDMenu->addMenu(ctx->m_settings);
     ctx->m_QLinWriteByIDMenu->insertAction(nullptr, ctx->m_newInstance);
 

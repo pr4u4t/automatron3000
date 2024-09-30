@@ -14,7 +14,7 @@ public:
 
 	Tray(MainWindow *win)
 	: m_window(win){
-		setIcon(QIcon(":/res/splash.jpg"));
+		setIcon(QIcon(":/res/arduino.ico"));
 		m_menu.addAction(tr("Window"), this, SLOT(windowTriggered()));
 		//m_menu.addAction(tr("Log"), this, SLOT(logTriggered()));
 		m_menu.addSeparator();

@@ -1,0 +1,344 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+	<Fragment>
+		<ComponentGroup Id="ExampleComponents" Directory="INSTALLFOLDER">
+			<Component>
+				<File Source="..\x64\Release\Qt6Core.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Gui.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Network.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Widgets.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Core5Compat.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Pdf.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6SerialPort.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Sql.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6Svg.dll"/>
+			</Component>
+			<Component Directory="Styles">
+				<File Source="..\x64\Release\styles\qwindowsvistastyle.dll"/>
+			</Component>
+			<Component Directory="Sqldrivers">
+				<File Source="..\x64\Release\sqldrivers\qsqlite.dll"/>
+			</Component>
+			<Component Directory="Sqldrivers">
+				<File Source="..\x64\Release\sqldrivers\qsqlmimer.dll"/>
+			</Component>
+			<Component Directory="Sqldrivers">
+				<File Source="..\x64\Release\sqldrivers\qsqlodbc.dll"/>
+			</Component>
+			<Component Directory="Sqldrivers">
+				<File Source="..\x64\Release\sqldrivers\qsqlpsql.dll"/>
+			</Component>
+			<Component Id="CreatePlatforms" Directory="Platforms">
+				<File Source="..\x64\Release\platforms\qwindows.dll"/>
+			</Component>
+			<Component Id="CreateImageformats" Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qico.dll"/>
+			</Component>
+			<Component Id="CreateNetworkinformation" Directory="Networkinformation">
+				<File Source="..\x64\Release\networkinformation\qnetworklistmanager.dll"/>
+			</Component>
+			<Component Id="CreateTls" Directory="Tls">
+				<File Source="..\x64\Release\tls\qcertonlybackend.dll"/>
+			</Component>
+			<Component Directory="Tls">
+				<File Source="..\x64\Release\tls\qopensslbackend.dll"/>
+			</Component>
+			<Component Directory="Tls">
+				<File Source="..\x64\Release\tls\qschannelbackend.dll"/>
+			</Component>
+			<Component Directory="Generic">
+				<File Source="..\x64\Release\generic\qtuiotouchplugin.dll"/>
+			</Component>
+			<Component Directory="Iconengines">
+				<File Source="..\x64\Release\iconengines\qsvgicon.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qgif.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qicns.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qjpeg.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qpdf.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qsvg.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qtga.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qtiff.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qwbmp.dll"/>
+			</Component>
+			<Component Directory="Imageformats">
+				<File Source="..\x64\Release\imageformats\qwebp.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\concrt140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140chs.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140cht.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140deu.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140enu.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140esn.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140fra.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140ita.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140jpn.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140kor.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140rus.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfc140u.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfcm140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\mfcm140u.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\msvcp140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\msvcp140_1.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\msvcp140_2.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\msvcp140_atomic_wait.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\msvcp140_codecvt_ids.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vcamp140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vccorlib140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vcomp140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vcruntime140.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vcruntime140_1.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vcruntime140_threads.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vxlapi.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\qtadvanceddocking.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\vxlapi64.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\opengl32sw.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\D3Dcompiler_47.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\api.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QBadge.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QCircularBar.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QData.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QJTAG.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QKonsole.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLin.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLinBus.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLinCommand.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLinKonsole.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLinReadByID.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLinTester.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QLinWriteByID.dll"/>
+			</Component>
+			<Component Directory="Plugins">
+				<File Source="..\plugins\QSerial.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\szpuler.exe" Name="Automatron3000.exe">
+
+					<Shortcut Name="Automatron 3000" Directory="DesktopFolder"
+                       Advertise="yes" WorkingDirectory="INSTALLFOLDER" Icon="Automatron3000.exe"/>
+
+					<Shortcut Name="Automatron 3000" Directory="ProgramMenuFolder"
+							Advertise="yes"  WorkingDirectory="INSTALLFOLDER" Icon="Automatron3000.exe"/>
+				</File>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_ar.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_bg.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_ca.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_cs.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_da.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_de.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_en.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_es.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_fa.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_fi.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_fr.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_gd.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_he.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_hr.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_hu.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_it.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_ja.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_ko.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_lv.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_nl.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_nn.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_pl.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_pt_BR.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_ru.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_sk.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_tr.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_uk.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_zh_CN.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\x64\Release\translations\qt_zh_TW.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\translations\QData_pl_PL.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\translations\QKonsole_pl_PL.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\translations\QSerial_pl_PL.qm"/>
+			</Component>
+			<Component Directory="Translations">
+				<File Source="..\translations\Translation_pl_PL.qm"/>
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>
+

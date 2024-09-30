@@ -316,7 +316,7 @@ class API_EXPORT Settings {
 
 public:
 	static QSettings get() {
-		return QSettings("configuration.ini", QSettings::Format::IniFormat);
+		return QSettings((m_confPath.isEmpty()) ? "configuration.ini" : m_confPath + "/" + "configuration.ini", QSettings::Format::IniFormat);
 	}
 
 	static bool localeNeeded() {
@@ -330,6 +330,18 @@ public:
 	static bool isGui() {
 		return qobject_cast<QGuiApplication*>(QCoreApplication::instance()) != nullptr;
 	}
+
+	static void setConfigurationPath(const QString& path){
+		m_confPath = path;
+	}
+
+	static QString settingsPath() {
+		return m_confPath;
+	}
+
+private:
+
+	static QString m_confPath;
 };
 
 #endif

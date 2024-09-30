@@ -15,6 +15,11 @@
 #include <QHash>
 #include <functional>
 #include <QSet>
+#include <QToolBar>
+#include <QComboBox>
+#include <QWidgetAction>
+#include <QInputDialog>
+#include <QMessageBox>
 
 #include "../api/api.h"
 #include "../core/core.h"
@@ -86,9 +91,7 @@ public:
    
     MainWindow(MLoader* plugins = nullptr, Logger* logger = nullptr);
 
-    ~MainWindow();
-
-    QSettings& settings();  
+    ~MainWindow(); 
     
     MainWindow& operator<< (const QString& msg);
     
@@ -140,6 +143,84 @@ private slots:
 
     void subWindowClosed(QObject* ptr = nullptr);
 
+    void savePerspectives(){
+        QSettings set = Settings::get();
+        m_dockManager->savePerspectives(set);
+    }
+
+    void restorePerspectives(){
+        QSettings set = Settings::get();
+        m_dockManager->loadPerspectives(set);
+        m_perspectiveComboBox->clear();
+        m_perspectiveComboBox->addItems(m_dockManager->perspectiveNames());
+    }
+
+    void toggleToolbar() {
+        if (m_tbar->isHidden()) {
+            m_tbar->show();
+        } else {
+            m_tbar->hide();
+        }
+    }
+
+    void lockWorkspace(bool value){
+        if (value) {
+            m_dockManager->lockDockWidgetFeaturesGlobally();
+        } else {
+            m_dockManager->lockDockWidgetFeaturesGlobally(ads::CDockWidget::NoDockWidgetFeatures);
+        }
+    }
+
+    void newPerspective(const QString& name){
+        QString perspectiveName = name;
+
+        if (perspectiveName.isEmpty()) {
+            perspectiveName = QInputDialog::getText(this, tr("Save Perspective"), tr("Enter unique name:"));
+            if (perspectiveName.isEmpty()) {
+                return;
+            }
+        }
+
+        if (m_dockManager->perspectiveNames().contains(perspectiveName) == true) {
+            QMessageBox::critical(this, tr("Error perspective already exists"), tr("Perspective %1 already exists").arg(perspectiveName));
+            return;
+        }
+
+        m_dockManager->addPerspective(perspectiveName);
+        QSignalBlocker Blocker(m_perspectiveComboBox);
+        m_perspectiveComboBox->clear();
+        m_perspectiveComboBox->addItems(m_dockManager->perspectiveNames());
+        m_perspectiveComboBox->setCurrentText(perspectiveName);
+
+        savePerspectives();
+    }
+
+    void newPerspective(bool checked = false) {
+        QString perspectiveName = QInputDialog::getText(this, tr("Save Perspective"), tr("Enter unique name:"));
+        if (perspectiveName.isEmpty()) {
+            return;
+        }
+
+        if (m_dockManager->perspectiveNames().contains(perspectiveName) == true) {
+            QMessageBox::critical(this, tr("Error perspective already exists"), tr("Perspective %1 already exists").arg(perspectiveName));
+            return;
+        }
+
+        m_dockManager->addPerspective(perspectiveName);
+        QSignalBlocker Blocker(m_perspectiveComboBox);
+        m_perspectiveComboBox->clear();
+        m_perspectiveComboBox->addItems(m_dockManager->perspectiveNames());
+        m_perspectiveComboBox->setCurrentText(perspectiveName);
+
+        savePerspectives();
+    }
+
+    void savePerspective(bool checked = false) {
+        QString perspectiveName = m_perspectiveComboBox->currentText();
+        m_dockManager->addPerspective(perspectiveName);
+        savePerspectives();
+    }
+
 private:
 
     std::optional<QString> windowTitleByInstance(const Widget* instance) const;
@@ -154,6 +235,8 @@ private:
     
     void writeSettings();
     
+    void createToolbar();
+
     ads::CDockWidget* findChildWindow(const QString& name) const;
     
     static constexpr const char* winTitle = "Automatron 3000";
@@ -172,7 +255,6 @@ private:
     QAction *m_nextAct = nullptr;
     QAction *m_previousAct = nullptr;
     QAction *m_windowMenuSeparatorAct = nullptr;
-    QSettings m_settings;
     QAction *m_actionConnect = nullptr;
     QAction *m_actionDisconnect = nullptr;
     QAction *m_actionConfigure = nullptr;
@@ -180,7 +262,14 @@ private:
     //QMdiSubWindow* m_current = nullptr;
     Logger* m_logger = nullptr;
     MainWindowSettings m_winSettings;
-
+    QToolBar* m_tbar = nullptr;
+    QComboBox* m_perspectiveComboBox = nullptr;
+    QWidgetAction* m_perspectiveListAction = nullptr;
+    QMenu* m_viewMenu = nullptr;
+    QAction* m_toggleToolbar = nullptr;
+    QAction* m_saveState = nullptr;
+    QAction* m_restoreState = nullptr;
+    QAction* m_newPerspective = nullptr;
 };
 
 #endif

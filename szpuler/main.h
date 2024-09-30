@@ -7,6 +7,7 @@
 #include <QProxyStyle>
 #include <QTranslator>
 #include <QLibraryInfo>
+#include <QStyleHints>
 
 #include "../api/api.h"
 
@@ -31,13 +32,14 @@ public:
         : QApplication(argc, argv)
         , m_logger(log) {
         log->message("Main::Main()", LoggerSeverity::LOG_DEBUG);
+        log->message("Main::Main: using configuration: "+Settings::settingsPath());
 
         QCoreApplication::setApplicationName(Main::appName);
         QCoreApplication::setOrganizationName(Main::org);
         QCoreApplication::setApplicationVersion(QT_VERSION_STR);
 
         setStyle(new ProxyStyle());
-        setWindowIcon(QIcon(":/res/splash.jpg"));
+        setWindowIcon(QIcon(":/res/arduino.ico"));
 
         QLocale locale = QLocale::system();
 
@@ -50,8 +52,7 @@ public:
             if (m_translator->load(locale, "Translation", "_", "translations")) { //set directory of ts
                 installTranslator(m_translator);
                 log->message(QString("Main::Main: Successfully installed %1 translation").arg("Translation"));
-            }
-            else {
+            } else {
                 log->message(QString("Main::Main: Failed to install %1 translation").arg("Translation"));
             }
 
@@ -60,8 +61,7 @@ public:
                 QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
                 installTranslator(m_qtTranslator);
                 log->message(QString("Main::Main: Successfully installed %1 translation").arg("qt"));
-            }
-            else {
+            } else {
                 log->message(QString("Main::Main: Failed to install %1 translation").arg("qt"));
             }
 
@@ -69,18 +69,30 @@ public:
                 QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
                 installTranslator(m_qtBaseTranslator);
                 log->message(QString("Main::Main: Successfully installed %1 translation").arg("qtbase"));
-            }
-            else {
+            } else {
                 log->message(QString("Main::Main: Failed to install %1 translation").arg("qtbase"));
             }
+        }
+
+        QStyleHints* hints = styleHints();
+        switch (hints->colorScheme()) {
+        case Qt::ColorScheme::Light:
+        case Qt::ColorScheme::Unknown:
+            log->message("Main::Main: found light or unknown color scheme");
+            break;
+
+        case Qt::ColorScheme::Dark:
+            log->message("Main::Main: found dark color scheme");
+            setStyle("fusion");
+            break;
         }
 
         parseArgumnets();
     }
     
-    static constexpr const char* appName = "Szpuler";
+    static constexpr const char* appName = "Automatron 3000";
     static constexpr const char* org = "Pawel Ciejka";
-    static constexpr const char* description = "Szpuler";
+    static constexpr const char* description = "Automatron 3000";
     
 protected:
     

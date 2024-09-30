@@ -1,11 +1,14 @@
 #include "logger.h"
 #include <QDateTime>
+#include <QDir>
 
 Logger::Logger(const QString& path, QObject* parent, qint32 severity)
     : m_log(path,parent)
     , m_buffer(BufferSize)
     , m_severity(severity){
     
+    QDir().mkpath(QFileInfo(path).absolutePath());
+
     if (m_log.open(QIODeviceBase::WriteOnly | QIODeviceBase::Append | QIODeviceBase::Unbuffered) == false) {
         qDebug().noquote() << tr("Failed to open log file: %1").arg(path);
         return;

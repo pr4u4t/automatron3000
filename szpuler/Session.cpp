@@ -107,11 +107,11 @@ qint64 Session::restore() {
         return 0;
     }
 
-    QByteArray state = settings().value("session/state").toByteArray();
-    if (state.isEmpty() == false) {
-        m_logger->message("Session::restore() : restoring dock session");
-        window()->setState(state);
-    }
+    //QByteArray state = settings().value("session/state").toByteArray();
+    //if (state.isEmpty() == false) {
+    //    m_logger->message("Session::restore() : restoring dock session");
+        window()->setState(QByteArray());
+    //}
 
     return ret;
 }

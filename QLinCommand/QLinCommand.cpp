@@ -6,6 +6,8 @@
 
 #include <QtGlobal>
 #include <QtGui>
+#include <QMenu>
+#include <QStyle>
 
 struct QLinCommandMenu {
     QLinCommandMenu(QCoreApplication* app)
@@ -49,7 +51,9 @@ static bool QLinCommand_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, 
     ctx->m_QLinCommandMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
     //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
     ctx->m_QLinCommandMenu->addSection(ctx->m_app->translate("MainWindow", "Command"));
-    ctx->m_QLinCommandMenu->addAction(ctx->m_app->translate("MainWindow", "Command"));
+    if (ctx->m_QLinCommandMenu->style()->styleHint(QStyle::SH_Menu_SupportsSections) == 0) {
+        ctx->m_QLinCommandMenu->addAction(ctx->m_app->translate("MainWindow", "Command"));
+    }
     ctx->m_QLinCommandMenu->addMenu(ctx->m_settings);
     ctx->m_QLinCommandMenu->insertAction(nullptr, ctx->m_newInstance);
 

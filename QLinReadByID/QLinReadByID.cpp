@@ -5,6 +5,7 @@
 
 #include <QtGlobal>
 #include <QtGui>
+#include <QStyle>
 
 struct QLinReadByIDMenu {
     QLinReadByIDMenu(QCoreApplication* app)
@@ -48,7 +49,9 @@ static bool QLinReadByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
     ctx->m_QLinReadByIDMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
     //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
     ctx->m_QLinReadByIDMenu->addSection(ctx->m_app->translate("MainWindow", "Read By ID"));
-    ctx->m_QLinReadByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Read By ID"));
+    if (ctx->m_QLinReadByIDMenu->style()->styleHint(QStyle::SH_Menu_SupportsSections) == 0) {
+        ctx->m_QLinReadByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Read By ID"));
+    }
     ctx->m_QLinReadByIDMenu->addMenu(ctx->m_settings);
     ctx->m_QLinReadByIDMenu->insertAction(nullptr, ctx->m_newInstance);
 
