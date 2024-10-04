@@ -26,6 +26,10 @@ public:
 
 	SettingsMdi* settingsWindow() const override;
 
+	bool reset(Reset type = Reset::SOFT) {
+		return true;
+	}
+
 public slots:
 
 	void settingsChanged();

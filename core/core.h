@@ -112,8 +112,11 @@ public:
 	}
 
 	qint32 loadPlugins() {
+		m_logger->message(QString("ModuleLoader::loadPlugins()"));
 		qint32 ret = 0;
 		QDirIterator it(path(), { "*.dll", "*.so", "*.dylib" }, QDir::Files);
+
+		m_logger->message(QString("ModuleLoader::loadPlugins: using plugins directory: %1").arg(it.path()));
 
 		QSettings settings = Settings::get();
 		auto list = settings.value("plugins/active").toString();
@@ -124,15 +127,23 @@ public:
 			active = list.split(' ');
 		}
 
+		m_logger->message(QString("ModuleLoader::loadPlugins: found plugins list %1").arg(list));
+
 		while (it.hasNext()) {
 			QString libpath = it.next();
+
+			m_logger->message(QString("ModuleLoader::loadPlugins: trying to load %1").arg(libpath));
+
 			if (active.isEmpty() == false) {
 				if (active.indexOf(it.fileInfo().baseName()) == -1) {
+					m_logger->message(QString("ModuleLoader::loadPlugins(): module %1 not active").arg(it.fileInfo().baseName()));
 					continue;
 				}
 			}
+
 			QLibrary* lib = new QLibrary(libpath);
 			if (lib == nullptr) {
+				m_logger->message(QString("ModuleLoader::loadPlugins(): failed to open library %1").arg(libpath));
 				continue;
 			}
 
@@ -149,6 +160,7 @@ public:
 			Loader* ld = reinterpret_cast<Loader*>(sym);
 
 			if (ld == nullptr) {
+				m_logger->message(QString("ModuleLoader::loadPlugins(): failed to check library type %1").arg(libpath));
 				lib->unload();
 				delete lib;
 				continue;

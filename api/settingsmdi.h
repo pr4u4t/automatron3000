@@ -19,6 +19,8 @@ public:
 		setAttribute(Qt::WA_DeleteOnClose);
 	}
 
+	virtual ~SettingsMdi() = default;
+
 private slots:
 	virtual void ok() = 0;
 

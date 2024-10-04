@@ -18,6 +18,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTableView>
 #include <QtWidgets/QVBoxLayout>
 #include "../api/api.h"
@@ -40,6 +41,8 @@ public:
     QLineEdit *programPathEdit;
     QPushButton *programPathButton;
     QTableView *arguments;
+    QLabel *label_5;
+    QSpinBox *triesEdit;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -74,7 +77,7 @@ public:
         label_2 = new QLabel(SettingsDialog);
         label_2->setObjectName("label_2");
 
-        formLayout->setWidget(2, QFormLayout::LabelRole, label_2);
+        formLayout->setWidget(4, QFormLayout::LabelRole, label_2);
 
         label_3 = new QLabel(SettingsDialog);
         label_3->setObjectName("label_3");
@@ -89,7 +92,7 @@ public:
         label_4 = new QLabel(SettingsDialog);
         label_4->setObjectName("label_4");
 
-        formLayout->setWidget(3, QFormLayout::LabelRole, label_4);
+        formLayout->setWidget(5, QFormLayout::LabelRole, label_4);
 
         horizontalLayout_3 = new QHBoxLayout();
         horizontalLayout_3->setObjectName("horizontalLayout_3");
@@ -104,12 +107,22 @@ public:
         horizontalLayout_3->addWidget(programPathButton);
 
 
-        formLayout->setLayout(2, QFormLayout::FieldRole, horizontalLayout_3);
+        formLayout->setLayout(4, QFormLayout::FieldRole, horizontalLayout_3);
 
         arguments = new QTableView(SettingsDialog);
         arguments->setObjectName("arguments");
 
-        formLayout->setWidget(3, QFormLayout::FieldRole, arguments);
+        formLayout->setWidget(5, QFormLayout::FieldRole, arguments);
+
+        label_5 = new QLabel(SettingsDialog);
+        label_5->setObjectName("label_5");
+
+        formLayout->setWidget(2, QFormLayout::LabelRole, label_5);
+
+        triesEdit = new QSpinBox(SettingsDialog);
+        triesEdit->setObjectName("triesEdit");
+
+        formLayout->setWidget(2, QFormLayout::FieldRole, triesEdit);
 
 
         verticalLayout->addLayout(formLayout);
@@ -156,6 +169,7 @@ public:
         label_3->setText(QCoreApplication::translate("SettingsDialog", "Title", nullptr));
         label_4->setText(QCoreApplication::translate("SettingsDialog", "Arguments", nullptr));
         programPathButton->setText(QCoreApplication::translate("SettingsDialog", "...", nullptr));
+        label_5->setText(QCoreApplication::translate("SettingsDialog", "Tries", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

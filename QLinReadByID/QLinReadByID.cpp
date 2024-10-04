@@ -171,11 +171,7 @@ void QLinReadByID::dataReady(const QByteArray& data) {
             startRead();
         } else {
             m_data.m_state = QLinReadByIDState::ERR;
-            m_data.m_ui->pushButton->setEnabled(true);
-            m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-            m_data.m_ui->progressLabel->setEnabled(false);
-            m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
-            m_data.m_ui->failedLabel->setEnabled(true);
+            stateFailed();
         }
     }
 }
@@ -200,11 +196,7 @@ bool QLinReadByID::processSingleFrame(const UDSsingleFrame* frame) {
 
     m_data.m_ui->result->setText(m_data.m_result.trimmed());
     emit success(m_data.m_result.trimmed().toLocal8Bit());
-    m_data.m_ui->pushButton->setEnabled(true);
-    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-    m_data.m_ui->progressLabel->setEnabled(false);
-    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; color:green; }");
-    m_data.m_ui->successLabel->setEnabled(true);
+    success();
     return true;
 }
 
@@ -258,11 +250,7 @@ bool QLinReadByID::processConsecutiveFrame(const UDSconsecutiveFrame* frame) {
 
         m_data.m_ui->result->setText(m_data.m_result);
         emit success(m_data.m_result.trimmed().toLocal8Bit());
-        m_data.m_ui->pushButton->setEnabled(true);
-        m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-        m_data.m_ui->progressLabel->setEnabled(false);
-        m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; color:green; }");
-        m_data.m_ui->successLabel->setEnabled(true);
+        success();
         m_data.m_state = QLinReadByIDState::SUCCESS;
     }
 
@@ -302,11 +290,26 @@ std::optional<LinFrame> QLinReadByID::dataFromResponse(const QByteArray& data) c
     return std::nullopt;
 }
 
-void QLinReadByID::startRead() {
-    auto set = settings<SettingsDialog::LinReadByIDSettings>();
-    QByteArray data = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
-    quint32 value;
-    
+void QLinReadByID::success() {
+    m_data.m_ui->pushButton->setEnabled(true);
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; color:green; }");
+    m_data.m_ui->successLabel->setEnabled(true);
+    setStyleSheet("QLinReadByID { border:2px solid green; }");
+}
+
+void QLinReadByID::stateFailed() {
+    m_data.m_ui->pushButton->setEnabled(true);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
+    m_data.m_ui->successLabel->setStyleSheet("");
+    m_data.m_ui->progressLabel->setStyleSheet("");
+    m_data.m_ui->failedLabel->setEnabled(true);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    setStyleSheet("QLinReadByID { border:2px solid red; }");
+}
+
+void QLinReadByID::inprogress() {
     m_data.m_ui->pushButton->setEnabled(false);
     m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; color:blue; }");
     m_data.m_ui->progressLabel->setEnabled(true);
@@ -314,6 +317,26 @@ void QLinReadByID::startRead() {
     m_data.m_ui->failedLabel->setEnabled(false);
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
     m_data.m_ui->successLabel->setEnabled(false);
+    setStyleSheet("QLinReadByID { border:2px solid blue; }");
+}
+
+void QLinReadByID::initial() {
+    m_data.m_ui->result->setText("");
+    m_data.m_ui->pushButton->setEnabled(true);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold;}");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
+}
+
+void QLinReadByID::startRead() {
+    auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    QByteArray data = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
+    quint32 value;
+    
+    inprogress();
 
     QCoreApplication::processEvents();
     for (int i = 2; i < set->frameData.size(); i += 2) {
@@ -324,13 +347,8 @@ void QLinReadByID::startRead() {
 
     data[0] = QString("0x3c").toUInt(nullptr, 16);
     if (m_data.m_lin->write(data) == -1) {
-        m_data.m_ui->pushButton->setEnabled(true);
         emit message("QLinReadByID::startRead: failed to send packet");
-        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
-        m_data.m_ui->successLabel->setStyleSheet("");
-        m_data.m_ui->progressLabel->setStyleSheet("");
-        m_data.m_ui->failedLabel->setEnabled(true);
-        m_data.m_ui->progressLabel->setEnabled(false);
+        stateFailed();
         return;
     }
     memcpy(&m_data.m_frame, data.constData()+1, sizeof(m_data.m_frame));
@@ -338,13 +356,8 @@ void QLinReadByID::startRead() {
     data = QByteArray(1, 0);
     data[0] = QString("0x3d").toUInt(nullptr, 16);
     if(m_data.m_lin->write(data) == -1) {
-        m_data.m_ui->pushButton->setEnabled(true);
         emit message("QLinReadByID::startRead: failed to send packet");
-        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; color:red; }");
-        m_data.m_ui->successLabel->setStyleSheet("");
-        m_data.m_ui->progressLabel->setStyleSheet("");
-        m_data.m_ui->failedLabel->setEnabled(true);
-        m_data.m_ui->progressLabel->setEnabled(false);
+        stateFailed();
         return;
     }
     m_data.m_state = QLinReadByIDState::READ;
@@ -352,27 +365,13 @@ void QLinReadByID::startRead() {
 }
 
 void QLinReadByID::linClosed() {
-    m_data.m_ui->result->setText("");
-    m_data.m_ui->pushButton->setEnabled(true);
     m_data.m_state = QLinReadByIDState::INITIAL;
-    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold;}");
-    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold;}");
-    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold;}");
-    m_data.m_ui->failedLabel->setEnabled(false);
-    m_data.m_ui->successLabel->setEnabled(false);
-    m_data.m_ui->progressLabel->setEnabled(false);
+    initial();
 }
 
 void QLinReadByID::linOpened() {
-    m_data.m_ui->result->setText("");
-    m_data.m_ui->pushButton->setEnabled(true);
     m_data.m_state = QLinReadByIDState::INITIAL;
-    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold;}");
-    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold;}");
-    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold;}");
-    m_data.m_ui->failedLabel->setEnabled(false);
-    m_data.m_ui->successLabel->setEnabled(false);
-    m_data.m_ui->progressLabel->setEnabled(false);
+    initial();
 }
 
 void QLinReadByID::init() {
@@ -390,8 +389,11 @@ void QLinReadByID::init() {
 
 void QLinReadByID::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    *(settings<SettingsDialog::LinReadByIDSettings>()) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
-    m_data.m_ui->title->setText(settings<SettingsDialog::LinReadByIDSettings>()->title);
+    const auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    *(set) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
+    m_data.m_ui->title->setText(set->title);
+    QObject::disconnect(this, SLOT(previousSuccess(const QByteArray&)));
+    //if(set->)
 }
 
 void QLinReadByID::readById(bool checked) {

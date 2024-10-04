@@ -64,6 +64,11 @@ public:
 		MODEL		= 1 << 3
 	};
 
+	enum class Reset {
+		SOFT = 0,
+		HARD
+	};
+
 	static constexpr qint64 InvalidUUID = -1;
 	static constexpr const char* const settings_path = "plugins/";
 
@@ -90,6 +95,8 @@ public:
 	bool multipleInstances() const;
 
 	virtual SettingsMdi* settingsWindow() const = 0;
+
+	Q_INVOKABLE virtual bool reset(Reset type = Reset::SOFT) = 0;
 
 protected:
 
@@ -329,6 +336,10 @@ public:
 
 	static bool isGui() {
 		return qobject_cast<QGuiApplication*>(QCoreApplication::instance()) != nullptr;
+	}
+
+	static bool locked() {
+		return Settings::get().value("locked").toBool();
 	}
 
 	static void setConfigurationPath(const QString& path){

@@ -35,13 +35,16 @@ public:
     static constexpr const char* const programPathValue = nullptr;
     static constexpr const char* const argumentsKey = "arguments";
     static constexpr const char* const argumentsValue = nullptr;
+    static constexpr const char* const triesKey = "tries";
+    static constexpr const int triesValue = 3;
 
     struct QJTAGSettings : public PluginSettings {
         QJTAGSettings() 
             : title(titleValue)
             , buttonLabel(buttonLabelValue)
             , programPath(programPath)
-            , arguments(){
+            , arguments()
+            , tries(triesValue){
         }
 
         QJTAGSettings(const QSettings& settings, const QString& settingsPath)
@@ -49,7 +52,8 @@ public:
             , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
             , buttonLabel(settings.value(settingsPath + "/" + buttonLabelKey, buttonLabelValue).toString())
             , programPath(settings.value(settingsPath + "/" + programPathKey, programPathValue).toString())
-            , arguments(settings.value(settingsPath + "/" + argumentsKey, argumentsValue).toJsonArray()) {
+            , arguments(settings.value(settingsPath + "/" + argumentsKey, argumentsValue).toJsonArray())
+            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -57,7 +61,8 @@ public:
             settings.setValue(settingsPath + "/" + buttonLabelKey, buttonLabel);
             settings.setValue(settingsPath + "/" + programPathKey, programPath);
             settings.setValue(settingsPath + "/" + argumentsKey, arguments);
-            
+            settings.setValue(settingsPath + "/" + triesKey, tries);
+
             PluginSettings::save(settings, settingsPath);
         }
 
@@ -65,12 +70,17 @@ public:
             QStringList ret;
             
             for (QJsonArray::const_iterator iter = arguments.begin(), end = arguments.end(); iter != end; ++iter) {
-                QString tmp = iter->toObject()["argument"].toString();
+                const QJsonObject o = iter->toObject();
+                if (o["enabled"].toBool() == false) {
+                    continue;
+                }
+                
+                QString tmp = o["argument"].toString();
                 if (tmp.isEmpty() == false) {
                     ret << tmp;
                 }
 
-                tmp = iter->toObject()["value"].toString();
+                tmp = o["value"].toString();
                 if (tmp.isEmpty() == false) {
                     ret << tmp;
                 }
@@ -83,6 +93,7 @@ public:
         QString buttonLabel;
         QString programPath;
         QJsonArray arguments;
+        int tries;
     };
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
@@ -135,7 +146,15 @@ private:
         m_model->removeRows(0, m_model->rowCount());
 
         for (QJsonArray::const_iterator iter = array.begin(), end = array.end(); iter != end; ++iter) {
-            QList<QStandardItem*> items = QList<QStandardItem*>() << new QStandardItem(iter->toObject()["argument"].toString()) << new QStandardItem(iter->toObject()["value"].toString());
+            QList<QStandardItem*> items = QList<QStandardItem*>()
+                << new QStandardItem(iter->toObject()["argument"].toString())
+                << new QStandardItem(iter->toObject()["value"].toString());
+
+            QStandardItem* check = new QStandardItem();
+            check->setCheckable(true);
+            check->setCheckState(iter->toObject()["enabled"].toBool() ? Qt::Checked : Qt::Unchecked);
+            items << check;
+                                       
             m_model->appendRow(items);
         }
     }
@@ -145,6 +164,11 @@ private:
         QStringList ret;
         
         for (QModelIndex idx = model->index(0, 0); idx.isValid(); idx = (idx.column() == 0) ? idx.siblingAtColumn(1) : idx.sibling(idx.row() + 1, 0)) {
+            QModelIndex process = idx.siblingAtColumn(2);
+            if (process.data(Qt::CheckStateRole).toBool() == false) {
+                continue;
+            }
+
             QString tmp = idx.data().toString();
             if (tmp.isEmpty()) {
                 continue;
@@ -158,21 +182,18 @@ private:
     template<>
     QJsonArray arguments(const QStandardItemModel* model) const {
         QJsonArray ret;
-        QJsonObject o;
 
-        for (QModelIndex idx = model->index(0, 0); idx.isValid(); idx = (idx.column() == 0) ? idx.siblingAtColumn(1) : idx.sibling(idx.row() + 1, 0)) {
-            QString tmp = idx.data().toString();
-            switch (idx.column()) {
-            case 0:
-                o["argument"] = tmp;
-                break;
+        for (QModelIndex idx = model->index(0, 0); idx.isValid(); idx = idx.sibling(idx.row() + 1, 0)) {
+            QJsonObject o; 
+            o["argument"] = idx.data().toString();
 
-            case 1:
-                o["value"] = tmp;
-                ret.push_back(o);
-                o = QJsonObject();
-                break;
-            }
+            idx = idx.siblingAtColumn(1);
+            o["value"] = idx.data().toString();
+            
+            idx = idx.siblingAtColumn(2);
+            o["enabled"] = idx.data(Qt::CheckStateRole).toBool();
+
+            ret.push_back(o);
         }
 
         return ret;

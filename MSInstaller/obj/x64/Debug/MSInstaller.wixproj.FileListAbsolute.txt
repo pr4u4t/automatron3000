@@ -1,8 +1,6 @@
 C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\bin\x64\Debug\en-US\MSInstaller.msi
-C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\bin\x64\Debug\en-US\cab1.cab
 C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\bin\x64\Debug\en-US\MSInstaller.wixpdb
 C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug\MSInstaller.wixproj.CoreCompileInputs.cache
-C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug\en-US\cab1.cab
 C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug\en-US\MSInstaller.msi
 C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug\en-US\MSInstaller.wixpdb
 C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug\MSInstaller.wixproj.BindTracking-en-US.txt

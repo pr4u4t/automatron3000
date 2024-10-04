@@ -145,33 +145,8 @@ void QLinWriteByID::dataReady(const QByteArray& data) {
         case 0x3d:
             frame = reinterpret_cast<const UDSFrame*>(response.value().payload);
             if (processFrame(frame) == true) {
-                m_data.m_ui->successLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
-                m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-                m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
-                m_data.m_ui->failedLabel->setEnabled(false);
-                m_data.m_ui->successLabel->setEnabled(true);
-                m_data.m_ui->progressLabel->setEnabled(false);
+                success();
             }
-            
-            /*
-            switch (static_cast<PCITypes>(frame->df.PCI.type)) {
-            case PCITypes::CF:
-                if (processConsecutiveFrame(&frame->cf) == true) {
-                    return;
-                }
-                break;
-            case PCITypes::FF:
-                if (processFirstFrame(&frame->ff) == true) {
-                    return;
-                }
-                break;
-            case PCITypes::SF:
-                if (processSingleFrame(&frame->sf) == true) {
-                    return;
-                }
-                break;
-            }
-            */
         }
     
         [[fallthrough]];
@@ -182,12 +157,7 @@ void QLinWriteByID::dataReady(const QByteArray& data) {
             startWrite();
         } else {
             m_data.m_state = QLinWriteByIDState::ERR;
-            m_data.m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
-            m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
-            m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
-            m_data.m_ui->successLabel->setEnabled(false);
-            m_data.m_ui->failedLabel->setEnabled(true);
-            m_data.m_ui->progressLabel->setEnabled(false);
+            failed();
         }
     }
 }
@@ -259,8 +229,7 @@ void QLinWriteByID::startWrite() {
     auto frames = prepareFrames(lst, service);
 
     m_data.m_state = QLinWriteByIDState::WRITE;
-    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; color:blue; }");
-    m_data.m_ui->progressLabel->setEnabled(true);
+    inprogress();
 
     while (frames.size()) {
         auto packet = frames.dequeue();
@@ -375,14 +344,7 @@ void QLinWriteByID::fillInput(const QByteArray& data) {
 }
 
 void QLinWriteByID::linClosed() {
-    m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-    m_data.m_ui->failedLabel->setEnabled(false);
-    m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
-    m_data.m_ui->successLabel->setEnabled(false);
-    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
-    m_data.m_ui->progressLabel->setEnabled(false);
-    m_data.m_ui->valueEdit->setText("");
-    
+    initial();
 }
 
 void QLinWriteByID::writeById() {
@@ -390,6 +352,7 @@ void QLinWriteByID::writeById() {
 
     if (m_data.m_ui->valueEdit->text().isEmpty() == true) {
         emit message("QLinWriteByID::writeById()");
+        failed();
         return;
     }
 
@@ -460,4 +423,41 @@ QString QLinWriteByID::errorString(quint8 error) const {
     }
 
     return QString("Unknown error: %1").arg(QString::number(error, 16));
+}
+
+void QLinWriteByID::success() {
+    m_data.m_ui->successLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(true);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    setStyleSheet("QLinWriteByID { border:2px solid blue; }");
+}
+
+void QLinWriteByID::failed() {
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->failedLabel->setEnabled(true);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    setStyleSheet("QLinWriteByID { border:2px solid red; }");
+}
+
+void QLinWriteByID::inprogress() { 
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; color:blue; }");
+    m_data.m_ui->progressLabel->setEnabled(true);
+    setStyleSheet("QLinWriteByID { border:2px solid blue; }");
+}
+
+void QLinWriteByID::initial() {
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->valueEdit->setText("");
+    //setStyleSheet("QWidget { border:2px solid green; }");
 }

@@ -77,6 +77,8 @@ protected:
 	 */
 	virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
+	virtual void fillMenu(QMenu* Menu) const;
+
 public:
 	using Super = QFrame;
 	/**

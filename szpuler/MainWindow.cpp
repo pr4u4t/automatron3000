@@ -21,6 +21,22 @@ static QIcon svgIcon(const QString& File){
     return SvgIcon;
 }
 
+class CCustomComponentsFactory : public ads::CDockComponentsFactory {
+public:
+    using Super = ads::CDockComponentsFactory;
+
+    CCustomComponentsFactory(MainWindow* win)
+        : m_win(win) {}
+
+    ads::CDockWidgetTab* createDockWidgetTab(ads::CDockWidget* DockWidget) const{
+        return new CustomDockWidgetTab(DockWidget, m_win);
+    }
+
+private:
+
+    MainWindow* m_win = nullptr;
+};
+
 MainWindow::MainWindow(MLoader* plugins, Logger* logger)
     : m_plugins(plugins)
     , m_logger(logger)
@@ -31,6 +47,12 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
 
     m_logger->message(QString("MainWindow::MainWindow: Using configuration: %1").arg(Settings::settingsPath()));
     
+    if (m_winSettings.kiosk) {
+        setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    }
+
+    ads::CDockComponentsFactory::setFactory(new CCustomComponentsFactory(this));
+
     ads::CDockManager::setConfigFlag(ads::CDockManager::OpaqueSplitterResize, true);
     ads::CDockManager::setConfigFlag(ads::CDockManager::FocusHighlighting, true);
     ads::CDockManager::setConfigFlag(ads::CDockManager::XmlCompressionEnabled, false);
@@ -112,16 +134,23 @@ void MainWindow::closeEvent(QCloseEvent *event){
     m_logger->message("MainWindow::closeEvent()", LoggerSeverity::LOG_DEBUG);
 
     QMessageBox::StandardButton resBtn = QMessageBox::question(this, /*APP_NAME*/"",
-        tr("Are you sure?\n"),
+        tr("Save current session?\n"),
         QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes);
-    if (resBtn != QMessageBox::Yes) {
-        m_logger->message("MainWindow::closeEvent: event inored", LoggerSeverity::LOG_DEBUG);
-        event->ignore();
-    } else {
+    switch (resBtn) {
+    case QMessageBox::Yes:
         m_logger->message("MainWindow::closeEvent: event accepted", LoggerSeverity::LOG_DEBUG);
         writeSettings();
         emit aboutToQuit();
         event->accept();
+        break;
+    case QMessageBox::No:
+        emit aboutToQuit();
+        event->accept();
+        break;
+    case QMessageBox::Cancel:
+        m_logger->message("MainWindow::closeEvent: event ignored", LoggerSeverity::LOG_DEBUG);
+        event->ignore();
+        break;
     }
 } 
 
@@ -247,11 +276,17 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
     child->setFeature(ads::CDockWidget::CustomCloseHandling, true);
 
     QObject::connect(child, &ads::CDockWidget::closeRequested, [child, this]() {
-        child->toggleView(false);
-        });
-
+        QWidget* widget = child->widget();
+        
+        if (qobject_cast<Widget*>(widget) != nullptr) {
+            child->toggleView(false); 
+        } else {
+            child->deleteDockWidget();
+        }
+    });
+    
     m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
-
+    
     //const QMetaObject* mu = widget->metaObject();
     //if (child->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
     //    connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));

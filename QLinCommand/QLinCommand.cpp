@@ -153,13 +153,7 @@ void QLinCommand::dataReady(const QByteArray& data) {
             frame = reinterpret_cast<const UDSframe*>(response.value().payload);
             if (processFrame(frame) == true) {
                 m_data.m_state = QLinCommandState::SUCCESS;
-                m_data.m_ui->successLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
-                m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-                m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
-                m_data.m_ui->failedLabel->setEnabled(false);
-                m_data.m_ui->progressLabel->setEnabled(false);
-                m_data.m_ui->successLabel->setEnabled(true);
-                m_data.m_ui->pushButton->setEnabled(true);
+                success();
                 return;
             }
         }
@@ -172,13 +166,7 @@ void QLinCommand::dataReady(const QByteArray& data) {
             send();
         } else {
             m_data.m_state = QLinCommandState::ERR;
-            m_data.m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
-            m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight: bold; }");
-            m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight: bold; }");
-            m_data.m_ui->successLabel->setEnabled(false);
-            m_data.m_ui->failedLabel->setEnabled(true);
-            m_data.m_ui->progressLabel->setEnabled(false);
-            m_data.m_ui->pushButton->setEnabled(true);
+            failed();
         } 
     }
 }
@@ -242,11 +230,29 @@ bool QLinCommand::processFrame(const UDSframe* frame) {
     return false;
 }
 
+void QLinCommand::success() {
+    m_data.m_ui->successLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(true);
+    m_data.m_ui->pushButton->setEnabled(true);
+    setStyleSheet("QLinCommand { border:2px solid green; }");
+}
 
-void QLinCommand::send() {
-    emit message("QLinCommand::send()");
+void QLinCommand::failed() {
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight: bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight: bold; }");
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->failedLabel->setEnabled(true);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->pushButton->setEnabled(true);
+    setStyleSheet("QLinCommand { border:2px solid red; }");
+}
 
-    m_data.m_state = QLinCommandState::READ;
+void QLinCommand::inprogress() {
     m_data.m_ui->pushButton->setEnabled(false);
     m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight: bold; }");
@@ -254,6 +260,24 @@ void QLinCommand::send() {
     m_data.m_ui->successLabel->setEnabled(false);
     m_data.m_ui->failedLabel->setEnabled(false);
     m_data.m_ui->progressLabel->setEnabled(true);
+    setStyleSheet("QLinCommand { border:2px solid blue; }");
+}
+
+void QLinCommand::initial() {
+    m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->pushButton->setEnabled(true);
+}
+
+void QLinCommand::send() {
+    emit message("QLinCommand::send()");
+
+    m_data.m_state = QLinCommandState::READ;
+    inprogress();
 
     const auto set = settings<SettingsDialog::LinCommandSettings>();
     QByteArray data = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
@@ -268,6 +292,7 @@ void QLinCommand::send() {
     data[0] = QString("0x3c").toUInt(nullptr, 16);
     if (m_data.m_lin->write(data) != data.size()) {
         emit message("QLinCommand::send: Command request write failed");
+        failed();
         return;
     }
     memcpy(&m_data.m_frame, data.constData() + 1, sizeof(m_data.m_frame));
@@ -277,6 +302,7 @@ void QLinCommand::send() {
     data[0] = QString("0x3d").toUInt(nullptr, 16);
     if (m_data.m_lin->write(data) != 1) {
         emit message("QLinCommand::send: Command response write failed");
+        failed();
         return;
     }
     

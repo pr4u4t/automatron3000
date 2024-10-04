@@ -227,6 +227,9 @@
 				<File Source="..\plugins\QLinWriteByID.dll"/>
 			</Component>
 			<Component Directory="Plugins">
+				<File Source="..\plugins\QCustomAction.dll"/>
+			</Component>
+			<Component Directory="Plugins">
 				<File Source="..\plugins\QSerial.dll"/>
 			</Component>
 			<Component>

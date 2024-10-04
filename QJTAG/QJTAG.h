@@ -7,6 +7,9 @@
 #include "settingsdialog.h"
 #include "../api/api.h"
 
+#include <QStyleOption>
+#include <QPainter>
+
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -24,6 +27,7 @@ struct QJTAGData {
     QProcess m_process;
     QString m_program;
     QStringList m_arguments;
+    int m_try;
 };
 
 class QJTAG_EXPORT QJTAG : public Widget {
@@ -42,6 +46,11 @@ public:
     ~QJTAG();
 
     SettingsMdi* settingsWindow() const;
+
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        initial();
+        return true;
+    }
 
 public slots:
 
@@ -70,6 +79,24 @@ protected slots:
     QString stateString(QProcess::ProcessState state) const;
 
     QString errorString(QProcess::ProcessError err) const;
+
+    void success();
+
+    void failed();
+
+    void inprogress();
+
+    void initial();
+
+protected:
+
+    void paintEvent(QPaintEvent*) {
+        QStyleOption opt;
+        opt.initFrom(this);
+        QPainter p(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+    }
+
 private:
     
     QJTAGData m_data;

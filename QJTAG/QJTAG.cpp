@@ -130,51 +130,104 @@ SettingsMdi* QJTAG::settingsWindow() const {
 }
 
 void QJTAG::command(bool checked) {
+    m_data.m_try = 0;
     exec();
 }
 
 void QJTAG::exec() {
     
-    m_data.m_ui->execButton->setEnabled(false);
-    m_data.m_ui->failedLabel->setEnabled(false);
-    m_data.m_ui->successLabel->setEnabled(false);
-    m_data.m_ui->progressLabel->setEnabled(true);
-    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ color:blue; font-weight:bold; }");
-
     const auto set = settings<SettingsDialog::QJTAGSettings>();
-    m_data.m_process.start(set->programPath, set->processArguments());
+    if (set->programPath.isEmpty()) {
+        emit message("QJTAG::exec: JTAG program path not set");
+        failed();
+        return;
+    }
 
+    if (QFile::exists(set->programPath) == false) {
+        emit message("specified executable does not exist");
+        failed();
+        return;
+    }
+
+    m_data.m_ui->execButton->setEnabled(false);
+    inprogress();
+    m_data.m_process.start(set->programPath, set->processArguments());
 }
 
 void QJTAG::errorOccurred(QProcess::ProcessError error) {
     emit message("QJTAG::errorOccurred(QProcess::ProcessError error)");
     emit message("QJTAG::errorOccurred: "+errorString(error));
+
+    const auto set = settings<SettingsDialog::QJTAGSettings>();
+
+    if (error == QProcess::FailedToStart) {
+        ++m_data.m_try;
+        if (m_data.m_try < set->tries) {
+            exec();
+            return;
+        }
+        failed();
+    }
 }
 
 void QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus) {
+    const auto set = settings<SettingsDialog::QJTAGSettings>();
+
     emit message("QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus)");
     emit message(QString("QJTAG::finished: %1 %2").arg(exitCode).arg(exitStatusString(exitStatus)));
     m_data.m_ui->execButton->setEnabled(true);
 
     switch (exitCode) {
     case 0:
-        m_data.m_ui->failedLabel->setEnabled(false);
-        m_data.m_ui->successLabel->setEnabled(true);
-        m_data.m_ui->progressLabel->setEnabled(false);
-        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-        m_data.m_ui->successLabel->setStyleSheet("QLabel{ color:green; font-weight:bold; }");
-        m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+        success();
         break;
     default:
-        m_data.m_ui->failedLabel->setEnabled(true);
-        m_data.m_ui->successLabel->setEnabled(false);
-        m_data.m_ui->progressLabel->setEnabled(false);
-        m_data.m_ui->failedLabel->setStyleSheet("QLabel{ color:red; font-weight:bold; }");
-        m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
-        m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+        ++m_data.m_try;
+        if (m_data.m_try < set->tries) {
+            exec();
+            return;
+        }
+        failed();
     }
+}
+
+void QJTAG::success() {
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(true);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ color:green; font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    setStyleSheet("QJTAG { border:2px solid green; }");
+}
+
+void QJTAG::initial() {
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+}
+
+void QJTAG::failed() {
+    m_data.m_ui->failedLabel->setEnabled(true);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(false);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ color:red; font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    setStyleSheet("QJTAG { border:2px solid red; }");
+}
+
+void QJTAG::inprogress() {
+    m_data.m_ui->failedLabel->setEnabled(false);
+    m_data.m_ui->successLabel->setEnabled(false);
+    m_data.m_ui->progressLabel->setEnabled(true);
+    m_data.m_ui->failedLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
+    m_data.m_ui->progressLabel->setStyleSheet("QLabel{ color:blue; font-weight:bold; }");
+    setStyleSheet("QJTAG { border:2px solid blue; }");
 }
 
 void QJTAG::readyReadStandardError() {

@@ -124,7 +124,12 @@
     <ClCompile Include="Instances.cpp" />
     <ClCompile Include="LogViewer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="MainWindow.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="PluginList.cpp" />
     <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="Session.cpp">

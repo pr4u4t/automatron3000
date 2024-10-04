@@ -83,10 +83,12 @@ Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const 
 }
 
 void Extension::nameChanged(const QString& name) {
-	if (settings<PluginSettings>() != nullptr) {
-		settings<PluginSettings>()->m_objectName = name;
+
+	const auto set = settings<PluginSettings>();
+	if (set != nullptr && set->m_objectName != name) {
+		set->m_objectName = name;
 		QSettings s = Settings::get();
-		settings<PluginSettings>()->save(s, settingsPath());
+		set->save(s, settingsPath());
 	}
 }
 
@@ -102,12 +104,16 @@ Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStrin
 }
 
 void Widget::nameChanged(const QString& objName) {
-	if (settings<PluginSettings>() != nullptr) {
+	const auto set = settings<PluginSettings>();
+
+	if (set != nullptr) {
 		QRegExp rx("^"+name()+"([ ][0-9]+)?$");
 		if (rx.exactMatch(objName)) {
-			settings<PluginSettings>()->m_objectName = objName;
-			QSettings s = Settings::get();
-			settings<PluginSettings>()->save(s, settingsPath());
+			if (set->m_objectName != objName) {
+				set->m_objectName = objName;
+				QSettings s = Settings::get();
+				set->save(s, settingsPath());
+			}
 		} else {
 			blockSignals(true);
 			setObjectName("");

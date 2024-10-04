@@ -34,6 +34,11 @@ public:
 
     SettingsMdi* settingsWindow() const override;
 
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        scanClear();
+        return true;
+    }
+
 public slots:
     void settingsChanged();
 

@@ -149,17 +149,12 @@ void QLinTester::startTest() {
     case QLinTesterState::INITIAL:
         m_responses = 0;
         m_ui->testProgress->setRange(0, set->tries*(set->testStopID-set->testStartID));
-        m_ui->testProgress->setValue(0);
-        m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-        m_ui->failedLabel->setEnabled(false);
-        m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-        m_ui->passedLabel->setEnabled(false);
+        initial();
     case QLinTesterState::NEXT_TRY:
     case QLinTesterState::PAUSE:
         m_state = QLinTesterState::SCAN;
         m_timer.start();
-        m_ui->testButton->setEnabled(false);
-        m_ui->pushButton->setEnabled(true);
+        inprogress();
         break;
     }
 }
@@ -184,7 +179,6 @@ void QLinTester::testStep() {
         if (m_test != m_slaveID) {
             QByteArray data(1, static_cast<char>(m_test));
             m_lin->write(data);
-
             m_ui->testProgress->setValue(m_try * (set->testStopID - set->testStartID)+m_test);
         }
         ++m_test;
@@ -200,20 +194,10 @@ void QLinTester::testStep() {
             m_state = QLinTesterState::INITIAL;
             m_try = 0;
             if (m_responses > 0) {
-                m_ui->passedLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
-                m_ui->passedLabel->setEnabled(true);
-                m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-                m_ui->failedLabel->setEnabled(false);
-                m_ui->testProgress->setValue(m_ui->testProgress->maximum());
+                success();
             } else {
-                m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
-                m_ui->failedLabel->setEnabled(true);
-                m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
-                m_ui->passedLabel->setEnabled(false);
-                m_ui->testProgress->setValue(m_ui->testProgress->maximum());
+                failed();
             }
-            m_ui->testButton->setEnabled(true);
-            m_ui->pushButton->setEnabled(false);
         }
     }
 }
@@ -240,4 +224,39 @@ void QLinTester::init() {
     }
 
     QObject::connect(lin.data(), &IODevice::closed, this, &QLinTester::linClosed);
+}
+
+void QLinTester::success() {
+    m_ui->passedLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
+    m_ui->passedLabel->setEnabled(true);
+    m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->failedLabel->setEnabled(false);
+    m_ui->testProgress->setValue(m_ui->testProgress->maximum());
+    m_ui->testButton->setEnabled(true);
+    m_ui->pushButton->setEnabled(false);
+}
+
+void QLinTester::failed() {
+    m_ui->failedLabel->setStyleSheet("QLabel { color : red; font-weight:bold; }");
+    m_ui->failedLabel->setEnabled(true);
+    m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->passedLabel->setEnabled(false);
+    m_ui->testProgress->setValue(m_ui->testProgress->maximum());
+    m_ui->testButton->setEnabled(true);
+    m_ui->pushButton->setEnabled(false);
+}
+
+void QLinTester::inprogress() {
+    m_ui->testButton->setEnabled(false);
+    m_ui->pushButton->setEnabled(true);
+}
+
+void QLinTester::initial() {
+    m_ui->testProgress->setValue(0);
+    m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->failedLabel->setEnabled(false);
+    m_ui->passedLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    m_ui->passedLabel->setEnabled(false);
+    m_ui->testButton->setEnabled(true);
+    m_ui->pushButton->setEnabled(false);
 }

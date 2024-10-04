@@ -33,6 +33,11 @@ public:
 
 	Q_INVOKABLE int slaveID() const;
 
+	Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+		close();
+		return open();
+	}
+
 public slots:
 
 	void settingsChanged();

@@ -28,6 +28,9 @@
 #include "DockManager.h"
 #include "DockAreaWidget.h"
 #include "Session.h"
+#include "DockComponentsFactory.h"
+#include "DockWidgetTab.h"
+#include "DockWidget.h"
 
 struct MainWindowSettings {
 
@@ -43,6 +46,8 @@ struct MainWindowSettings {
     static constexpr const bool hideMenuValue = false;
     static constexpr const char* const lockKey = "lock";
     static constexpr const bool lockValue = false;
+    static constexpr const char* const kioskKey = "kiosk";
+    static constexpr const bool kioskValue = false;
 
     MainWindowSettings()
         : geometry(geometryValue)
@@ -50,7 +55,8 @@ struct MainWindowSettings {
         , statusTimeout(statusTimeoutValue)
         , translations(translationsValue)
         , hideMenu(hideMenuValue)
-        , lock(lockValue){
+        , lock(lockValue)
+        , kiosk(kioskValue){
     }
 
     MainWindowSettings(const QSettings& settings, const QString& settingsPath) 
@@ -59,7 +65,8 @@ struct MainWindowSettings {
         , statusTimeout(settings.value(statusTimeoutKey, statusTimeoutValue).toInt())
         , translations(settings.value(translationsKey, translationsValue).toBool())
         , hideMenu(settings.value(hideMenuKey, hideMenuValue).toBool())
-        , lock(settings.value(lockKey, lockValue).toBool()){
+        , lock(settings.value(lockKey, lockValue).toBool())
+        , kiosk(settings.value(kioskKey, kioskValue).toBool()){
     }
 
     void save(QSettings& settings, const QString& settingsPath) {
@@ -69,6 +76,7 @@ struct MainWindowSettings {
         settings.setValue(translationsKey, translations);
         settings.setValue(hideMenuKey, hideMenu);
         settings.setValue(lockKey, lock);
+        settings.setValue(kioskKey, kiosk);
     }
 
     QByteArray geometry;
@@ -77,6 +85,7 @@ struct MainWindowSettings {
     bool translations;
     bool hideMenu;
     bool lock;
+    bool kiosk;
 };
 
 class MainWindow : public Window {
@@ -270,6 +279,40 @@ private:
     QAction* m_saveState = nullptr;
     QAction* m_restoreState = nullptr;
     QAction* m_newPerspective = nullptr;
+};
+
+class CustomDockWidgetTab : public ads::CDockWidgetTab {
+
+    Q_OBJECT
+
+public:
+    CustomDockWidgetTab(ads::CDockWidget* DockWidget, MainWindow* win)
+        : CDockWidgetTab(DockWidget)
+        , m_win(win){
+    }
+
+protected:
+    void fillMenu(QMenu* Menu) const {
+        ads::CDockWidgetTab::fillMenu(Menu);
+        Plugin* plugin = dynamic_cast<Plugin*>(dockWidget()->widget());
+        if (plugin != nullptr) {
+            QObject* o = dynamic_cast<QObject*>(plugin);
+            const QList<QAction*> actions = Menu->actions();
+            QAction* settings = new QAction(tr("Settings"));
+            Menu->insertAction(actions[actions.size() - 1], settings);
+            Menu->insertSeparator(actions[actions.size() - 1]);
+            QObject* w = dockAreaWidget()->parent();
+
+            QObject::connect(settings, &QAction::triggered, [plugin, o, this]() {
+                SettingsMdi* settings = plugin->settingsWindow();
+                this->m_win->addSubWindow(settings, o->objectName() + "/Settings");
+
+            });
+        }
+    }
+private:
+
+    MainWindow* m_win = nullptr;
 };
 
 #endif

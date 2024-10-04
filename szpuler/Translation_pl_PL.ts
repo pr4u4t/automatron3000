@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="pl_PL">
 <context>
+    <name>CustomDockWidgetTab</name>
+    <message>
+        <location filename="MainWindow.h" line="301"/>
+        <source>Settings</source>
+        <translation type="unfinished">Ustawienia</translation>
+    </message>
+</context>
+<context>
     <name>Instances</name>
     <message>
         <location filename="Instances.cpp" line="81"/>
@@ -37,20 +45,19 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="MainWindow.cpp" line="115"/>
         <source>Are you sure?
 </source>
-        <translation>Czy chcesz zamknąć program?
+        <translation type="vanished">Czy chcesz zamknąć program?
 </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="134"/>
+        <location filename="MainWindow.cpp" line="163"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="343"/>
-        <location filename="MainWindow.cpp" line="345"/>
+        <location filename="MainWindow.cpp" line="378"/>
+        <location filename="MainWindow.cpp" line="380"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
@@ -60,17 +67,17 @@
         <translation>Dziennik</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="351"/>
+        <location filename="MainWindow.cpp" line="386"/>
         <source>Switch layout direction</source>
         <translation>Zmień kierunek układu</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="355"/>
+        <location filename="MainWindow.cpp" line="390"/>
         <source>E&amp;xit</source>
         <translation>&amp;Wyjście</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="357"/>
+        <location filename="MainWindow.cpp" line="392"/>
         <source>Exit the application</source>
         <translation>Wyjdź z proramu</translation>
     </message>
@@ -91,7 +98,7 @@
         <translation type="vanished">Rozłącz</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="366"/>
+        <location filename="MainWindow.cpp" line="401"/>
         <source>&amp;Window</source>
         <translation>&amp;Okna</translation>
     </message>
@@ -146,7 +153,7 @@
     <message>
         <location filename="Instances.cpp" line="32"/>
         <location filename="LogViewer.cpp" line="97"/>
-        <location filename="MainWindow.cpp" line="368"/>
+        <location filename="MainWindow.cpp" line="403"/>
         <location filename="PluginList.cpp" line="32"/>
         <source>&amp;Settings</source>
         <translation>&amp;Ustawienia</translation>
@@ -164,57 +171,63 @@
         <translation>Instancje</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="349"/>
+        <location filename="MainWindow.cpp" line="137"/>
+        <source>Save current session?
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="384"/>
         <source>Save session</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="361"/>
+        <location filename="MainWindow.cpp" line="396"/>
         <source>&amp;View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="362"/>
+        <location filename="MainWindow.cpp" line="397"/>
         <source>Togggle toolbar</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="376"/>
+        <location filename="MainWindow.cpp" line="411"/>
         <source>Preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="383"/>
+        <location filename="MainWindow.cpp" line="418"/>
         <source>&amp;Help</source>
         <translation>Po&amp;moc</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="385"/>
+        <location filename="MainWindow.cpp" line="420"/>
         <source>&amp;About</source>
         <translation>&amp;O programie</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="386"/>
+        <location filename="MainWindow.cpp" line="421"/>
         <source>Show the application&apos;s About box</source>
         <translation>Informacje o programie</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="388"/>
+        <location filename="MainWindow.cpp" line="423"/>
         <source>About &amp;Qt</source>
         <translation>O &amp;Qt</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="389"/>
+        <location filename="MainWindow.cpp" line="424"/>
         <source>Show the Qt library&apos;s About box</source>
         <translation>Informacje o Qt</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="440"/>
+        <location filename="MainWindow.cpp" line="475"/>
         <source>Ready</source>
         <translation>Gotowy</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="449"/>
+        <location filename="MainWindow.cpp" line="484"/>
         <source>Save perspective</source>
         <translation type="unfinished"></translation>
     </message>
@@ -239,26 +252,26 @@
         <translation type="vanished">Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="178"/>
-        <location filename="MainWindow.h" line="199"/>
+        <location filename="MainWindow.h" line="187"/>
+        <location filename="MainWindow.h" line="208"/>
         <source>Save Perspective</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="178"/>
-        <location filename="MainWindow.h" line="199"/>
+        <location filename="MainWindow.h" line="187"/>
+        <location filename="MainWindow.h" line="208"/>
         <source>Enter unique name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="185"/>
-        <location filename="MainWindow.h" line="205"/>
+        <location filename="MainWindow.h" line="194"/>
+        <location filename="MainWindow.h" line="214"/>
         <source>Error perspective already exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="185"/>
-        <location filename="MainWindow.h" line="205"/>
+        <location filename="MainWindow.h" line="194"/>
+        <location filename="MainWindow.h" line="214"/>
         <source>Perspective %1 already exists</source>
         <translation type="unfinished"></translation>
     </message>

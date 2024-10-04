@@ -9,12 +9,14 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     , m_ui(new Ui::SettingsDialog)
     , m_intValidator(new QIntValidator(0, 4000000, this))
     , m_settingsPath(settingsPath)
-    , m_model(new QStandardItemModel(0,2)){
+    , m_model(new QStandardItemModel(0, 3)){
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
     m_model->setHeaderData(0, Qt::Horizontal, tr("Argument"));
     m_model->setHeaderData(1, Qt::Horizontal, tr("Value"));
+    m_model->setHeaderData(2, Qt::Horizontal, tr("Enabled"));
+
     m_ui->arguments->setShowGrid(true);
     m_ui->arguments->setAlternatingRowColors(true);
     m_ui->arguments->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -55,7 +57,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->programPathEdit->setText(m_currentSettings.programPath);
     m_ui->buttonLabelEdit->setText(m_currentSettings.buttonLabel);
     m_ui->titleEdit->setText(m_currentSettings.title);
-    
+    m_ui->triesEdit->setValue(m_currentSettings.tries);
     fillModel(m_currentSettings.arguments);
 }
 
@@ -66,6 +68,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.buttonLabel = m_ui->buttonLabelEdit->text();
     m_currentSettings.title = m_ui->titleEdit->text();
     m_currentSettings.arguments = arguments<QJsonArray>(m_model);
+    m_currentSettings.tries = m_ui->triesEdit->value();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
@@ -135,6 +138,10 @@ void SettingsDialog::insBeforeArgument() {
 
     QList<QStandardItem*> items;
     items << new QStandardItem() << new QStandardItem();
+    QStandardItem* check = new QStandardItem();
+    check->setCheckable(true);
+    check->setCheckState(Qt::Checked);
+    items << check;
     m_model->insertRow(list[0].row(), items);
 }
 
@@ -153,12 +160,21 @@ void SettingsDialog::insAfterArgument() {
 
     QList<QStandardItem*> items;
     items << new QStandardItem() << new QStandardItem();
+    QStandardItem* check = new QStandardItem();
+    check->setCheckable(true);
+    check->setCheckState(Qt::Checked);
+    items << check;
     m_model->insertRow(list[0].row()+1, items);
 }
 
 void SettingsDialog::addArgument() {
     QList<QStandardItem*> items;
     items << new QStandardItem() << new QStandardItem();
+    QStandardItem* check = new QStandardItem();
+    check->setCheckable(true);
+    check->setCheckState(Qt::Checked);
+    items << check;
+
     m_model->appendRow(items);
 }
 

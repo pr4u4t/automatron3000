@@ -34,6 +34,11 @@ public:
 
     SettingsMdi* settingsWindow() const;
 
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        initial();
+        return true;
+    }
+
 public slots:
     void settingsChanged();
 
@@ -46,6 +51,16 @@ public slots:
     void testStop();
 
     void init();
+
+protected:
+
+    void success();
+
+    void failed();
+
+    void inprogress();
+
+    void initial();
 
 protected slots:
 

@@ -2,6 +2,8 @@
 #define QLIN_COMMAND_H
 
 #include <QTimer>
+#include <QPainter>
+#include <QStyleOption>
 
 #include "../api/api.h"
 #include "settingsdialog.h"
@@ -80,6 +82,11 @@ public:
 
     SettingsMdi* settingsWindow() const override;
 
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        initial();
+        return true;
+    }
+
 public slots:
 
     void settingsChanged();
@@ -107,6 +114,21 @@ protected:
     bool processFrame(const UDSframe* frame);
 
     QString errorString(quint8 err) const;
+
+    void success();
+
+    void failed();
+
+    void inprogress();
+
+    void initial();
+
+    void paintEvent(QPaintEvent*) {
+        QStyleOption opt;
+        opt.initFrom(this);
+        QPainter p(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+    }
 
 private:
 

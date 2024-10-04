@@ -7,6 +7,8 @@
 #include "ui_linwritebyid.h"
 #include <QTimer>
 #include <QQueue>
+#include <QStyleOption>
+#include <QPainter>
 
 QT_BEGIN_NAMESPACE
 
@@ -152,8 +154,7 @@ struct QLinWriteByIDData {
     UDSgenericFrame m_frame;
 };
 
-class QLINWRITEBYID_EXPORT QLinWriteByID : public Widget
-{
+class QLINWRITEBYID_EXPORT QLinWriteByID : public Widget {
     Q_OBJECT
 
 public:
@@ -162,6 +163,11 @@ public:
     ~QLinWriteByID();
 
     SettingsMdi* settingsWindow() const override;
+
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        initial();
+        return true;
+    }
 
 public slots:
     void settingsChanged();
@@ -182,6 +188,13 @@ protected slots:
 
 protected:
 
+    void paintEvent(QPaintEvent*){
+        QStyleOption opt;
+        opt.initFrom(this);
+        QPainter p(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+    }
+
     std::optional<LinFrame> dataFromResponse(const QByteArray& data) const;
 
     bool processFrame(const UDSFrame* frame);
@@ -189,6 +202,14 @@ protected:
     QString errorString(quint8 err) const;
 
     QQueue<LinUdsFrame> prepareFrames(const QByteArrayList& data, const UDSserviceFrame* service);
+
+    void success();
+
+    void failed();
+
+    void inprogress();
+
+    void initial();
 
 private:
 

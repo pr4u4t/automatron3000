@@ -30,7 +30,8 @@ int main(int argc, char *argv[]){
     MainWindow mainWin(&ld, &log);
     GuiLoaderContext ctx(&mainWin);
     ld.setContext(&ctx);
-    ld.loadPlugins();
+    const auto pluginCount = ld.loadPlugins();
+    log.message(QString("Loaded %1 plugins").arg(pluginCount));
 
     Session session(&ld, &log, QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + "configuration.ini", &mainWin);
     QObject::connect(&mainWin, &MainWindow::sessionStore, &session, &Session::store);

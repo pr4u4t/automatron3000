@@ -33,11 +33,15 @@ public:
     static constexpr const uint8_t triesValue = 3;
     static constexpr const char* titleValue = "Read By Identifier";
 
+    static constexpr const char* const previousKey = "previous";
+    static constexpr const char* const previousValue = "";
+
     struct LinReadByIDSettings : public PluginSettings {
         LinReadByIDSettings()
             : frameData(frameDataValue)
             , interval(intervalValue)
-            , tries(triesValue) {
+            , tries(triesValue)
+            , previous(previousValue){
         }
 
         LinReadByIDSettings(const QSettings& settings, const QString& settingsPath)
@@ -45,7 +49,8 @@ public:
             , frameData(settings.value(settingsPath + "/" + frameDataKey, frameDataValue).toByteArray())
             , interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
             , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
-            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString()) {
+            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
+            , previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -53,6 +58,7 @@ public:
             settings.setValue(settingsPath + "/" + intervalKey, interval);
             settings.setValue(settingsPath + "/" + triesKey, tries);
             settings.setValue(settingsPath + "/" + titleKey, title);
+            settings.setValue(settingsPath + "/" + previousKey, previous);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -61,6 +67,7 @@ public:
         qint64 interval;
         uint8_t tries;
         QString title;
+        QString previous;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

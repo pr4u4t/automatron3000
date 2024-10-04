@@ -6,6 +6,8 @@
 #include "settingsdialog.h"
 #include "ui_linreadbyid.h"
 #include <QTimer>
+#include <QStyleOption>
+#include <QPainter>
 
 QT_BEGIN_NAMESPACE
 
@@ -107,6 +109,11 @@ public:
 
     SettingsMdi* settingsWindow() const override;
 
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        initial();
+        return true;
+    }
+
 signals:
 
     void success(const QByteArray& data);
@@ -132,13 +139,32 @@ protected slots:
 
     std::optional<LinFrame> dataFromResponse(const QByteArray& data) const;
 
+    void previousSuccess(const QByteArray& data) {
+        
+    }
+
 protected:
        
+    void paintEvent(QPaintEvent*) {
+        QStyleOption opt;
+        opt.initFrom(this);
+        QPainter p(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+    }
+
     bool processSingleFrame(const UDSsingleFrame* frame);
 
     bool processFirstFrame(const UDSfirstFrame* frame);
 
     bool processConsecutiveFrame(const UDSconsecutiveFrame* frame);
+
+    void success();
+
+    void stateFailed();
+
+    void inprogress();
+
+    void initial();
 
 private:
     

@@ -50,6 +50,10 @@ public:
 
     QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        return true;
+    }
+
     bool saveSettings() {
         return true;
     }

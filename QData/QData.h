@@ -48,6 +48,10 @@ public:
 
     SettingsMdi* settingsWindow() const override;
 
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        return true;
+    }
+
 protected:
 
     int findByPart(QSqlTableModel* model, const QString& part);
