@@ -18,49 +18,63 @@ struct QCircularBarMenu {
             }
         }
 
-        m_barsMenu = new QMenu(m_app->translate("MainWindow", "&Bars"));
+        m_QCircularBarMenu = new QMenu(m_app->translate("MainWindow", "Visualization"));
 
-        m_circularbar = new QAction(m_app->translate("MainWindow", "CircularBar"), m_barsMenu);
-        m_circularbar->setData(QVariant("QCircularBar"));
-        m_barsMenu->addAction(m_circularbar);
+        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
+        m_QCircularBarMenu->addMenu(m_settings);
+
+        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_QCircularBarMenu);
+        m_newInstance->setData(QVariant("QCircularBar"));
+        m_QCircularBarMenu->addAction(m_newInstance);
     }
 
-    QMenu* m_barsMenu = nullptr;
-    QAction* m_circularbar = nullptr;
+    QMenu* m_QCircularBarMenu = nullptr;
+    QMenu* m_settings = nullptr;
+    QAction* m_newInstance = nullptr;
+
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
-
 };
 
 static bool QCircularBar_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QCircularBarMenu* ctx, Logger* log) {
     log->message("QCircularBar_register()");
-    
+
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QCircularBar_register(): application is non gui not registering");
         return false;
     }
 
     QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
     if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_barsMenu);
+        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QCircularBarMenu);
     }
 
-    QObject::connect(ctx->m_circularbar, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        if (plugin->name() != "QCircularBar") {
+            return;
+        }
 
-    /*QObject::connect(ctx->m_dbSettings, &QAction::triggered, [ld, win, ctx] {
-        QSharedPointer<Plugin> data = ld->instance("QData", win);
-        SettingsDialog* dialog = new SettingsDialog(win, nullptr, data->settingsPath());
-        QObject::connect(dialog, &SettingsDialog::settingsUpdated, data.dynamicCast<QData>().data(), &QData::settingsChanged);
-        win->addSubWindow(dialog, ctx->m_app->translate("MainWindow", "Database-Settings"));
+        QAction* settings = new QAction(dynamic_cast<const QCircularBar*>(plugin)->objectName(), ctx->m_QCircularBarMenu);
+        settings->setData(QVariant(plugin->settingsPath()));
+        ctx->m_settings->addAction(settings);
+
+        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
+            if (gtx->m_win->toggleWindow(dynamic_cast<const QCircularBar*>(plugin)->objectName() + "/Settings")) {
+                return;
+            }
+            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
+            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QCircularBar*>(plugin), &QCircularBar::settingsChanged);
+            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QCircularBar*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QJTAG-Settings"));
+            });
         });
-    */
 
     return true;
 }
 
 static bool QCircularBar_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QCircularBarMenu* ctx, Logger* log) {
-    log->message("QCircularBar_unregister()");
+    log->message("QJTAG_unregister()");
     return true;
 }
 
@@ -79,7 +93,7 @@ REGISTER_PLUGIN(
 )
 
 QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path) {
+    : Widget(ld, plugins, parent, path, new SettingsDialog::CircularBarSettings(Settings::get(), path)) {
     m_lcd = new QLCDNumber(this);
     setPrecision(0);
     setSteps(20);
@@ -105,10 +119,10 @@ QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
     setDigitCount(5);
     setValue(0);
     setLabel("Label");
-    setUnits("%");
+    //setUnits("");
     setThreshold(80);
     setCircularBarEnabled(true);
-    setCoverGlassEnabled(true);
+    //setCoverGlassEnabled(true);
     setEnabled(true);
 }
 
@@ -118,12 +132,17 @@ QCircularBar::~QCircularBar() {
 }
 
 SettingsMdi* QCircularBar::settingsWindow() const {
-    return nullptr; //new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QCircularBar::settingsChanged);
+    return ret;
 }
 
 int QCircularBar::digits(int val) {
     int digits = 0;
-    if (val <= 0) digits = 1; // remove this line if '-' counts as a digit
+    if (val <= 0) { // remove this line if '-' counts as a digit
+        digits = 1;
+    }
+    
     while (val) {
         val /= 10;
         digits++;
@@ -132,7 +151,19 @@ int QCircularBar::digits(int val) {
 }
 
 void QCircularBar::settingsChanged() {
+    emit message("QCircularBar::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+    const auto set = settings<SettingsDialog::CircularBarSettings>();
+    *set = SettingsDialog::CircularBarSettings(Settings::get(), settingsPath());
 
+    setMinValue(set->minValue);
+    setMaxValue(set->maxValue);
+    setThreshold(set->threshold);
+    setPrecision(set->precision);
+    setLabel(set->label);
+    setUnits(set->units);
+    setSteps(set->steps);
+
+    update();
 }
 
 void QCircularBar::setBarSize(int barSize) {

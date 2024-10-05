@@ -240,6 +240,9 @@
 
 					<Shortcut Name="Automatron 3000" Directory="ProgramMenuFolder"
 							Advertise="yes"  WorkingDirectory="INSTALLFOLDER" Icon="Automatron3000.exe"/>
+
+					<Shortcut Name="Automatron 3000" Directory="StartupFolder"
+							Advertise="yes"  WorkingDirectory="INSTALLFOLDER" Icon="Automatron3000.exe"/>
 				</File>
 			</Component>
 			<Component Directory="Translations">

@@ -10,6 +10,7 @@
 #include <QColor>
 
 #include "../api/api.h"
+#include "settingsdialog.h"
 
 class QCIRCULARBAR_EXPORT QCircularBar : public Widget
 {

@@ -103,9 +103,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="settingsdialog.cpp" />
     <ClInclude Include="qcircularbar_global.h" />
+    <QtMoc Include="settingsdialog.h" />
     <QtMoc Include="QCircularBar.h" />
     <ClCompile Include="QCircularBar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="settingsdialog.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

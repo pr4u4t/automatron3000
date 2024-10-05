@@ -2,6 +2,7 @@ BuiltPdbOutput	C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug
 BuiltTargetOutput	C:\Users\Admin\Documents\GitHub\szpuler\MSInstaller\obj\x64\Debug\en-US\MSInstaller.msi
 Input	..\plugins\QBadge.dll
 Input	..\plugins\QCircularBar.dll
+Input	..\plugins\QCustomAction.dll
 Input	..\plugins\QData.dll
 Input	..\plugins\QJTAG.dll
 Input	..\plugins\QKonsole.dll
