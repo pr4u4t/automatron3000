@@ -109,12 +109,102 @@ QLinWriteByID::QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent
     : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath))
     , m_data(new Ui::QLinWriteByIDUI) {
     m_data.m_ui->setupUi(this);
-    settingsChanged();
     QObject::connect(m_data.m_ui->pushButton, &QPushButton::clicked, this, &QLinWriteByID::writeById);
-    QTimer::singleShot(0, this, &QLinWriteByID::init);
 }
 
 QLinWriteByID::~QLinWriteByID() {
+}
+
+bool QLinWriteByID::initialize() {
+    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
+    *set = SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath());
+
+    
+
+    emit message("QLinTester::init()", LoggerSeverity::LOG_DEBUG);
+   
+    m_data.m_ui->title->setText(set->title);
+
+    if (set->linDevice.isEmpty()) {
+        emit message("QLinWriteByID::init: lin device name empty");
+        emit message("QLinWriteByID::init: !!! please select lin device in settings !!!");
+        return false;
+    }
+
+    auto plugin = plugins()->instance(set->linDevice, 0);
+    m_data.m_lin = plugin.dynamicCast<IODevice>();
+
+    if (m_data.m_lin.isNull()) {
+        emit message("QLinWriteByID::init: lin device == null");
+        emit message("QLinWriteByID::init: !!! please select lin device in settings !!!");
+        return false;
+    }
+
+    connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinWriteByID::dataReady);
+    if (m_data.m_lin->isOpen() == false) {
+        if (m_data.m_lin->open() == false) {
+            emit message(QString("QLinWriteByID::init: failed to open device: %1").arg(set->linDevice));
+        }
+    }
+
+    connect(m_data.m_lin.data(), &IODevice::closed, this, &QLinWriteByID::linClosed);
+
+    //
+
+    
+    if (set->dataSource.isEmpty() == false) {
+        emit message(QString("QLinWriteByID::settingsChanged: connecting data source %1").arg(set->dataSource));
+        auto source = plugins()->findByObjectName(set->dataSource);
+        if (source.isNull() == false) {
+            connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
+        }
+    }
+
+    return true;
+}
+
+bool QLinWriteByID::deinitialize() {
+    return true;
+}
+
+void QLinWriteByID::settingsChanged() {
+    emit message("QLinWriteByID::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
+    *set = SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath());
+
+    m_data.m_ui->title->setText(set->title);
+
+    disconnect(this, SLOT(dataReady(const QByteArray&)));
+    disconnect(this, SLOT(linClosed()));
+    disconnect(this, SLOT(fillInput(const QByteArray&)));
+
+    auto plugin = plugins()->instance(set->linDevice, 0);
+    m_data.m_lin = plugin.dynamicCast<IODevice>();
+
+    if (m_data.m_lin.isNull()) {
+        emit message("QLinWriteByID::settingsChanged: lin device == null");
+        return;
+    }
+
+    connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinWriteByID::dataReady);
+    if (m_data.m_lin->isOpen() == false) {
+        if (m_data.m_lin->open() == false) {
+            emit message(QString("QLinWriteByID::init: failed to open device: %1").arg(set->linDevice));
+        }
+    }
+
+    connect(m_data.m_lin.data(), &IODevice::closed, this, &QLinWriteByID::linClosed);
+
+    //
+
+
+    if (set->dataSource.isEmpty() == false) {
+        emit message(QString("QLinWriteByID::settingsChanged: connecting data source %1").arg(set->dataSource));
+        auto source = plugins()->findByObjectName(set->dataSource);
+        if (source.isNull() == false) {
+            connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
+        }
+    }
 }
 
 SettingsMdi* QLinWriteByID::settingsWindow() const {
@@ -303,43 +393,8 @@ QQueue<LinUdsFrame> QLinWriteByID::prepareFrames(const QByteArrayList& data, con
     return ret;
 }
 
-void QLinWriteByID::init() {
-    emit message("QLinTester::init()", LoggerSeverity::LOG_DEBUG);
-    auto plugin = plugins()->instance("QLin", 0);
-    auto lin = plugin.dynamicCast<IODevice>();
-    m_data.m_lin = lin;
-    connect(lin.data(), &IODevice::dataReady, this, &QLinWriteByID::dataReady);
-    if (lin->isOpen() == false) {
-        lin->open();
-    }
-
-    QObject::connect(lin.data(), &IODevice::closed, this, &QLinWriteByID::linClosed);
-    
-    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
-    if (set->dataSource.isEmpty() == false) {
-        auto source = plugins()->findByObjectName(set->dataSource);
-        if (source.isNull() == false) {
-            QObject::connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
-        }
-    }
-}
-
-void QLinWriteByID::settingsChanged() {
-    emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
-    QObject::disconnect(this, SLOT(fillInput(const QByteArray&)));
-    *set = SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath());
-    m_data.m_ui->title->setText(set->title);
-    
-    if (set->dataSource.isEmpty() == false) {
-        auto source = plugins()->findByObjectName(set->dataSource);
-        if (source.isNull() == false) {
-            QObject::connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
-        }
-    }
-}
-
 void QLinWriteByID::fillInput(const QByteArray& data) {
+    emit message("QLinWriteByID::fillInput(const QByteArray& data)");
     m_data.m_ui->valueEdit->setText(data);
 }
 
@@ -459,5 +514,5 @@ void QLinWriteByID::initial() {
     m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
     m_data.m_ui->progressLabel->setEnabled(false);
     m_data.m_ui->valueEdit->setText("");
-    //setStyleSheet("QWidget { border:2px solid green; }");
+    setStyleSheet("");
 }

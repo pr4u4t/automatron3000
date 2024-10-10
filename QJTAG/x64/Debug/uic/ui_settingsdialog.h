@@ -43,6 +43,8 @@ public:
     QTableView *arguments;
     QLabel *label_5;
     QSpinBox *triesEdit;
+    QLabel *label_6;
+    QLineEdit *previousEdit;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -124,6 +126,16 @@ public:
 
         formLayout->setWidget(2, QFormLayout::FieldRole, triesEdit);
 
+        label_6 = new QLabel(SettingsDialog);
+        label_6->setObjectName("label_6");
+
+        formLayout->setWidget(3, QFormLayout::LabelRole, label_6);
+
+        previousEdit = new QLineEdit(SettingsDialog);
+        previousEdit->setObjectName("previousEdit");
+
+        formLayout->setWidget(3, QFormLayout::FieldRole, previousEdit);
+
 
         verticalLayout->addLayout(formLayout);
 
@@ -170,6 +182,7 @@ public:
         label_4->setText(QCoreApplication::translate("SettingsDialog", "Arguments", nullptr));
         programPathButton->setText(QCoreApplication::translate("SettingsDialog", "...", nullptr));
         label_5->setText(QCoreApplication::translate("SettingsDialog", "Tries", nullptr));
+        label_6->setText(QCoreApplication::translate("SettingsDialog", "Previous", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

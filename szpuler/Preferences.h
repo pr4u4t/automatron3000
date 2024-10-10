@@ -5,8 +5,10 @@
 #include <QIntValidator>
 #include <QSettings>
 #include <QHash>
+#include <QStandardItemModel>
 
 #include "../api/api.h"
+#include "../core/core.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -62,7 +64,7 @@ class Preferences : public SettingsMdi {
 
 public:
 
-    Preferences(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    Preferences(QWidget* mwin, Loader* loader, const QString& settingsPath, MLoader* plugins);
 
     ~Preferences();
 
@@ -85,7 +87,7 @@ private slots:
     void cancel();
     void ok();
     void settingsChanged() {}
-
+    void clicked(const QModelIndex& index);
 protected:
 
     void updateSettings();
@@ -96,6 +98,8 @@ private:
     QIntValidator* m_intValidator = nullptr;
     QString m_settingsPath;
     static QList<PageLoader*> m_pageLoaders;
+    MLoader* m_plugins = nullptr;
+    QStandardItemModel* m_model = nullptr;
 };
 
 #define REGISTER_PREFERENCE_PAGE(name, icon) \

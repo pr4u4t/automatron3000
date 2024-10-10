@@ -31,6 +31,7 @@
 #include "DockComponentsFactory.h"
 #include "DockWidgetTab.h"
 #include "DockWidget.h"
+#include "Help.h"
 
 struct MainWindowSettings {
 
@@ -148,6 +149,8 @@ private slots:
 
     void about();
 
+    void help();
+
     void switchLayoutDirection();
 
     void subWindowClosed(QObject* ptr = nullptr);
@@ -230,6 +233,22 @@ private slots:
         savePerspectives();
     }
 
+    void restoringState() {
+        m_dockManager->setEnabled(false);
+    }
+   
+    void stateRestored() {
+        m_dockManager->setEnabled(true);
+    }
+
+    void openingPerspective(const QString& PerspectiveName) {
+        m_dockManager->setEnabled(false);
+    }
+
+    void perspectiveOpened(const QString& PerspectiveName) {
+        m_dockManager->setEnabled(true);
+    }
+
 private:
 
     std::optional<QString> windowTitleByInstance(const Widget* instance) const;
@@ -248,8 +267,10 @@ private:
 
     ads::CDockWidget* findChildWindow(const QString& name) const;
     
+    ads::CDockWidget* findChildWindowByTitle(const QString& name) const;
+
     static constexpr const char* winTitle = "Automatron 3000";
-    static constexpr const char* aboutText = "The <b>MDI</b> example demonstrates how to write multiple "
+    static constexpr const char* aboutText = "This example demonstrates how to write multiple "
                                              "document interface applications using Qt.";
     static constexpr int QSlotInvalid = -1;
 

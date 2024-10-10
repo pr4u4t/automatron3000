@@ -9,6 +9,7 @@
 #include "logviewer.h"
 #include "Instances.h"
 #include "PluginList.h"
+#include "Preferences.h"
 #include "mainwindow.h"
 #include "../api/api.h"
 #include "main.h"
@@ -285,8 +286,15 @@ ads::CDockWidget* MainWindow::addSubWindowInternal(QWidget* widget, const QStrin
         }
     });
     
-    m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
-    
+    if (title.endsWith("Settings")) {
+        QStringList split = title.split("/");
+        const auto tmp = findChildWindowByTitle(split[0]);
+        m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, (tmp == nullptr) ? m_area : tmp->dockAreaWidget());
+
+    } else {
+        m_dockManager->addDockWidget(ads::CenterDockWidgetArea, child, m_area);
+    }
+
     //const QMetaObject* mu = widget->metaObject();
     //if (child->metaObject()->indexOfSlot(QMetaObject::normalizedSignature("prepareForFocus()")) != QSlotInvalid) {
     //    connect(win, SIGNAL(aboutToActivate()), child, SLOT(prepareForFocus()));
@@ -422,6 +430,15 @@ void MainWindow::createActions(){
 
     QAction *aboutQtAct = helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
     aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
+
+    QAction* help = helpMenu->addAction(tr("Documentation"), this, &MainWindow::help);
+}
+
+void MainWindow::help() {
+    HelpBrowser* hb = new HelpBrowser();
+    hb->setAttribute(Qt::WA_DeleteOnClose);
+    hb->show();
+
 }
 
 bool MainWindow::toggleWindow(const QString& title) {
@@ -449,7 +466,16 @@ void MainWindow::createPreferences() {
     }
 
     m_logger->message("creating new instance: Preferences");
-    //createWindowByName(name);
+    Preferences* pref = new Preferences(this, nullptr, QString(), plugins());
+    
+    ads::CDockWidget* child = new ads::CDockWidget(tr("Preferences"));
+    if (child == nullptr) {
+        m_logger->message("MainWindow::addSubWindow: failed to add subwindow");
+        return;
+    }
+
+    child->setWidget(pref);
+    m_dockManager->addDockWidgetFloating(child);
 }
 
 void MainWindow::setPlugins(MLoader* loader) {
@@ -539,6 +565,36 @@ ads::CDockWidget* MainWindow::findChildWindow(const QString& name) const {
         }
 
         if (child->name() == name) {
+            ret = it.value();
+            break;
+        }
+    }
+
+    if (ret != nullptr) {
+        m_logger->message("MainWindow::findChildWindow: child found");
+        return ret;
+    }
+
+    m_logger->message("MainWindow::findChildWindow: child not found");
+    return nullptr;
+}
+
+ads::CDockWidget* MainWindow::findChildWindowByTitle(const QString& name) const {
+    m_logger->message(QString("MainWindow::findMdiChild(%1)").arg(name));
+    //TODO: check this
+
+    ads::CDockWidget* ret = nullptr;
+
+    QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
+    for (auto it = map.cbegin(), end = map.cend(); it != end; ++it) {
+        const QString k = it.key();
+        QWidget* w = it.value()->widget();
+        const Widget* child = qobject_cast<Widget*>(w);
+        if (child == nullptr) {
+            continue;
+        }
+
+        if (child->objectName() == name) {
             ret = it.value();
             break;
         }

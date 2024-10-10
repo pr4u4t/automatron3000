@@ -49,6 +49,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->prompt->setText(m_currentSettings.prompt);
     m_ui->localEcho->setChecked(m_currentSettings.localEcho);
     m_ui->commandDelay->setValue(m_currentSettings.commandDelay);
+    m_ui->linEdit->setText(m_currentSettings.linDevice);
 }
 
 void SettingsDialog::updateSettings() {
@@ -57,6 +58,8 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.prompt = m_ui->prompt->text();
     m_currentSettings.localEcho = m_ui->localEcho->isChecked();
     m_currentSettings.commandDelay = m_ui->commandDelay->value();
+    m_currentSettings.linDevice = m_ui->linEdit->text();
+
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
 }

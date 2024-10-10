@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -32,9 +33,11 @@ public:
     QLabel *progressLabel;
     QLabel *successLabel;
     QSpacerItem *horizontalSpacer_4;
-    QHBoxLayout *horizontalLayout_2;
+    QFormLayout *formLayout_2;
     QLabel *label;
     QLineEdit *result;
+    QLabel *label_2;
+    QLabel *resultAscii;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
     QPushButton *pushButton;
@@ -90,20 +93,30 @@ public:
 
         verticalLayout->addLayout(horizontalLayout_3);
 
-        horizontalLayout_2 = new QHBoxLayout();
-        horizontalLayout_2->setObjectName("horizontalLayout_2");
+        formLayout_2 = new QFormLayout();
+        formLayout_2->setObjectName("formLayout_2");
         label = new QLabel(QLinReadByIDUI);
         label->setObjectName("label");
 
-        horizontalLayout_2->addWidget(label);
+        formLayout_2->setWidget(0, QFormLayout::LabelRole, label);
 
         result = new QLineEdit(QLinReadByIDUI);
         result->setObjectName("result");
 
-        horizontalLayout_2->addWidget(result);
+        formLayout_2->setWidget(0, QFormLayout::FieldRole, result);
+
+        label_2 = new QLabel(QLinReadByIDUI);
+        label_2->setObjectName("label_2");
+
+        formLayout_2->setWidget(1, QFormLayout::LabelRole, label_2);
+
+        resultAscii = new QLabel(QLinReadByIDUI);
+        resultAscii->setObjectName("resultAscii");
+
+        formLayout_2->setWidget(1, QFormLayout::FieldRole, resultAscii);
 
 
-        verticalLayout->addLayout(horizontalLayout_2);
+        verticalLayout->addLayout(formLayout_2);
 
         horizontalLayout = new QHBoxLayout();
         horizontalLayout->setObjectName("horizontalLayout");
@@ -136,7 +149,9 @@ public:
         failedLabel->setText(QCoreApplication::translate("QLinReadByIDUI", "FAILED", nullptr));
         progressLabel->setText(QCoreApplication::translate("QLinReadByIDUI", "IN PROGRESS", nullptr));
         successLabel->setText(QCoreApplication::translate("QLinReadByIDUI", "SUCCESS", nullptr));
-        label->setText(QCoreApplication::translate("QLinReadByIDUI", "Result:", nullptr));
+        label->setText(QCoreApplication::translate("QLinReadByIDUI", "HEX:", nullptr));
+        label_2->setText(QCoreApplication::translate("QLinReadByIDUI", "ASCII: ", nullptr));
+        resultAscii->setText(QString());
         pushButton->setText(QCoreApplication::translate("QLinReadByIDUI", "Read", nullptr));
     } // retranslateUi
 

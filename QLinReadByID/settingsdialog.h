@@ -36,12 +36,21 @@ public:
     static constexpr const char* const previousKey = "previous";
     static constexpr const char* const previousValue = "";
 
+    static constexpr const char* const linDeviceKey = "linDevice";
+    static constexpr const char* const linDeviceValue = nullptr;
+
     struct LinReadByIDSettings : public PluginSettings {
+
+        Q_GADGET
+
+        public:
+
         LinReadByIDSettings()
             : frameData(frameDataValue)
             , interval(intervalValue)
             , tries(triesValue)
-            , previous(previousValue){
+            , previous(previousValue)
+            , linDevice(linDeviceValue){
         }
 
         LinReadByIDSettings(const QSettings& settings, const QString& settingsPath)
@@ -50,7 +59,8 @@ public:
             , interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
             , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
             , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
-            , previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString()){
+            , previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString())
+            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -59,6 +69,7 @@ public:
             settings.setValue(settingsPath + "/" + triesKey, tries);
             settings.setValue(settingsPath + "/" + titleKey, title);
             settings.setValue(settingsPath + "/" + previousKey, previous);
+            settings.setValue(settingsPath + "/" + linDeviceKey, linDevice);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -68,6 +79,7 @@ public:
         uint8_t tries;
         QString title;
         QString previous;
+        QString linDevice;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

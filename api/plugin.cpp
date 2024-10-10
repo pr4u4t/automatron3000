@@ -88,7 +88,10 @@ void Extension::nameChanged(const QString& name) {
 	if (set != nullptr && set->m_objectName != name) {
 		set->m_objectName = name;
 		QSettings s = Settings::get();
-		set->save(s, settingsPath());
+		PluginSettings ps;
+		ps.m_objectName = name;
+		ps.save(s, settingsPath());
+		//set->save(s, settingsPath());
 	}
 }
 
@@ -112,7 +115,10 @@ void Widget::nameChanged(const QString& objName) {
 			if (set->m_objectName != objName) {
 				set->m_objectName = objName;
 				QSettings s = Settings::get();
-				set->save(s, settingsPath());
+				PluginSettings ps;
+				ps.m_objectName = objName;
+				ps.save(s, settingsPath());
+				//set->save(s, settingsPath());
 			}
 		} else {
 			blockSignals(true);

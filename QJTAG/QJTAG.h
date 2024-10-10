@@ -52,6 +52,10 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
 public slots:
 
     void settingsChanged();
@@ -87,6 +91,12 @@ protected slots:
     void inprogress();
 
     void initial();
+
+    void previousSuccess(const QByteArray& data);
+
+signals:
+
+    void success(const QByteArray& data);
 
 protected:
 

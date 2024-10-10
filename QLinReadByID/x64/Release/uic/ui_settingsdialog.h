@@ -38,6 +38,8 @@ public:
     QLineEdit *title;
     QLabel *label_5;
     QLineEdit *previousEdit;
+    QLabel *label_6;
+    QLineEdit *linEdit;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -104,6 +106,16 @@ public:
 
         formLayout->setWidget(6, QFormLayout::FieldRole, previousEdit);
 
+        label_6 = new QLabel(SettingsDialog);
+        label_6->setObjectName("label_6");
+
+        formLayout->setWidget(7, QFormLayout::LabelRole, label_6);
+
+        linEdit = new QLineEdit(SettingsDialog);
+        linEdit->setObjectName("linEdit");
+
+        formLayout->setWidget(7, QFormLayout::FieldRole, linEdit);
+
 
         verticalLayout->addLayout(formLayout);
 
@@ -149,6 +161,7 @@ public:
         label_3->setText(QCoreApplication::translate("SettingsDialog", "Tries", nullptr));
         label_4->setText(QCoreApplication::translate("SettingsDialog", "Title", nullptr));
         label_5->setText(QCoreApplication::translate("SettingsDialog", "Previous", nullptr));
+        label_6->setText(QCoreApplication::translate("SettingsDialog", "Lin Device", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

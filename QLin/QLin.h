@@ -38,6 +38,10 @@ public:
 		return open();
 	}
 
+	bool initialize() override;
+
+	bool deinitialize() override;
+
 public slots:
 
 	void settingsChanged();

@@ -12,22 +12,32 @@
 LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
     : Widget(ld, plugins, parent, settingsPath)
     , m_text(new QTextEdit()){
+
+}
+
+bool LogViewer::initialize() {
     m_text->document()->setMaximumBlockCount(100);
     m_text->setReadOnly(true);
-    
-    MLoader* p = reinterpret_cast<MLoader*>(plugins);
 
-    connect(p->logger(),&Logger::echo,this,&LogViewer::message);
-    
-    QBoxLayout *l = new QVBoxLayout();
+    MLoader* p = reinterpret_cast<MLoader*>(plugins());
+
+    connect(p->logger(), &Logger::echo, this, &LogViewer::message);
+
+    QBoxLayout* l = new QVBoxLayout();
     l->addWidget(m_text);
     setLayout(l);
 
     QContiguousCache<QString> cache = p->logger()->cache();
     //for (int i = 0; i < cache.size(); ++i) {
-    while(cache.size() > 0){
+    while (cache.size() > 0) {
         message(cache.takeFirst());
     }
+
+    return true;
+}
+
+bool LogViewer::deinitialize() {
+    return true;
 }
 
 SettingsMdi* LogViewer::settingsWindow() const {

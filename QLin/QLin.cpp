@@ -140,6 +140,24 @@ QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& p
 	connect(m_lin, &CLin::error, this, &QLin::error);
 }
 
+bool QLin::initialize() {
+	const auto set = settings<SettingsDialog::LinSettings>();
+	*set = SettingsDialog::LinSettings(Settings::get(), settingsPath());
+	return true;
+}
+
+bool QLin::deinitialize() {
+	return false;
+}
+
+void QLin::settingsChanged() {
+	emit message("QLin::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+	const auto set = settings<SettingsDialog::LinSettings>();
+	*set = SettingsDialog::LinSettings(Settings::get(), settingsPath());
+	close();
+	open(QString());
+}
+
 int QLin::slaveID() const {
 	return settings<SettingsDialog::LinSettings>()->slaveID;
 }
@@ -328,9 +346,4 @@ bool QLin::flush() {
 	return true;
 }
 
-void QLin::settingsChanged() {
-	emit message("QLin::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-	*(settings<SettingsDialog::LinSettings>()) = SettingsDialog::LinSettings(Settings::get(), settingsPath());
-	close();
-	open(QString());
-}
+

@@ -87,6 +87,10 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
 public slots:
 
     void settingsChanged();
@@ -94,8 +98,6 @@ public slots:
     void dataReady(const QByteArray& data);
 
     void send();
-
-    void init();
 
     void sendCommand(bool checked = true);
 
@@ -106,6 +108,12 @@ protected slots:
     void linClosed();
 
     void commandTimeout();
+
+    void previousSuccess(const QByteArray& data);
+
+signals:
+
+    void success(const QByteArray& data);
 
 protected:
 

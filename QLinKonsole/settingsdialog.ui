@@ -43,12 +43,22 @@
      <item row="2" column="0">
       <widget class="QLabel" name="delay">
        <property name="text">
-        <string>Command delay (ms)</string>
+        <string>Command delay [ms]</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
       <widget class="QSpinBox" name="commandDelay"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Lin Device</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="linEdit"/>
      </item>
     </layout>
    </item>

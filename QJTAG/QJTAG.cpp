@@ -92,9 +92,21 @@ REGISTER_PLUGIN(
 )
 
 QJTAG::QJTAG(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath) 
-    : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::QJTAGSettings(Settings::get(), settingsPath))
+    : Widget(
+        ld, 
+        plugins, 
+        parent, 
+        settingsPath, 
+        new SettingsDialog::QJTAGSettings(Settings::get(), settingsPath)
+    )
     , m_data(new Ui::QJTAGUI) {
     m_data.m_ui->setupUi(this);
+}
+
+QJTAG::~QJTAG() {
+}
+
+bool QJTAG::initialize() {
     settingsChanged();
     QObject::connect(m_data.m_ui->execButton, &QPushButton::clicked, this, &QJTAG::command);
     QObject::connect(&m_data.m_process, &QProcess::errorOccurred, this, &QJTAG::errorOccurred);
@@ -103,9 +115,11 @@ QJTAG::QJTAG(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
     QObject::connect(&m_data.m_process, &QProcess::readyReadStandardOutput, this, &QJTAG::readyReadStandardOutput);
     QObject::connect(&m_data.m_process, &QProcess::started, this, &QJTAG::started);
     QObject::connect(&m_data.m_process, &QProcess::stateChanged, this, &QJTAG::stateChanged);
+    return true;
 }
 
-QJTAG::~QJTAG() {
+bool QJTAG::deinitialize() {
+    return true;
 }
 
 bool QJTAG::saveSettings() {
@@ -121,6 +135,14 @@ void QJTAG::settingsChanged() {
     m_data.m_ui->title->setText(set->title);
 
     m_data.m_arguments = set->processArguments();
+    disconnect(this, SLOT(previousSuccess(const QByteArray&)));
+    if (set->previous.isEmpty() == false) {
+        connect(plugins()->findByObjectName(set->previous).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+    }
+}
+
+void QJTAG::previousSuccess(const QByteArray& data) {
+    command();
 }
 
 SettingsMdi* QJTAG::settingsWindow() const {
@@ -199,6 +221,7 @@ void QJTAG::success() {
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ color:green; font-weight:bold; }");
     m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
     setStyleSheet("QJTAG { border:2px solid green; }");
+    emit success(objectName().toLocal8Bit());
 }
 
 void QJTAG::initial() {
@@ -208,6 +231,7 @@ void QJTAG::initial() {
     m_data.m_ui->failedLabel->setStyleSheet("QLabel { font-weight:bold; }");
     m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
     m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
+    setStyleSheet("");
 }
 
 void QJTAG::failed() {

@@ -16,6 +16,21 @@ enum class QLinTesterState {
     STOP
 };
 
+struct QLinTesterData {
+    QLinTesterData(Ui::QLinTesterUI* ui)
+        : m_ui(ui){
+    }
+
+    Ui::QLinTesterUI* m_ui = nullptr;
+    uint16_t m_test = 0;
+    QSharedPointer<IODevice> m_lin = nullptr;
+    QLinTesterState m_state = QLinTesterState::INITIAL;
+    int m_responses = 0;
+    QTimer m_timer;
+    int m_try = 0;
+    int m_slaveID = 0;
+};
+
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -38,6 +53,10 @@ public:
         initial();
         return true;
     }
+
+    bool initialize() override;
+
+    bool deinitialize() override;
 
 public slots:
     void settingsChanged();
@@ -68,14 +87,7 @@ protected slots:
 
 private:
     
-    Ui::QLinTesterUI* m_ui = nullptr;
-    uint16_t m_test = 0;
-    QSharedPointer<IODevice> m_lin;
-    QLinTesterState m_state;
-    int m_responses = 0;
-    QTimer m_timer;
-    int m_try = 0;
-    int m_slaveID = 0;
+    QLinTesterData m_data;
 };
 
 #endif

@@ -98,6 +98,10 @@ public:
 
 	Q_INVOKABLE virtual bool reset(Reset type = Reset::SOFT) = 0;
 
+	virtual bool initialize() = 0;
+
+	virtual bool deinitialize() = 0;
+
 protected:
 
 	PluginsLoader* plugins() const;
@@ -194,6 +198,11 @@ struct LoaderPrivate {
 	bool m_enabled;
 	bool m_multiple;
 	qint32 m_weight;
+};
+
+enum class ModuleHint {
+	INITIALIZE = 0,
+	DONT_INITIALIZE = 1
 };
 
 class API_EXPORT Loader {
@@ -300,9 +309,9 @@ public:
 
 	virtual bool hasInstance(const QString& name, const QString& settingsPath = QString()) const = 0;
 
-	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType = 0;
+	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType = 0;
 
-	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType = 0;
+	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType = 0;
 
 	virtual auto find(const QString& uuid) const -> PluginType = 0;
 

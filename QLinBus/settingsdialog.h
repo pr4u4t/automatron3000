@@ -27,11 +27,13 @@ public:
     static constexpr const char* scanStopIDKey = "scanStopID";
     static constexpr const char* scanIntervalKey = "scanInterval";
     static constexpr const char* colorsKey = "enableColors";
+    static constexpr const char* linDeviceKey = "linDevice";
 
     static constexpr const uint8_t scanStartIDValue = 0;
     static constexpr const uint8_t scanStopIDValue = 63;
     static constexpr const qint64 scanIntervalValue = 0;
     static constexpr const bool colorsValue = true;
+    static constexpr const char* const linDeviceValue = nullptr;
    
 
     struct LinBusSettings : public PluginSettings {
@@ -47,7 +49,8 @@ public:
             , scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
             , scanStopID(settings.value(settingsPath + "/" + scanStopIDKey, scanStopIDValue).toUInt())
             , scanInterval(settings.value(settingsPath + "/" + scanIntervalKey, scanIntervalValue).toInt())
-            , enableColors(settings.value(settingsPath + "/" + colorsKey, colorsValue).toString() == "true" ? true : false) {
+            , enableColors(settings.value(settingsPath + "/" + colorsKey, colorsValue).toBool())
+            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -55,6 +58,7 @@ public:
             settings.setValue(settingsPath + "/" + scanStopIDKey, scanStopID);
             settings.setValue(settingsPath + "/" + scanIntervalKey, scanInterval);
             settings.setValue(settingsPath + "/" + colorsKey, enableColors);
+            settings.setValue(settingsPath + "/" + linDeviceKey, linDevice);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -63,6 +67,7 @@ public:
         uint8_t scanStopID;
         qint64 scanInterval;
         bool enableColors;
+        QString linDevice;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

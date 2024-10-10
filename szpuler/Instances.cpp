@@ -62,43 +62,51 @@ Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
 	: Widget(ld, plugins, parent, settingsPath)
     , m_model(new QStandardItemModel(0, 4))
     , m_view(new QTableView()){
+}
 
-    connect(plugins, &PluginsLoader::loaded, this, &Instances::loaded);
+bool Instances::initialize() {
+    connect(plugins(), &PluginsLoader::loaded, this, &Instances::loaded);
 
-	if (plugins != nullptr) {
-        auto mloader = reinterpret_cast<MLoader*>(plugins);
-		auto list = mloader->instances();
-		for (auto it = list.begin(), end = list.end(); it != end; ++it) {
-			QList<QStandardItem*> row;
-			row << new QStandardItem((*it)->name());
+    if (plugins() != nullptr) {
+        auto mloader = reinterpret_cast<MLoader*>(plugins());
+        auto list = mloader->instances();
+        for (auto it = list.begin(), end = list.end(); it != end; ++it) {
+            QList<QStandardItem*> row;
+            row << new QStandardItem((*it)->name());
             row << new QStandardItem(dynamic_cast<QObject*>((*it).data())->objectName());
-			row << new QStandardItem((*it)->version());
+            row << new QStandardItem((*it)->version());
             row << new QStandardItem((*it)->uuid());
-			m_model->appendRow(row);
-		}
-	}
+            m_model->appendRow(row);
+        }
+    }
 
-	m_model->setHeaderData(Columns::NAME, Qt::Horizontal, tr("name"));
+    m_model->setHeaderData(Columns::NAME, Qt::Horizontal, tr("name"));
     m_model->setHeaderData(Columns::OBJECT, Qt::Horizontal, tr("object"));
-	m_model->setHeaderData(Columns::VERSION, Qt::Horizontal, tr("version"));
+    m_model->setHeaderData(Columns::VERSION, Qt::Horizontal, tr("version"));
     m_model->setHeaderData(Columns::UUID, Qt::Horizontal, tr("uuid"));
 
-	m_view->setShowGrid(true);
-	m_view->setModel(m_model);
-	m_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_view->setAlternatingRowColors(true);
-	m_view->setSelectionMode(QAbstractItemView::SingleSelection);
-	m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
-	m_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_view->setShowGrid(true);
+    m_view->setModel(m_model);
+    m_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_view->setAlternatingRowColors(true);
+    m_view->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-	QBoxLayout* lay = new QVBoxLayout();
-	setLayout(lay);
-	lay->addWidget(m_view);
+    QBoxLayout* lay = new QVBoxLayout();
+    setLayout(lay);
+    lay->addWidget(m_view);
 
     QObject::connect(m_view, &QTableView::activated, this, &Instances::activated);
     m_view->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_view, SIGNAL(customContextMenuRequested(QPoint)),
         SLOT(customMenuRequested(QPoint)));
+
+    return true;
+}
+
+bool Instances::deinitialize() {
+    return false;
 }
 
 bool Instances::saveSettings() {

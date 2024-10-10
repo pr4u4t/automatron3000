@@ -1,5 +1,6 @@
 #include "CLin.h"
 #include <QString>
+#include <QDateTime>
 
 bool CLin::m_driverOpen = false;
 
@@ -28,6 +29,13 @@ XLstatus CLin::LINOpen() {
 	XLstatus ret = XL_ERROR;
 	XLaccess xlChannelMask;
 	XLaccess xlPermissionMask;
+	unsigned long previousValue = 0;
+
+	xlSetGlobalTimeSync(
+		XL_SET_TIMESYNC_ON,
+		&previousValue
+	);
+
 
 	if (LINFindDevice(m_settings->hwChannel) == false) {
 		emit message(QString("CLin::LINOpen(): device %1 serial %2 not found").arg(m_settings->hwChannel.name).arg(m_settings->hwChannel.serialNumber), LoggerSeverity::LOG_ERROR);
@@ -68,7 +76,11 @@ XLstatus CLin::LINOpen() {
 		.arg(ret)
 	);
 
+	xlResetClock(m_xlPortHandle);
+
 	linCreateRxThread();
+
+	//xlResetClock(m_xlPortHandle);
 
 	if (m_settings->mode != SettingsDialog::LinSettings::Mode::SLAVE) {
 		if ((ret = linInitMaster()) != XL_SUCCESS) {
@@ -406,7 +418,7 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 	XLstatus xlStatus = XL_SUCCESS;
 	unsigned int msgsrx = 1;
 	XLevent xlEvent;
-	char tmp[100];
+	char tmp[200];
 
 	ResetEvent(clin->m_hMsgEvent);
 
@@ -460,12 +472,13 @@ void WINAPI RxThread(LPVOID ctx, BOOLEAN tow){
 							sData = sData + str1;
 						}
 
-						sprintf_s(tmp, sizeof(tmp), "ID: 0x%02x, dlc: '%d', Data: 0x%s, time: %I64u, Ch: '%d'", 
+						sprintf_s(tmp, sizeof(tmp), "ID: 0x%02x, dlc: '%d', Data: 0x%s, time: %I64u, Ch: '%d', current: %lld", 
 							xlEvent.tagData.linMsgApi.linMsg.id, 
 							xlEvent.tagData.linMsgApi.linMsg.dlc, 
 							sData.toLocal8Bit().data(), 
 							xlEvent.timeStamp, 
-							xlEvent.chanIndex
+							xlEvent.chanIndex,
+							QDateTime::currentMSecsSinceEpoch()
 						);
 						
 						clin->postMessage(tmp);

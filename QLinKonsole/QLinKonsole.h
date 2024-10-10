@@ -10,6 +10,15 @@
 #include "settingsdialog.h"
 #include "terminal.h"
 
+struct QLinKonsoleData {
+    QLinKonsoleData(QTerminal* terminal)
+        : m_terminal(terminal){
+    }
+
+    QTerminal* m_terminal = nullptr;
+    QSharedPointer<IODevice> m_lin = nullptr;
+};
+
 class QLINKONSOLE_EXPORT QLinKonsole : public Widget
 {
     Q_OBJECT
@@ -28,6 +37,10 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
 public slots:
     void settingsChanged();
 
@@ -37,14 +50,14 @@ public slots:
 
     void putData(const QString& data, LoggerSeverity severity = LoggerSeverity::LOG_NONE);
 
-private slots:
+//private slots:
 
-    void init();
+    //void init();
 
 private:
 
-    QTerminal* m_terminal = nullptr;
-    QSharedPointer<IODevice> m_lin;
+    QLinKonsoleData m_data;
+    
 };
 
 #endif

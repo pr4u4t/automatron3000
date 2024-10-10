@@ -35,6 +35,8 @@ public:
     QLineEdit *prompt;
     QLabel *delay;
     QSpinBox *commandDelay;
+    QLabel *label_3;
+    QLineEdit *linEdit;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -81,6 +83,16 @@ public:
 
         formLayout->setWidget(2, QFormLayout::FieldRole, commandDelay);
 
+        label_3 = new QLabel(SettingsDialog);
+        label_3->setObjectName("label_3");
+
+        formLayout->setWidget(3, QFormLayout::LabelRole, label_3);
+
+        linEdit = new QLineEdit(SettingsDialog);
+        linEdit->setObjectName("linEdit");
+
+        formLayout->setWidget(3, QFormLayout::FieldRole, linEdit);
+
 
         verticalLayout->addLayout(formLayout);
 
@@ -124,7 +136,8 @@ public:
         label->setText(QCoreApplication::translate("SettingsDialog", "Local echo", nullptr));
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Prompt", nullptr));
         localEcho->setText(QString());
-        delay->setText(QCoreApplication::translate("SettingsDialog", "Command delay (ms)", nullptr));
+        delay->setText(QCoreApplication::translate("SettingsDialog", "Command delay [ms]", nullptr));
+        label_3->setText(QCoreApplication::translate("SettingsDialog", "Lin Device", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

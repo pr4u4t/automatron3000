@@ -38,12 +38,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.6.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;widgets;core5compat;webenginecore;webenginewidgets</QtModules>
+    <QtModules>core;gui;widgets;core5compat;help;webenginecore;webenginewidgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.6.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;widgets;core5compat;webenginecore;webenginewidgets</QtModules>
+    <QtModules>core;gui;widgets;core5compat;help;webenginecore;webenginewidgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -121,6 +121,7 @@
     <QtMoc Include="MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Help.cpp" />
     <ClCompile Include="Instances.cpp" />
     <ClCompile Include="LogViewer.cpp" />
     <ClCompile Include="main.cpp" />
@@ -148,6 +149,7 @@
     <QtMoc Include="Splash.h" />
     <QtMoc Include="Preferences.h" />
     <QtMoc Include="PreferencePage.h" />
+    <QtMoc Include="Help.h" />
     <ClInclude Include="resource.h" />
     <QtMoc Include="Tray.h" />
     <QtMoc Include="Instances.h" />

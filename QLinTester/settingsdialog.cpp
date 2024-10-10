@@ -50,6 +50,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->testStopID->setValue(m_currentSettings.testStopID);
     m_ui->interval->setValue(m_currentSettings.testInterval);
     m_ui->tries->setValue(m_currentSettings.tries);
+    m_ui->linEdit->setText(m_currentSettings.linDevice);
 }
 
 void SettingsDialog::updateSettings() {
@@ -59,6 +60,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.testStopID = m_ui->testStopID->value();
     m_currentSettings.testInterval = m_ui->interval->value();
     m_currentSettings.tries = m_ui->tries->value();
+    m_currentSettings.linDevice = m_ui->linEdit->text();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

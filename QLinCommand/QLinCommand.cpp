@@ -111,15 +111,82 @@ QLinCommand::QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, co
     : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinCommandSettings(Settings::get(), settingsPath))
     , m_data(new Ui::QLinCommandUI) {
     m_data.m_ui->setupUi(this);
-    settingsChanged();
+    //settingsChanged();
     QObject::connect(m_data.m_ui->pushButton, &QPushButton::clicked, this, &QLinCommand::sendCommand);
-    QTimer::singleShot(0, this, &QLinCommand::init);
+    //QTimer::singleShot(0, this, &QLinCommand::init);
 }
 
 SettingsMdi* QLinCommand::settingsWindow() const {
     auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinCommand::settingsChanged);
     return ret;
+}
+
+bool QLinCommand::initialize() {
+    emit message("QLinCommand::init()", LoggerSeverity::LOG_DEBUG);
+    const auto set = settings<SettingsDialog::LinCommandSettings>();
+    *(set) = SettingsDialog::LinCommandSettings(Settings::get(), settingsPath());
+    
+    m_data.m_ui->title->setText(set->title);
+    m_data.m_ui->pushButton->setText(set->buttonText);
+
+    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto lin = plugin.dynamicCast<IODevice>();
+    m_data.m_lin = lin;
+    connect(lin.data(), &IODevice::dataReady, this, &QLinCommand::dataReady);
+    connect(lin.data(), &IODevice::error, this, &QLinCommand::errorReady);
+    
+    if (lin->isOpen() == false) {
+        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice));
+        if (lin->open() == false) {
+            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice));
+        }
+    }
+
+    QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
+
+    if (set->previous.isEmpty() == false) {
+        connect(plugins()->findByObjectName(set->previous).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+    }
+
+    return true;
+}
+
+bool QLinCommand::deinitialize() {
+    return true;
+}
+
+void QLinCommand::settingsChanged() {
+    emit message("QLinCommand::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+    const auto set = settings<SettingsDialog::LinCommandSettings>();
+    *(set) = SettingsDialog::LinCommandSettings(Settings::get(), settingsPath());
+    
+    disconnect(this, SLOT(dataReady(const QByteArray&)));
+    disconnect(this, SLOT(errorReady(const QByteArray&)));
+    disconnect(this, SLOT(previousSuccess(const QByteArray&)));
+
+    m_data.m_ui->title->setText(set->title);
+    m_data.m_ui->pushButton->setText(set->buttonText);
+    
+    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto lin = plugin.dynamicCast<IODevice>();
+    m_data.m_lin = lin;
+    
+    connect(lin.data(), &IODevice::dataReady, this, &QLinCommand::dataReady);
+    connect(lin.data(), &IODevice::error, this, &QLinCommand::errorReady);
+    
+    if (lin->isOpen() == false) {
+        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice));
+        if (lin->open() == false) {
+            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice));
+        }
+    }
+
+    QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
+
+    if (set->previous.isEmpty() == false) {
+        connect(plugins()->findByObjectName(set->previous).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+    }
 }
 
 QLinCommand::~QLinCommand() {
@@ -271,6 +338,7 @@ void QLinCommand::initial() {
     m_data.m_ui->progressLabel->setEnabled(false);
     m_data.m_ui->successLabel->setEnabled(false);
     m_data.m_ui->pushButton->setEnabled(true);
+    setStyleSheet("");
 }
 
 void QLinCommand::send() {
@@ -314,25 +382,9 @@ void QLinCommand::linClosed() {
     //m_data.m_ui->result->setText("");
 }
 
-void QLinCommand::init() {
-    emit message("QLinCommand::init()", LoggerSeverity::LOG_DEBUG);
-    auto plugin = plugins()->instance("QLin", 0);
-    auto lin = plugin.dynamicCast<IODevice>();
-    m_data.m_lin = lin;
-    connect(lin.data(), &IODevice::dataReady, this, &QLinCommand::dataReady);
-    connect(lin.data(), &IODevice::error, this, &QLinCommand::errorReady);
-    if (lin->isOpen() == false) {
-        lin->open();
-    }
 
-    QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
-}
+void QLinCommand::previousSuccess(const QByteArray& data) {
 
-void QLinCommand::settingsChanged() {
-    emit message("QLinCommand::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    *(settings<SettingsDialog::LinCommandSettings>()) = SettingsDialog::LinCommandSettings(Settings::get(), settingsPath());
-    m_data.m_ui->title->setText(settings<SettingsDialog::LinCommandSettings>()->title);
-    m_data.m_ui->pushButton->setText(settings<SettingsDialog::LinCommandSettings>()->buttonText);
 }
 
 void QLinCommand::sendCommand(bool checked) {

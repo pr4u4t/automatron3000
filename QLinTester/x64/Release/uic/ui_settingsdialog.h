@@ -14,6 +14,7 @@
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
@@ -35,6 +36,8 @@ public:
     QSpinBox *testStartID;
     QLabel *label_7;
     QSpinBox *testStopID;
+    QLabel *label_3;
+    QLineEdit *linEdit;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -91,6 +94,16 @@ public:
 
         formLayout->setWidget(3, QFormLayout::FieldRole, testStopID);
 
+        label_3 = new QLabel(SettingsDialog);
+        label_3->setObjectName("label_3");
+
+        formLayout->setWidget(4, QFormLayout::LabelRole, label_3);
+
+        linEdit = new QLineEdit(SettingsDialog);
+        linEdit->setObjectName("linEdit");
+
+        formLayout->setWidget(4, QFormLayout::FieldRole, linEdit);
+
 
         verticalLayout->addLayout(formLayout);
 
@@ -135,6 +148,7 @@ public:
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Tries", nullptr));
         label_6->setText(QCoreApplication::translate("SettingsDialog", "Test start ID", nullptr));
         label_7->setText(QCoreApplication::translate("SettingsDialog", "Test stop ID", nullptr));
+        label_3->setText(QCoreApplication::translate("SettingsDialog", "Lin Device", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

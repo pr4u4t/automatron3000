@@ -58,6 +58,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->buttonLabelEdit->setText(m_currentSettings.buttonLabel);
     m_ui->titleEdit->setText(m_currentSettings.title);
     m_ui->triesEdit->setValue(m_currentSettings.tries);
+    m_ui->previousEdit->setText(m_currentSettings.previous);
     fillModel(m_currentSettings.arguments);
 }
 
@@ -69,6 +70,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.title = m_ui->titleEdit->text();
     m_currentSettings.arguments = arguments<QJsonArray>(m_model);
     m_currentSettings.tries = m_ui->triesEdit->value();
+    m_currentSettings.previous = m_ui->previousEdit->text();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

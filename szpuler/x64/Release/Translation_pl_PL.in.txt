@@ -1,3 +1,4 @@
+Help.cpp
 Instances.cpp
 LogViewer.cpp
 main.cpp
@@ -15,6 +16,7 @@ Session.h
 Splash.h
 Preferences.h
 PreferencePage.h
+Help.h
 Tray.h
 Instances.h
 PluginList.h

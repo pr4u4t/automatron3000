@@ -22,30 +22,35 @@ class SettingsDialog : public SettingsMdi {
 
 public:
 
-    static constexpr const char* promptKey = "prompt";
-    static constexpr const char* localEchoKey = "localEcho";
-    static constexpr const char* commandDelayKey = "commandDelay";
+    static constexpr const char* const promptKey = "prompt";
+    static constexpr const char* const localEchoKey = "localEcho";
+    static constexpr const char* const commandDelayKey = "commandDelay";
+    static constexpr const char* const linDeviceKey = "linDevice";
 
-    static constexpr const char* promptValue = "-> ";
+    static constexpr const char* const promptValue = "-> ";
     static constexpr const bool localEchoValue = true;
     static constexpr const int commandDelayValue = 0;
+    static constexpr const char* const linDeviceValue = nullptr;
 
     struct KonsoleSettings : public PluginSettings {
         KonsoleSettings()
             : prompt(promptValue)
             , localEcho(localEchoValue)
-            , commandDelay(commandDelayValue){}
+            , commandDelay(commandDelayValue)
+            , linDevice(linDeviceValue){}
 
         KonsoleSettings(const QSettings& settings, const QString& settingsPath)
             : PluginSettings(settings, settingsPath)
             , prompt(settings.value(settingsPath + "/" + promptKey, promptValue).toString())
             , localEcho(settings.value(settingsPath + "/" + localEchoKey, localEchoValue).toBool())
-            , commandDelay(settings.value(settingsPath + "/" + commandDelayKey, commandDelayValue).toInt()){}
+            , commandDelay(settings.value(settingsPath + "/" + commandDelayKey, commandDelayValue).toInt())
+            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()){}
 
         void save(QSettings& settings, const QString& settingsPath) const {
             settings.setValue(settingsPath + "/" + promptKey, prompt);
             settings.setValue(settingsPath + "/" + localEchoKey, localEcho);
             settings.setValue(settingsPath + "/" + commandDelayKey, commandDelay);
+            settings.setValue(settingsPath + "/" + linDeviceKey, linDevice);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -53,6 +58,7 @@ public:
         QString prompt;
         bool localEcho;
         int commandDelay;
+        QString linDevice;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

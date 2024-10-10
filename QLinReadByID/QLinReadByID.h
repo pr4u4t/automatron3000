@@ -96,6 +96,7 @@ struct QLinReadByIDData {
     UDSgenericFrame m_frame;
     QString m_result;
     int m_remaining;
+    qint64 m_startTime;
 };
 
 class QLINREADBYID_EXPORT QLinReadByID : public Widget
@@ -114,6 +115,10 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
 signals:
 
     void success(const QByteArray& data);
@@ -127,8 +132,6 @@ public slots:
 
     void startRead();
 
-    void init();
-
     void readById(bool checked = true);
 
 protected slots:
@@ -140,7 +143,8 @@ protected slots:
     std::optional<LinFrame> dataFromResponse(const QByteArray& data) const;
 
     void previousSuccess(const QByteArray& data) {
-        
+        emit message("QLinReadByID::previousSuccess(const QByteArray& data)");
+        readById();
     }
 
 protected:
@@ -150,6 +154,18 @@ protected:
         opt.initFrom(this);
         QPainter p(this);
         style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+    }
+
+    void setAsciiResult(const QString& hexResult) {
+        QStringList list = hexResult.split(' ');
+        QString result;
+
+        for (const auto& i : list) {
+            result += QChar(i.toInt(nullptr, 16));
+            result += ' ';
+        }
+
+        m_data.m_ui->resultAscii->setText(result);
     }
 
     bool processSingleFrame(const UDSsingleFrame* frame);

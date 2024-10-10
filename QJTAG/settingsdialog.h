@@ -37,14 +37,17 @@ public:
     static constexpr const char* const argumentsValue = nullptr;
     static constexpr const char* const triesKey = "tries";
     static constexpr const int triesValue = 3;
+    static constexpr const char* const previousKey = "previous";
+    static constexpr const char* const previousValue = nullptr;
 
     struct QJTAGSettings : public PluginSettings {
         QJTAGSettings() 
             : title(titleValue)
             , buttonLabel(buttonLabelValue)
-            , programPath(programPath)
+            , programPath(programPathValue)
             , arguments()
-            , tries(triesValue){
+            , tries(triesValue)
+            , previous(previousValue){
         }
 
         QJTAGSettings(const QSettings& settings, const QString& settingsPath)
@@ -53,7 +56,8 @@ public:
             , buttonLabel(settings.value(settingsPath + "/" + buttonLabelKey, buttonLabelValue).toString())
             , programPath(settings.value(settingsPath + "/" + programPathKey, programPathValue).toString())
             , arguments(settings.value(settingsPath + "/" + argumentsKey, argumentsValue).toJsonArray())
-            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt()){
+            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt())
+            , previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -62,6 +66,7 @@ public:
             settings.setValue(settingsPath + "/" + programPathKey, programPath);
             settings.setValue(settingsPath + "/" + argumentsKey, arguments);
             settings.setValue(settingsPath + "/" + triesKey, tries);
+            settings.setValue(settingsPath + "/" + previousKey, previous);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -94,6 +99,7 @@ public:
         QString programPath;
         QJsonArray arguments;
         int tries;
+        QString previous;
     };
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);

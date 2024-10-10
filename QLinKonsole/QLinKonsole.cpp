@@ -81,21 +81,16 @@ REGISTER_PLUGIN(
 
 QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
     : Widget(ld, plugins, parent, path, new SettingsDialog::KonsoleSettings(Settings::get(), path))
-    , m_terminal(new QTerminal(this, tr("<b>Welcome to LIN terminal</b>"))) {
-    settingsChanged();
+    , m_data(new QTerminal(this, tr("<b>Welcome to LIN terminal</b>"))) {
+    //settingsChanged();
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
     //m_terminal->setLocalEchoEnabled(m_settings.localEcho);
     QBoxLayout* l = new QVBoxLayout();
-    l->addWidget(m_terminal);
+    l->addWidget(m_data.m_terminal);
     setLayout(l);
 
-    QObject::connect(m_terminal, &QTerminal::execCommand, this, &QLinKonsole::enterPressed);
-    auto io = plugins->instance("QLin", nullptr);
-    QObject::connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
-    QObject::connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
-    m_lin = io.dynamicCast<IODevice>();
-
-    QTimer::singleShot(0, this, &QLinKonsole::init);
+    QObject::connect(m_data.m_terminal, &QTerminal::execCommand, this, &QLinKonsole::enterPressed);
+    //QTimer::singleShot(0, this, &QLinKonsole::init);
 }
 
 SettingsMdi* QLinKonsole::settingsWindow() const {
@@ -104,10 +99,70 @@ SettingsMdi* QLinKonsole::settingsWindow() const {
     return ret;
 }
 
-void QLinKonsole::init() {
-    if (m_lin->isOpen() == false) {
-        if (m_lin->open() == false) {
+bool QLinKonsole::initialize() {
+
+    emit message("QLinKonsole::init()");
+    const auto set = settings<SettingsDialog::KonsoleSettings>();
+    *(set) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+
+    if (set->linDevice.isEmpty() == true) {
+        emit message("QLinKonsole::init: lin device name == nullptr");
+        return false;
+    }
+
+    auto io = plugins()->instance(set->linDevice, nullptr);
+
+    if (io.isNull() == true) {
+        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice));
+    }
+
+    connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
+    connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
+    m_data.m_lin = io.dynamicCast<IODevice>();
+
+    if (m_data.m_lin->isOpen() == false) {
+        if (m_data.m_lin->open() == false) {
             emit message("QLinKonsole::init(): failed to open QLin");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool QLinKonsole::deinitialize() {
+    return true;
+}
+
+void QLinKonsole::settingsChanged() {
+    emit message("QLinKonsole::settingsChanged()");
+    const auto set = settings<SettingsDialog::KonsoleSettings>();
+    *(set) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+    m_data.m_terminal->setPrompt(set->prompt); //setLocalEchoEnabled(m_settings.localEcho);
+    disconnect(this, SLOT(putData(const QByteArray&)));
+    disconnect(this, SLOT(putData(const QString&, LoggerSeverity)));
+    m_data.m_lin = nullptr;
+
+    if (set->linDevice.isEmpty() == true) {
+        emit message("QLinKonsole::init: lin device name == nullptr");
+        return;
+    }
+
+    auto io = plugins()->instance(set->linDevice, nullptr);
+
+    if (io.isNull() == true) {
+        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice));
+        return;
+    }
+
+    connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
+    connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
+    m_data.m_lin = io.dynamicCast<IODevice>();
+
+    if (m_data.m_lin->isOpen() == false) {
+        if (m_data.m_lin->open() == false) {
+            emit message("QLinKonsole::init(): failed to open QLin");
+            return;
         }
     }
 }
@@ -115,7 +170,7 @@ void QLinKonsole::init() {
 void QLinKonsole::putData(const QByteArray& data, LoggerSeverity severity) {
     emit message("QLinKonsole::putData()");
    
-    m_terminal->printCommandExecutionResults(data);
+    m_data.m_terminal->printCommandExecutionResults(data);
 }
 
 void QLinKonsole::putData(const QString& data, LoggerSeverity severity) {
@@ -127,9 +182,9 @@ void QLinKonsole::putData(const QString& data, LoggerSeverity severity) {
 void QLinKonsole::enterPressed(const QString& command) {
     emit message("QLinKonsole::enterPressed()");
 
-    if (m_lin->isOpen() != true) {
+    if (m_data.m_lin->isOpen() != true) {
         emit message("QLinKonsole::enterPressed(): LIN not open", LoggerSeverity::LOG_ERROR);
-        if (m_lin->open() != true) {
+        if (m_data.m_lin->open() != true) {
             emit message("QLinKonsole::enterPressed(): failed to open LIN");
             return;
         } else {
@@ -183,14 +238,9 @@ void QLinKonsole::processCommand(const QString& command) {
             return;
     }
 
-    m_lin->write(data);
+    m_data.m_lin->write(data);
     return;
 FAIL:
     putData(("Invalid input: " + command).toLocal8Bit());
 }
 
-void QLinKonsole::settingsChanged() {
-    emit message("QLinKonsole::settingsChanged()");
-    *(settings<SettingsDialog::KonsoleSettings>()) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
-    m_terminal->setPrompt(settings<SettingsDialog::KonsoleSettings>()->prompt); //setLocalEchoEnabled(m_settings.localEcho);
-}

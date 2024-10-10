@@ -48,7 +48,8 @@ QString Logger::severityName(LoggerSeverity severity){
 
 void Logger::message(const QString& msg, LoggerSeverity severity){
     if (m_severity & static_cast<qint32>(severity)) {
-        QString line = "["+QDateTime::currentDateTime().toString() + " " + severityName(severity) + "] " + msg;
+        QObject* s = sender();
+        QString line = "["+QDateTime::currentDateTime().toString() + " " + severityName(severity) + "] {"+((s != nullptr) ? s->objectName() : "-") + "} " + msg;
         m_buffer.append(line);
         emit echo(line, severity);
         line += LE;

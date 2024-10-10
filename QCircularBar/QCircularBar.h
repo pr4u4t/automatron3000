@@ -55,6 +55,10 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
     bool saveSettings() {
         return true;
     }

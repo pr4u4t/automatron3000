@@ -50,6 +50,7 @@ void SettingsDialog::fillFromSettings() {
     m_ui->scanStopID->setValue(m_currentSettings.scanStopID);
     m_ui->scanInterval->setValue(m_currentSettings.scanInterval);
     m_ui->enableColors->setChecked(m_currentSettings.enableColors);
+    m_ui->linEdit->setText(m_currentSettings.linDevice);
 }
 
 void SettingsDialog::updateSettings() {
@@ -59,6 +60,7 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.scanStopID = m_ui->scanStopID->value();
     m_currentSettings.scanInterval = m_ui->scanInterval->value();
     m_currentSettings.enableColors = m_ui->enableColors->isChecked();
+    m_currentSettings.linDevice = m_ui->linEdit->text();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

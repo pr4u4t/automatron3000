@@ -2,9 +2,11 @@
 #include "ui_preferences.h"
 #include "PreferencePage.h"
 
-Preferences::Preferences(QWidget* mwin, Loader* loader, const QString& settingsPath) 
+Preferences::Preferences(QWidget* mwin, Loader* loader, const QString& settingsPath, MLoader* plugins) 
     : SettingsMdi(mwin)
-    , m_ui(new Ui::Preferences){
+    , m_ui(new Ui::Preferences)
+    , m_plugins(plugins)
+    , m_model(new QStandardItemModel(0,1)){
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -14,6 +16,33 @@ Preferences::Preferences(QWidget* mwin, Loader* loader, const QString& settingsP
         this, &Preferences::apply);
     connect(m_ui->cancel, &QPushButton::clicked,
         this, &Preferences::cancel);
+
+    auto parent = new QStandardItem("Plugins");
+    m_model->appendRow(new QStandardItem("General"));
+    m_model->appendRow(new QStandardItem("Session"));
+    m_model->appendRow(parent);
+    for (const auto plugin : plugins->instances()) {
+        parent->appendRow(new QStandardItem(plugin.dynamicCast<QObject>()->objectName()));
+    }
+    m_ui->treeView->setHeaderHidden(true);
+    m_ui->treeView->setModel(m_model);
+
+    QObject::connect(m_ui->treeView, &QTreeView::clicked, this, &Preferences::clicked);
+
+    //temporary
+    m_ui->apply->setHidden(true);
+    m_ui->cancel->setHidden(true);
+    m_ui->ok->setHidden(true);
+}
+
+void Preferences::clicked(const QModelIndex& index) {
+    const auto name = index.data().toString();
+    const auto plugin = m_plugins->findByObjectName(name);
+    if (plugin.isNull()) {
+        return;
+    }
+    const auto win = plugin->settingsWindow();
+    m_ui->scrollArea->setWidget(win);
 }
 
 Preferences::~Preferences() {

@@ -97,11 +97,10 @@ QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStrin
         plugins, 
         parent, 
         sPath, 
-        new SettingsDialog::BadgeSettings(Settings::get(), sPath)
+        new SettingsDialog::BadgeSettings() // Settings::get(), sPath)
     )
     , m_ui(new Ui::QBadgeUI) {
     m_ui->setupUi(this);
-    settingsChanged();
 }
 
 bool QBadge::saveSettings() {
@@ -122,6 +121,16 @@ QBadge::~QBadge() {
 //
 //    Widget::resizeEvent(event);
 //}
+
+bool QBadge::initialize() {
+    settingsChanged();
+    return true;
+}
+
+bool QBadge::deinitialize() {
+
+    return true;
+}
 
 void QBadge::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);

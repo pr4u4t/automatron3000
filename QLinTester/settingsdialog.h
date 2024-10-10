@@ -23,22 +23,25 @@ class SettingsDialog : public SettingsMdi {
 public:
 
 
-    static constexpr const char* testStartIDKey = "testStartID";
-    static constexpr const char* testStopIDKey = "testStopID";
-    static constexpr const char* testIntervalKey = "testInterval";
-    static constexpr const char* triesKey = "tries";
+    static constexpr const char* const testStartIDKey = "testStartID";
+    static constexpr const char* const testStopIDKey = "testStopID";
+    static constexpr const char* const testIntervalKey = "testInterval";
+    static constexpr const char* const triesKey = "tries";
+    static constexpr const char* const linDeviceKey = "linDevice";
 
     static constexpr const uint8_t testStartIDValue = 0;
     static constexpr const uint8_t testStopIDValue = 63;
     static constexpr const qint64 testIntervalValue = 0;
     static constexpr const uint8_t triesValue = 3;
+    static constexpr const char* const linDeviceValue = nullptr;
 
     struct LinTesterSettings : public PluginSettings {
         LinTesterSettings()
             : testStartID(testStartIDValue)
             , testStopID(testStopIDValue)
             , testInterval(testIntervalValue)
-            , tries(triesValue){
+            , tries(triesValue)
+            , linDevice(linDeviceValue){
         }
 
         LinTesterSettings(const QSettings& settings, const QString& settingsPath)
@@ -46,7 +49,8 @@ public:
             , testStartID(settings.value(settingsPath + "/" + testStartIDKey, testStartIDValue).toUInt())
             , testStopID(settings.value(settingsPath + "/" + testStopIDKey, testStopIDValue).toUInt())
             , testInterval(settings.value(settingsPath + "/" + testIntervalKey, testIntervalValue).toInt())
-            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt()) {
+            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt())
+            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()) {
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
@@ -54,6 +58,7 @@ public:
             settings.setValue(settingsPath + "/" + testStopIDKey, testStopID);
             settings.setValue(settingsPath + "/" + testIntervalKey, testInterval);
             settings.setValue(settingsPath + "/" + triesKey, tries);
+            settings.setValue(settingsPath + "/" + linDeviceKey, linDevice);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -62,6 +67,7 @@ public:
         uint8_t testStopID = 0;
         qint64 testInterval = 0;
         uint8_t tries = 0;
+        QString linDevice;
     };
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);

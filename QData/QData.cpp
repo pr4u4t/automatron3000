@@ -97,9 +97,18 @@ REGISTER_PLUGIN(
 )
 
 QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path, new  SettingsDialog::DataSettings(Settings::get(), path))
+    : Widget(
+        ld, 
+        plugins, 
+        parent, 
+        path, 
+        new  SettingsDialog::DataSettings() //ettings::get(), path)
+    )
     , m_ui(new Ui::QDataUI) {
     m_ui->setupUi(this);
+}
+
+bool QData::initialize() {
     m_db = QSqlDatabase::database();
 
     m_ui->dbView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -119,16 +128,34 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
     connect(m_ui->unlockButton, &QPushButton::pressed, this, &QData::toggleLock);
 
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
-    
+
 
     m_ui->left->setPixmap(QPixmap(":qdata/left-arrow.png"));
     m_ui->left->setEnabled(false);
-    
+
     m_ui->right->setPixmap(QPixmap(":qdata/right-arrow.png"));
     m_ui->right->setEnabled(false);
 
     settingsChanged();
-    QTimer::singleShot(0, this, &QData::timeout);
+    //QTimer::singleShot(0, this, &QData::timeout);
+    auto serial = plugins()->instance("QSerial", nullptr);
+    auto io = serial.dynamicCast<IODevice>();
+
+    if (io->isOpen() == false) {
+        emit message("QData::timeout: serial port not open");
+        if (io->open() == false) {
+            emit message("QData::timeout: failed to open serial port");
+            return false;
+        }
+
+        emit message("QData::timeout: serial port open success");
+    }
+
+    return true;
+}
+
+bool QData::deinitialize() {
+    return true;
 }
 
 SettingsMdi* QData::settingsWindow() const {

@@ -52,6 +52,10 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
 protected:
 
     int findByPart(QSqlTableModel* model, const QString& part);

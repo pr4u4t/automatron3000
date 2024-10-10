@@ -53,6 +53,9 @@
     <QtMoc Include="Splash.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="Help.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LogViewer.cpp">
@@ -77,6 +80,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Help.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

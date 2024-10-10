@@ -53,6 +53,8 @@ void SettingsDialog::fillFromSettings() {
     m_ui->tries->setValue(m_currentSettings.tries);
     m_ui->title->setText(m_currentSettings.title);
     m_ui->buttonTextEdit->setText(m_currentSettings.buttonText);
+    m_ui->previousEdit->setText(m_currentSettings.previous);
+    m_ui->linEdit->setText(m_currentSettings.linDevice);
 }
 
 void SettingsDialog::updateSettings() {
@@ -63,6 +65,8 @@ void SettingsDialog::updateSettings() {
     m_currentSettings.tries = m_ui->tries->value();
     m_currentSettings.title = m_ui->title->text();
     m_currentSettings.buttonText = m_ui->buttonTextEdit->text();
+    m_currentSettings.previous = m_ui->previousEdit->text();
+    m_currentSettings.linDevice = m_ui->linEdit->text();
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

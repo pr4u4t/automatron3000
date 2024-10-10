@@ -11,6 +11,9 @@
 				<File Source="..\x64\Release\Qt6Network.dll"/>
 			</Component>
 			<Component>
+				<File Source="..\x64\Release\Qt6Help.dll"/>
+			</Component>
+			<Component>
 				<File Source="..\x64\Release\Qt6Widgets.dll"/>
 			</Component>
 			<Component>

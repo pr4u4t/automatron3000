@@ -99,12 +99,20 @@ QCustomAction::QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent
         plugins,
         parent,
         sPath,
-        new SettingsDialog::CustomActionSettings(Settings::get(), sPath)
+        new SettingsDialog::CustomActionSettings() //Settings::get(), sPath)
     )
     , m_ui(new Ui::QCustomActionUI) {
     m_ui->setupUi(this);
+}
+
+bool QCustomAction::initialize() {
     settingsChanged();
     QObject::connect(m_ui->pushButton, &QPushButton::clicked, this, &QCustomAction::execClicked);
+    return true;
+}
+
+bool QCustomAction::deinitialize() {
+    return true;
 }
 
 bool QCustomAction::saveSettings() {

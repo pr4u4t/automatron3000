@@ -30,7 +30,7 @@
 <context>
     <name>QKonsole</name>
     <message>
-        <location filename="QKonsole.cpp" line="81"/>
+        <location filename="QKonsole.cpp" line="87"/>
         <source>&lt;b&gt;Welcome to serial (rs-232) terminal&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>

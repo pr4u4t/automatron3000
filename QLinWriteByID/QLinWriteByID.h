@@ -169,14 +169,16 @@ public:
         return true;
     }
 
+    bool initialize() override;
+
+    bool deinitialize() override;
+
 public slots:
     void settingsChanged();
 
     void dataReady(const QByteArray& data);
 
     void startWrite();
-
-    void init();
 
     void linClosed();
 

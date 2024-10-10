@@ -83,7 +83,7 @@ qint64 Session::restore() {
                     QString name = rx.cap(1);
                     const QStringList lst = it->split("@");
 
-                    auto plugin = plugins()->instance(name, window(), lst[0]);
+                    auto plugin = plugins()->instance(name, window(), lst[0], ModuleHint::DONT_INITIALIZE);
 
                     if (plugin.isNull()) {
                         m_logger->message("Session::restore(): failed to create plugin: " + *it);
@@ -92,16 +92,33 @@ qint64 Session::restore() {
 
                     if (plugin->type() == Plugin::Type::WIDGET) {
                         m_logger->message("Session::restore(): adding widget: " + *it);
-                        
-                        window()->addSubWindowInternal(dynamic_cast<Widget*>(plugin.data()), lst[1]);
-
-                        //ads::CDockWidget* dockWidget = new ads::CDockWidget(plugin->name());
-                        //dockWidget->setWidget(dynamic_cast<Widget*>(plugin.data()));
-                        //dockWidget->setFeature(ads::CDockWidget::DontDeleteContent, true);
-                        //m_dockManager->addDockWidget(ads::CenterDockWidgetArea, dockWidget, m_area);
                     }
                 }
             }
+
+            for (auto it = list.begin(), end = list.end(); it != end; ++it) {
+                m_logger->message("Session::restore(): initialize plugin: " + *it);
+                if (rx.indexIn(*it) != -1) {
+                    QString name = rx.cap(1);
+                    const QStringList lst = it->split("@");
+
+                    auto plugin = plugins()->instance(name, window(), lst[0]);
+
+                    if (plugin.isNull()) {
+                        m_logger->message("Session::restore(): failed to create plugin: " + *it);
+                        continue;
+                    }
+
+                    plugin->initialize();
+
+                    if (plugin->type() == Plugin::Type::WIDGET) {
+                        m_logger->message("Session::restore(): adding widget: " + *it);
+
+                        window()->addSubWindowInternal(dynamic_cast<Widget*>(plugin.data()), lst[1]);
+                    }
+                }
+            }
+
     } else {
         m_logger->message("Session::restore() : empty");
         return 0;

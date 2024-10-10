@@ -66,6 +66,26 @@
      <item row="9" column="1">
       <widget class="QLineEdit" name="buttonTextEdit"/>
      </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Previous</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QLineEdit" name="previousEdit"/>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Lin Device</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <widget class="QLineEdit" name="linEdit"/>
+     </item>
     </layout>
    </item>
    <item>

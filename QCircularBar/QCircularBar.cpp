@@ -93,8 +93,41 @@ REGISTER_PLUGIN(
 )
 
 QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path, new SettingsDialog::CircularBarSettings(Settings::get(), path)) {
-    m_lcd = new QLCDNumber(this);
+    : Widget(
+        ld, 
+        plugins, 
+        parent, 
+        path, 
+        new SettingsDialog::CircularBarSettings() //Settings::get(), path)
+    )
+    , m_lcd(new QLCDNumber(this)){
+}
+
+
+QCircularBar::~QCircularBar() {
+    delete m_lcd;
+}
+
+SettingsMdi* QCircularBar::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QCircularBar::settingsChanged);
+    return ret;
+}
+
+int QCircularBar::digits(int val) {
+    int digits = 0;
+    if (val <= 0) { // remove this line if '-' counts as a digit
+        digits = 1;
+    }
+    
+    while (val) {
+        val /= 10;
+        digits++;
+    }
+    return digits;
+}
+
+bool QCircularBar::initialize() {
     setPrecision(0);
     setSteps(20);
     setBarSize(5);
@@ -124,30 +157,14 @@ QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
     setCircularBarEnabled(true);
     //setCoverGlassEnabled(true);
     setEnabled(true);
+
+    settingsChanged();
+
+    return true;
 }
 
-
-QCircularBar::~QCircularBar() {
-    delete m_lcd;
-}
-
-SettingsMdi* QCircularBar::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
-    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QCircularBar::settingsChanged);
-    return ret;
-}
-
-int QCircularBar::digits(int val) {
-    int digits = 0;
-    if (val <= 0) { // remove this line if '-' counts as a digit
-        digits = 1;
-    }
-    
-    while (val) {
-        val /= 10;
-        digits++;
-    }
-    return digits;
+bool QCircularBar::deinitialize() {
+    return true;
 }
 
 void QCircularBar::settingsChanged() {

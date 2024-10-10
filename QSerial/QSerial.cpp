@@ -129,24 +129,36 @@ REGISTER_PLUGIN(
 )
 
 QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: IODevice(ld, plugins, parent, path, new SettingsDialog::SerialSettings(Settings::get(), path)),
-	  m_serial(new QSerialPort(this)){
+	: IODevice(ld, plugins, parent, path, new SettingsDialog::SerialSettings()) //Settings::get(), path)),
+	,  m_serial(new QSerialPort(this)){
 	emit message("QSerial::QSerial()", LoggerSeverity::LOG_DEBUG);
 
-	Window* win = qobject_cast<Window*>(parent);
+	
+}
 
-	m_serial->setPortName(settings<SettingsDialog::SerialSettings>()->name);
-	m_serial->setBaudRate(settings<SettingsDialog::SerialSettings>()->baudRate);
-	m_serial->setDataBits(settings<SettingsDialog::SerialSettings>()->dataBits);
-	m_serial->setParity(settings<SettingsDialog::SerialSettings>()->parity);
-	m_serial->setStopBits(settings<SettingsDialog::SerialSettings>()->stopBits);
-	m_serial->setFlowControl(settings<SettingsDialog::SerialSettings>()->flowControl);
+bool QSerial::initialize() {
+
+	const auto set = settings<SettingsDialog::SerialSettings>();
+	*set = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+
+	m_serial->setPortName(set->name);
+	m_serial->setBaudRate(set->baudRate);
+	m_serial->setDataBits(set->dataBits);
+	m_serial->setParity(set->parity);
+	m_serial->setStopBits(set->stopBits);
+	m_serial->setFlowControl(set->flowControl);
 
 	QObject::connect(m_serial, &QSerialPort::readyRead, this, &QSerial::readData);
 
 	if (settings<SettingsDialog::SerialSettings>()->autoConnect) {
 		emit message(QString("QSerial::QSerial serial port open: %1").arg(open(QString()) ? tr("Success") : tr("Failed")));
 	}
+
+	return true;
+}
+
+bool QSerial::deinitialize() {
+	return true;
 }
 
 SettingsMdi* QSerial::settingsWindow() const {
@@ -237,7 +249,6 @@ void QSerial::settingsChanged() {
 		m_serial->close();
 	}
 
-	Window* win = qobject_cast<Window*>(parent());
 	*(settings<SettingsDialog::SerialSettings>()) = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
 	
 	/*

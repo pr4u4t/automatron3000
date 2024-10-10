@@ -59,6 +59,7 @@ Input	..\x64\Release\platforms\qwindows.dll
 Input	..\x64\Release\Qt6Core.dll
 Input	..\x64\Release\Qt6Core5Compat.dll
 Input	..\x64\Release\Qt6Gui.dll
+Input	..\x64\Release\Qt6Help.dll
 Input	..\x64\Release\Qt6Network.dll
 Input	..\x64\Release\Qt6Pdf.dll
 Input	..\x64\Release\Qt6SerialPort.dll

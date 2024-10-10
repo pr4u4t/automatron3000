@@ -60,10 +60,16 @@ REGISTER_STATIC_PLUGIN(
 
 PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
 : Widget(ld, plugins, parent, settingsPath) {
+}
+
+void PluginList::settingsChanged() {
+}
+
+bool PluginList::initialize() {
 	QStandardItemModel* model = new QStandardItemModel(0, 5);
 
-	if (plugins != nullptr) {
-		auto loader = reinterpret_cast<MLoader*>(plugins);
+	if (plugins() != nullptr) {
+		auto loader = reinterpret_cast<MLoader*>(plugins());
 		auto list = loader->loaders();
 		for (auto it = list.begin(), end = list.end(); it != end; ++it) {
 			QList<QStandardItem*> row;
@@ -94,9 +100,12 @@ PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
 	QBoxLayout* lay = new QVBoxLayout();
 	setLayout(lay);
 	lay->addWidget(view);
+
+	return true;
 }
 
-void PluginList::settingsChanged() {
+bool PluginList::deinitialize() {
+	return true;
 }
 
 SettingsMdi* PluginList::settingsWindow() const {

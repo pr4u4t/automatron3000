@@ -52,11 +52,11 @@ public:
 		return hasInstanceInternal(name, settingsPath) != nullptr;
 	}
 
-	auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType {
-		return (hasInstanceInternal(name, settingsPath) != nullptr) ? hasInstanceInternal(name, settingsPath) : newInstance(name, parent, settingsPath);
+	auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType {
+		return (hasInstanceInternal(name, settingsPath) != nullptr) ? hasInstanceInternal(name, settingsPath) : newInstance(name, parent, settingsPath, hint);
 	}
 
-	auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString()) -> PluginType {
+	auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType {
 		if (m_loaders.contains(name) == false) {
 			return nullptr;
 		}
@@ -75,6 +75,10 @@ public:
 			const int count = m_instances.count(name) - 1;
 			const QString objName = (count == 0) ? name : QString("%1 %2").arg(name).arg(count);
 			o->setObjectName(objName);
+		}
+
+		if (hint == ModuleHint::INITIALIZE) {
+			ret->initialize();
 		}
 
 		emit loaded(ret.data());

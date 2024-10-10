@@ -77,19 +77,32 @@ REGISTER_PLUGIN(
 )
 
 QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path, new SettingsDialog::KonsoleSettings(Settings::get(), path))
+    : Widget(
+        ld, 
+        plugins, 
+        parent, 
+        path, 
+        new SettingsDialog::KonsoleSettings() //Settings::get(), path)
+    )
     , m_terminal(new QTerminal(this, tr("<b>Welcome to serial (rs-232) terminal</b>"))) {
-    settingsChanged();
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
     //m_terminal->setLocalEchoEnabled(m_settings.localEcho);
     QBoxLayout* l = new QVBoxLayout();
     l->addWidget(m_terminal);
     setLayout(l);
+}
 
+bool QKonsole::initialize() {
+    settingsChanged();
     QObject::connect(m_terminal, &QTerminal::execCommand, this, &QKonsole::enterPressed);
-    auto io = plugins->instance("QSerial", nullptr);
+    auto io = plugins()->instance("QSerial", nullptr);
     QObject::connect(dynamic_cast<IODevice*>(io.data()), &IODevice::dataReady, this, &QKonsole::putData);
     m_serial = io.dynamicCast<IODevice>();
+    return true;
+}
+
+bool QKonsole::deinitialize() {
+    return true;
 }
 
 SettingsMdi* QKonsole::settingsWindow() const {

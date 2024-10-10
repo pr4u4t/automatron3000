@@ -15,6 +15,7 @@
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QSpinBox>
@@ -36,6 +37,8 @@ public:
     QSpinBox *scanInterval;
     QLabel *label_4;
     QCheckBox *enableColors;
+    QLabel *label_5;
+    QLineEdit *linEdit;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -93,6 +96,16 @@ public:
 
         formLayout->setWidget(3, QFormLayout::FieldRole, enableColors);
 
+        label_5 = new QLabel(SettingsDialog);
+        label_5->setObjectName("label_5");
+
+        formLayout->setWidget(4, QFormLayout::LabelRole, label_5);
+
+        linEdit = new QLineEdit(SettingsDialog);
+        linEdit->setObjectName("linEdit");
+
+        formLayout->setWidget(4, QFormLayout::FieldRole, linEdit);
+
 
         verticalLayout->addLayout(formLayout);
 
@@ -138,6 +151,7 @@ public:
         label_3->setText(QCoreApplication::translate("SettingsDialog", "Interval [ms]", nullptr));
         label_4->setText(QCoreApplication::translate("SettingsDialog", "Enable colors", nullptr));
         enableColors->setText(QString());
+        label_5->setText(QCoreApplication::translate("SettingsDialog", "Lin Device", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

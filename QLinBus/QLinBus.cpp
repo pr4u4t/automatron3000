@@ -100,9 +100,7 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
     m_ui->pauseButton->setEnabled(false);
     m_ui->sniffEnable->setEnabled(false);
     m_ui->sniffDisable->setEnabled(true);
-    settingsChanged();
-
-    QTimer::singleShot(0, this, &QLinBus::init);
+    
 
     m_model->setHeaderData(0, Qt::Horizontal, tr("ID"));
     m_model->setHeaderData(1, Qt::Horizontal, tr("Type"));
@@ -116,6 +114,34 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
     connect(&m_timer, &QTimer::timeout, this, &QLinBus::scanStep);
 }
 
+bool QLinBus::initialize() {
+    emit message("QLinBus::init()", LoggerSeverity::LOG_DEBUG);
+    const auto set = settings<SettingsDialog::LinBusSettings>();
+    *set = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
+    m_timer.setInterval(set->scanInterval);
+
+    auto plugin = plugins()->instance("QLin", 0);
+    auto lin = plugin.dynamicCast<IODevice>();
+    m_lin = lin;
+    connect(lin.data(), &IODevice::dataReady, this, &QLinBus::dataReady);
+    connect(lin.data(), &IODevice::error, this, &QLinBus::errorReady);
+    
+    if (lin->isOpen() == false) {
+        if (lin->open() == false) {
+        
+        }
+    }
+    
+    m_ui->scanProgress->setMinimum(set->scanStartID);
+    m_ui->scanProgress->setMaximum(set->scanStopID);
+
+    return true;
+}
+
+bool QLinBus::deinitialize() {
+    return true;
+}
+
 SettingsMdi* QLinBus::settingsWindow() const {
     auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinBus::settingsChanged);
@@ -124,20 +150,11 @@ SettingsMdi* QLinBus::settingsWindow() const {
 
 void QLinBus::settingsChanged() {
     emit message("QLinBus::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    *(settings<SettingsDialog::LinBusSettings>()) = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
-    m_timer.setInterval(settings<SettingsDialog::LinBusSettings>()->scanInterval);
-}
-
-void QLinBus::init() {
-    emit message("QLinBus::init()", LoggerSeverity::LOG_DEBUG);
-    auto plugin = plugins()->instance("QLin", 0);
-    auto lin = plugin.dynamicCast<IODevice>();
-    m_lin = lin;
-    connect(lin.data(), &IODevice::dataReady, this, &QLinBus::dataReady);
-    connect(lin.data(), &IODevice::error, this, &QLinBus::errorReady);
-    if (lin->isOpen() == false) {
-        lin->open();
-    }
+    const auto set = settings<SettingsDialog::LinBusSettings>();
+    *set = SettingsDialog::LinBusSettings(Settings::get(), settingsPath());
+    m_timer.setInterval(set->scanInterval);
+    m_ui->scanProgress->setMinimum(set->scanStartID);
+    m_ui->scanProgress->setMaximum(set->scanStopID);
 }
 
 void QLinBus::startScan() {
