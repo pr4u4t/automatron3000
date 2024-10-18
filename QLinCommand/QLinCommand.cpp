@@ -130,6 +130,11 @@ bool QLinCommand::initialize() {
     m_data.m_ui->title->setText(set->title);
     m_data.m_ui->pushButton->setText(set->buttonText);
 
+    if (set->linDevice.isEmpty()) {
+        emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
+        return false;
+    }
+
     auto plugin = plugins()->instance(set->linDevice, 0);
     auto lin = plugin.dynamicCast<IODevice>();
     m_data.m_lin = lin;
@@ -168,6 +173,23 @@ void QLinCommand::settingsChanged() {
     m_data.m_ui->title->setText(set->title);
     m_data.m_ui->pushButton->setText(set->buttonText);
     
+    if (set->linDevice.isEmpty()) {
+        emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
+        return;
+    }
+
+    if (set->previous.isEmpty() == false) {
+        emit message("QLinReadByID::settingsChanged: previous not empty");
+        auto prev = plugins()->findByObjectName(set->previous);
+        if (prev.isNull() == false) {
+            emit message("QLinReadByID::settingsChanged: connecting previous");
+            connect(prev.dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+        }
+        else {
+            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous));
+        }
+    }
+
     auto plugin = plugins()->instance(set->linDevice, 0);
     auto lin = plugin.dynamicCast<IODevice>();
     m_data.m_lin = lin;
@@ -183,10 +205,6 @@ void QLinCommand::settingsChanged() {
     }
 
     QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
-
-    if (set->previous.isEmpty() == false) {
-        connect(plugins()->findByObjectName(set->previous).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
-    }
 }
 
 QLinCommand::~QLinCommand() {
@@ -239,6 +257,7 @@ void QLinCommand::dataReady(const QByteArray& data) {
 }
 
 std::optional<LinFrame> QLinCommand::dataFromResponse(const QByteArray& data) const {
+    emit message("QLinCommand::dataFromResponse(const QByteArray& data) const");
 
     if (data.startsWith("LIN NOANS")) {
         return std::nullopt;
@@ -248,6 +267,11 @@ std::optional<LinFrame> QLinCommand::dataFromResponse(const QByteArray& data) co
         QByteArrayList list = data.split(',');
         for (auto& item : list) {
             item = item.mid(item.indexOf(':') + 1);
+        }
+
+        if (list[5].trimmed().toLongLong() < m_data.m_startTime) {
+            emit message(QString("QLinCommand::dataFromResponse: discarding packet older than start time %1 %2").arg(list[5]).arg(m_data.m_startTime));
+            return std::nullopt;
         }
 
         QByteArray ret = QByteArray(1 + (list[2].size() - 2) / 2, 0);
@@ -344,6 +368,12 @@ void QLinCommand::initial() {
 void QLinCommand::send() {
     emit message("QLinCommand::send()");
 
+    if (m_data.m_lin.isNull()) {
+        emit message("QLinCommand::send; lin device is nullptr");
+        failed();
+        return;
+    }
+
     m_data.m_state = QLinCommandState::READ;
     inprogress();
 
@@ -391,6 +421,7 @@ void QLinCommand::sendCommand(bool checked) {
     emit message("QLinCommand::sendCommand()");
     const auto set = settings<SettingsDialog::LinCommandSettings>();
     m_data.m_try = set->tries;
+    m_data.m_startTime = QDateTime::currentMSecsSinceEpoch();
     send();
 }
 

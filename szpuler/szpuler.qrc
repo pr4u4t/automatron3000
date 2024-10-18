@@ -45,5 +45,6 @@
         <file>images/lock.svg</file>
         <file>images/lock_open.svg</file>
         <file>res/arduino.ico</file>
+        <file>images/kOnzy.gif</file>
     </qresource>
 </RCC>

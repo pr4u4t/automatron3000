@@ -131,7 +131,7 @@
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
-    <ClCompile Include="PluginList.cpp" />
+    <ClCompile Include="Plugins.cpp" />
     <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="Session.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
@@ -150,13 +150,14 @@
     <QtMoc Include="Preferences.h" />
     <QtMoc Include="PreferencePage.h" />
     <QtMoc Include="Help.h" />
+    <ClInclude Include="LoadingDialog.h" />
     <ClInclude Include="resource.h" />
     <QtMoc Include="Tray.h" />
     <QtMoc Include="Instances.h" />
     <ClInclude Include="MdiWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="PluginList.h" />
+    <QtMoc Include="Plugins.h" />
   </ItemGroup>
   <ItemGroup>
     <QtTranslation Include="Translation_pl_PL.ts" />

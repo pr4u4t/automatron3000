@@ -23,6 +23,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QKonsole::reset(Reset type)");
         return true;
     }
 
@@ -36,6 +37,10 @@ public slots:
     void enterPressed(const QString& command);
 
     void putData(const QByteArray& data);
+
+    QVariant exec() override {
+        return QVariant();
+    }
 
 private:
     QTerminal* m_terminal = nullptr;

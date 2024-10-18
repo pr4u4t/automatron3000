@@ -28,6 +28,10 @@ public slots:
     void settingsChanged();
     
     void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE);
+
+    QVariant exec() {
+        return QVariant();
+    }
     
 private:
     QTextEdit* m_text;

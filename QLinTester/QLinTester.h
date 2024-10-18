@@ -50,6 +50,7 @@ public:
     SettingsMdi* settingsWindow() const;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QLinTester::reset(Reset type)");
         initial();
         return true;
     }
@@ -69,7 +70,9 @@ public slots:
 
     void testStop();
 
-    void init();
+    QVariant exec() {
+        return QVariant();
+    }
 
 protected:
 

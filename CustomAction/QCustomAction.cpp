@@ -7,6 +7,7 @@
 
 #include <QtGlobal>
 #include <QtGui>
+#include <QScrollBar>
 
 struct QCustomActionMenu {
     QCustomActionMenu(QCoreApplication* app)
@@ -133,6 +134,8 @@ void QCustomAction::settingsChanged() {
 
     m_ui->pushButton->setText(set->buttonText);
     m_ui->title->setText(set->title);
+    m_ui->progressBar->setHidden(!set->progress);
+    m_ui->textEdit->setHidden(!set->verbose);
 }
 
 SettingsMdi* QCustomAction::settingsWindow() const {
@@ -145,14 +148,60 @@ void QCustomAction::execClicked(bool checked) {
     const auto set = settings<SettingsDialog::CustomActionSettings>();
     QStringList jobs = set->jobList();
 
+    m_ui->progressBar->setMaximum(jobs.size());
+
     for (int i = 0, end = jobs.size(); i < end; i += 2) {
         auto plugin = plugins()->findByObjectName(jobs[i]);
         auto object = plugin.dynamicCast<QObject>();
         bool retVal = false;
         
+        connect(object.data(), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(jobMessage(const QString&, LoggerSeverity)));
+
         QMetaObject::invokeMethod(object.data(), jobs[i + 1].trimmed().toLocal8Bit().data(),
             Qt::DirectConnection, Q_RETURN_ARG(bool, retVal));
         
+        disconnect(this, SLOT(jobMessage(const QString&, LoggerSeverity)));
         emit message(QString("QCustomAction::execClicked: %1::%2: status: %3").arg(jobs[i]).arg(jobs[i+1]).arg(retVal));
+        m_ui->progressBar->setValue(i+2);
+        jobMessage(QString("Progress.............%1").arg(m_ui->progressBar->text()));
+        QCoreApplication::processEvents(QEventLoop::AllEvents, set->interval);
     }
+
+    //m_ui->progressBar->setValue(m_ui->progressBar->maximum());
+}
+
+void QCustomAction::jobMessage(const QString& msg, LoggerSeverity severity) {
+    QColor color = m_ui->textEdit->textColor();
+
+    switch (severity) {
+    case LoggerSeverity::LOG_INFO:
+        m_ui->textEdit->setTextColor(QColor(56, 61, 65));
+        break;
+
+    case LoggerSeverity::LOG_NOTICE:
+        m_ui->textEdit->setTextColor(QColor(12, 84, 96));
+        break;
+
+    case LoggerSeverity::LOG_WARNING:
+        m_ui->textEdit->setTextColor(QColor(133, 100, 4));
+        break;
+
+    case LoggerSeverity::LOG_ERROR:
+        m_ui->textEdit->setTextColor(QColor(114, 28, 36));
+        break;
+
+    case LoggerSeverity::LOG_DEBUG:
+        break;
+    }
+
+    m_ui->textEdit->append(msg);
+    m_ui->textEdit->setTextColor(color);
+    m_ui->textEdit->verticalScrollBar()->setValue(m_ui->textEdit->verticalScrollBar()->maximum());
+}
+
+bool QCustomAction::reset(Reset type) {
+    emit message("QCustomAction::reset(Reset type)");
+    m_ui->progressBar->setValue(0);
+    m_ui->textEdit->clear();
+    return true;
 }

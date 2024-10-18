@@ -32,9 +32,7 @@ public:
 
     SettingsMdi* settingsWindow() const override;
 
-    Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
-        return true;
-    }
+    Q_INVOKABLE bool reset(Reset type = Reset::SOFT);
 
     bool initialize() override;
 
@@ -44,11 +42,13 @@ public slots:
 
     void settingsChanged();
 
-    //protected:
-
-    //    void resizeEvent(QResizeEvent* event);
+    void jobMessage(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE);
 
     void execClicked(bool checked = false);
+
+    QVariant exec() override {
+        return QVariant();
+    }
 
 private:
     Ui::QCustomActionUI* m_ui = nullptr;

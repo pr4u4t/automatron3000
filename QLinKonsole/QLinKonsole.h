@@ -34,6 +34,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QLinKonsole::reset(Reset type)");
         return true;
     }
 
@@ -50,7 +51,9 @@ public slots:
 
     void putData(const QString& data, LoggerSeverity severity = LoggerSeverity::LOG_NONE);
 
-//private slots:
+    QVariant exec() override {
+        return QVariant();
+    }
 
     //void init();
 

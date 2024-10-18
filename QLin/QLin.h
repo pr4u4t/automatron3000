@@ -34,6 +34,7 @@ public:
 	Q_INVOKABLE int slaveID() const;
 
 	Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+		emit message("QLin::reset(Reset type)");
 		close();
 		return open();
 	}

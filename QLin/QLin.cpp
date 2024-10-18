@@ -5,9 +5,90 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QTranslator>
-
+#include <QStyle>
 
 struct QLinMenu {
+	QLinMenu(QCoreApplication* app)
+		: m_app(app) {
+
+		if (app != nullptr && Settings::localeNeeded()) {
+			m_translator = new QTranslator();
+			if (m_translator->load(QLocale::system(), "QLin", "_", "translations")) { //set directory of ts
+				m_app->installTranslator(m_translator);
+			}
+		}
+
+
+		m_linbusMenu = new QMenu(m_app->translate("MainWindow", "LinBus"));
+
+		m_instances = new QMenu(m_app->translate("MainWindow", "Instances"));
+
+		m_linbusMenu->addMenu(m_instances);
+
+		m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_instances);
+		m_newInstance->setData(QVariant("QLin"));
+	}
+
+	QMenu* m_linbusMenu = nullptr;
+	QMenu* m_instances = nullptr;
+	QAction* m_newInstance = nullptr;
+
+	QCoreApplication* m_app = nullptr;
+	QTranslator* m_translator = nullptr;
+};
+
+static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
+	log->message("QLin_register()");
+
+	GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
+	if (gtx == nullptr) {
+		log->message("PluginList_register(): application is non gui not registering");
+		return false;
+	}
+
+	if (gtx->m_win == nullptr) {
+		log->message("QLin_register(): window pointer == nullptr");
+		return false;
+	}
+
+	ctx->m_linbusMenu = gtx->m_win->menuBar()->addMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
+	
+	//ctx->m_linbusMenu->addAction(ctx->m_actionConnect);
+	//ctx->m_linbusMenu->addAction(ctx->m_actionDisconnect);
+	//ctx->m_linbusMenu->addAction(ctx->m_actionConfigure);
+
+	QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+	QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+		if (plugin->name() != "QLin") {
+			return;
+		}
+
+		QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_linbusMenu);
+		settings->setData(QVariant(plugin->settingsPath()));
+		//ctx->m_settings->addAction(settings);
+
+		/*QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
+			if (gtx->m_win->toggleWindow(dynamic_cast<const QLin*>(plugin)->objectName() + "/Settings")) {
+				return;
+			}
+
+			SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
+			QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QLin*>(plugin), &QLin::settingsChanged);
+			gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLin*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinReadByID/Settings"));
+			});
+		*/
+		});
+	
+	
+	return true;
+}
+
+static bool QLin_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMenu* ctx, Logger* log) {
+	log->message("QLin_unregister()");
+	return true;
+}
+
+/*struct QLinMenu {
 	QLinMenu(QCoreApplication* app)
 		: m_app(app) {
 		if (m_app != nullptr) {
@@ -116,6 +197,7 @@ static bool QLin_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QLinMen
 	log->message("QLin_unregister()", LoggerSeverity::LOG_DEBUG);
 	return true;
 }
+*/
 
 REGISTER_PLUGIN(
 	QLin,
@@ -190,10 +272,11 @@ bool QLin::open(const QString& url) {
 	*/
 
 	auto sld = dynamic_cast<PluginLoader<QLin, QLinMenu>*>(loader());
-	if (sld->context()) {
-		sld->context()->m_actionConnect->setEnabled(false);
-		sld->context()->m_actionDisconnect->setEnabled(true);
-	}
+	//TODO:
+	//if (sld->context()) {
+	//	sld->context()->m_actionConnect->setEnabled(false);
+	//	sld->context()->m_actionDisconnect->setEnabled(true);
+	//}
 
 	return (m_open = true);
 }
@@ -323,10 +406,11 @@ void QLin::close() {
 	if (m_lin != nullptr) {
 		m_lin->LINClose();
 		auto sld = dynamic_cast<PluginLoader<QLin, QLinMenu>*>(loader());
-		if (sld->context()) {
-			sld->context()->m_actionConnect->setEnabled(true);
-			sld->context()->m_actionDisconnect->setEnabled(false);
-		}
+		//TODO:
+		//if (sld->context()) {
+		//	sld->context()->m_actionConnect->setEnabled(true);
+		//	sld->context()->m_actionDisconnect->setEnabled(false);
+		//}
 		m_open = false;
 	}
 

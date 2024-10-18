@@ -165,6 +165,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QLinWriteByID::reset(Reset type)");
         initial();
         return true;
     }
@@ -183,6 +184,10 @@ public slots:
     void linClosed();
 
     void writeById();
+
+    QVariant exec() {
+        return QVariant();
+    }
 
 protected slots:
 

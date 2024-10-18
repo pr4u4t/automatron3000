@@ -35,6 +35,7 @@ public:
 	SettingsMdi* settingsWindow() const override;
 
 	Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+		emit message("QSerial::reset(Reset type)");
 		return true;
 	}
 

@@ -27,20 +27,32 @@ class SettingsDialog : public SettingsMdi {
 
 public:
 
-    static constexpr const char* pluginsActionsKey = "pluginsActions";
-    static constexpr const char* pluginsActionsValue = nullptr;
+    static constexpr const char* const pluginsActionsKey = "pluginsActions";
+    static constexpr const char* const pluginsActionsValue = nullptr;
     
-    static constexpr const char* buttonTextKey = "buttonText";
-    static constexpr const char* buttonTextValue = "Exec";
+    static constexpr const char* const buttonTextKey = "buttonText";
+    static constexpr const char* const buttonTextValue = "Exec";
 
-    static constexpr const char* titleKey = "title";
-    static constexpr const char* titleValue = "Custom Action";
+    static constexpr const char* const titleKey = "title";
+    static constexpr const char* const titleValue = "Custom Action";
+
+    static constexpr const char* const progressKey = "progress";
+    static constexpr const bool progressValue = false;
+
+    static constexpr const char* const verboseKey = "verbose";
+    static constexpr const bool verboseValue = false;
+
+    static constexpr const char* const intervalKey = "interval";
+    static constexpr const int intervalValue = 0;
 
     struct CustomActionSettings : public PluginSettings {
         CustomActionSettings()
             : pluginsActions()
             , buttonText(buttonTextValue)
-            , title(titleValue) {
+            , title(titleValue)
+            , progress(progressValue)
+            , verbose(verboseValue)
+            , interval(intervalValue){
         }
 
         virtual ~CustomActionSettings() = default;
@@ -49,13 +61,19 @@ public:
             : PluginSettings(settings, settingsPath)
             , pluginsActions(settings.value(settingsPath + "/" + pluginsActionsKey, pluginsActionsValue).toJsonArray())
             , buttonText(settings.value(settingsPath + "/" + buttonTextKey, buttonTextValue).toString())
-            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString()) {
+            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
+            , progress(settings.value(settingsPath + "/" + progressKey, progressValue).toBool()) 
+            , verbose(settings.value(settingsPath + "/" + verboseKey, verboseValue).toBool()) 
+            , interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt()){
         }
 
         void save(QSettings& settings, const QString& settingsPath) const {
             settings.setValue(settingsPath + "/" + pluginsActionsKey, pluginsActions);
             settings.setValue(settingsPath + "/" + buttonTextKey, buttonText);
             settings.setValue(settingsPath + "/" + titleKey, title);
+            settings.setValue(settingsPath + "/" + progressKey, progress);
+            settings.setValue(settingsPath + "/" + verboseKey, verbose);
+            settings.setValue(settingsPath + "/" + intervalKey, interval);
 
             PluginSettings::save(settings, settingsPath);
         }
@@ -78,6 +96,9 @@ public:
                 if (tmp.isEmpty() == false) {
                     ret << tmp;
                 }
+
+                const bool r = o["return"].toBool();
+                ret << (r ? "true" : "false");
             }
 
             return ret;
@@ -86,6 +107,9 @@ public:
         QJsonArray pluginsActions;
         QString buttonText;
         QString title;
+        bool progress;
+        bool verbose;
+        int interval;
     };
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
@@ -137,6 +161,11 @@ protected:
             check->setCheckable(true);
             check->setCheckState(iter->toObject()["enabled"].toBool() ? Qt::Checked : Qt::Unchecked);
             items << check;
+
+            QStandardItem* ret = new QStandardItem();
+            check->setCheckable(true);
+            check->setCheckState(iter->toObject()["return"].toBool() ? Qt::Checked : Qt::Unchecked);
+            items << ret;
 
             m_model->appendRow(items);
         }

@@ -120,6 +120,11 @@ bool QLinReadByID::initialize() {
     *(set) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
     m_data.m_ui->title->setText(set->title);
     
+    if (set->linDevice.isEmpty()) {
+        emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
+        return false;
+    }
+
     auto plugin = plugins()->instance(set->linDevice, 0);
 
     if (set->previous.isEmpty() == false) {

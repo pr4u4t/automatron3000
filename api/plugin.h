@@ -166,6 +166,8 @@ public slots:
 
 	virtual void settingsChanged() = 0;
 
+	virtual QVariant exec() = 0;
+
 protected slots:
 
 	void nameChanged(const QString& name);
@@ -297,7 +299,7 @@ private:
 	PluginLoaderPrivate<D> m_d;
 };
 
-class API_EXPORT PluginsLoader : public QObject{
+class API_EXPORT PluginsLoader : public QObject {
 
 	Q_OBJECT
 
@@ -323,10 +325,20 @@ public:
 
 signals:
 	void loaded(const Plugin* plugin);
+
+	void aboutToDelete(const Plugin* plugin);
+
+	void enabled(const Loader* loader);
+
+	void disabled(const Loader* loader);
 };
 
 #define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight) \
-extern "C" { __declspec(dllexport) PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); }
+extern "C" { __declspec(dllexport) PluginLoader<name, data> name##_##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); }
+
+//#define STRINGIFY(x) #x
+#define LOADER_NAME(x) #x "_Loader"
+//STRINGIFY(x ## _Loader)
 
 class API_EXPORT Settings {
 

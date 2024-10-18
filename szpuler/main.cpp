@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include <QSplashScreen>
-#include <QDebug>
 #include <QLibraryInfo>
 #include <exception>
-#include <QStandardPaths>
 #include <QScreen>
+#include <QLockFile>
 
 #include "main.h"
 #include "mainwindow.h"
@@ -18,32 +17,58 @@
 #include "Splash.h"
 
 int main(int argc, char *argv[]){
-    Settings::setConfigurationPath(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + Main::appName);
-    Logger log(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + Main::appName + "/" + Main::appName  + ".log");
+    Settings::setConfigurationPath(Main::configurationPath());
+    Logger log(Main::configurationPath() + "/" + Main::appName  + ".log");
     Main app(argc,argv, &log);
+    QLockFile lock(Main::configurationPath() + "/" + Main::appName + ".lock");
+
+    if (lock.tryLock() == false) {
+        log.message(QString("Faild to obtain lock %1 it seems another instance is running").arg(Main::configurationPath() + "/" + Main::appName + ".lock"));
+        QMessageBox::critical(nullptr, Main::appName, QString("Failed to obtain lock file %1, another instance of application is already running").arg(lock.fileName()));
+        return -1;
+    }
 
     Splash splash(":/res/splash.jpg");
     splash.show();
-    app.processEvents();
+    splash.setProgress(0);
+    //app.processEvents();
 
-    MLoader ld(&log);
-    MainWindow mainWin(&ld, &log);
+    splash << "creating module loader...";
+    MLoader ld(Settings::get(), "Modules", &log);
+    splash.setProgress(20);
+
+    splash << "creating main window...";
+    MainWindow mainWin(Settings::get(), "Window", &ld, &log);
     GuiLoaderContext ctx(&mainWin);
     ld.setContext(&ctx);
+    splash.setProgress(40);
+
+    splash << "loading plugins...";
     const auto pluginCount = ld.loadPlugins();
     log.message(QString("Loaded %1 plugins").arg(pluginCount));
+    splash.setProgress(50);
 
-    Session session(&ld, &log, QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + "configuration.ini", &mainWin);
-    QObject::connect(&mainWin, &MainWindow::sessionStore, &session, &Session::store);
+    splash << "creating session...";
+    Session session(&ld, &log, Main::configurationPath() + "/" + "configuration.ini", &mainWin);
+    //QObject::connect(&mainWin, &MainWindow::sessionStore, &session, &Session::store);
+    splash.setProgress(70);
+
+    splash << "creating tray icon...";
     Tray tray(&mainWin);
-
+    splash.setProgress(80);
     mainWin.setPlugins(&ld);
+
+    splash << "restoting session...";
     session.restore();
+    splash.setProgress(90);
+
+    splash << "startup finished";
+    splash.setProgress(100);
     mainWin.show();
     splash.finish(&mainWin);
     tray.show();
 
-    QObject::connect(&mainWin, SIGNAL(aboutToQuit()), &session, SLOT(store()));
+    QObject::connect(&mainWin, SIGNAL(aboutToQuit(const MainWindowQuit&)), &session, SLOT(aboutToQuit(const MainWindowQuit&)));
 
     return app.exec();
 }

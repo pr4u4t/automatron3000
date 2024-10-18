@@ -52,6 +52,7 @@ public:
     QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QCircularBar::reset(Reset type)");
         return true;
     }
 
@@ -286,6 +287,11 @@ public slots:
                   \slots This slot sets the bar size in pixels
     */
     void setBarSize(int barSize);
+
+    QVariant exec() override {
+        //this should return current reading
+        return QVariant();
+    }
 
 protected:
     void paintEvent(QPaintEvent* event);

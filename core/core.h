@@ -12,40 +12,82 @@
 
 #include "../api/api.h"
 
+struct ModuleLoaderSettings {
+	static constexpr const char* const modulesEnabledKey = "enabled";
+	static constexpr const char* const modulesEnabledValue = nullptr;
+	static constexpr const char* const modulesDirKey = "directory";
+	static constexpr const char* const modulesDirValue = "./plugins";
+
+	ModuleLoaderSettings()
+		: modulesEnabled(modulesEnabledValue)
+		, modulesDir(modulesDirValue){
+	}
+
+	ModuleLoaderSettings(const QSettings& settings, const QString& settingsPath)
+		: modulesEnabled(settings.value(settingsPath + "/" + modulesEnabledKey, modulesEnabledValue).toStringList())
+		, modulesDir(settings.value(settingsPath + "/" + modulesDirKey, modulesDirValue).toString()) {
+	}
+
+	void save(QSettings& settings, const QString& settingsPath) const {
+		settings.setValue(settingsPath + "/" + modulesEnabledKey, modulesEnabled);
+		settings.setValue(settingsPath + "/" + modulesDirKey, modulesDir);
+	}
+
+	QStringList modulesEnabled;
+	QString modulesDir;
+};
+
 template<typename T>
-class ModuleLoader : PluginsLoader {
+struct ModuleLoaderData {
+	ModuleLoaderData(Logger* logger) 
+		: m_logger(logger){
+	}
+
+	ModuleLoaderData(Logger* logger, const ModuleLoaderSettings& settings) 
+		: m_logger(logger)
+		, m_settings(settings){}
+	QHash<QString, QLibrary*> m_libraries;
+	QMultiHash<QString, PluginsLoader::PluginType> m_instances;
+	static QHash<QString, T*> m_loaders;
+	ModuleLoaderContext* m_ctx = nullptr;
+	Logger* m_logger = nullptr;
+	ModuleLoaderSettings m_settings;
+};
+
+template<typename T>
+class ModuleLoader : public PluginsLoader {
 public:
 
 	ModuleLoader(Logger* log = nullptr) 
-		: m_path(QDir::currentPath() + "/plugins")
-		, m_logger(log) {}
+		: m_data(log) {}
 
-	ModuleLoader(const QString& dir, Logger* log = nullptr)
-		: m_path(dir.isEmpty() ? QDir::currentPath() + "/plugins" : dir)
-		, m_logger(log) {}
+	ModuleLoader(const QSettings& settings, const QString& settingsPath, Logger* log = nullptr)
+		: m_data(log, ModuleLoaderSettings(settings, settingsPath)) {
+		setObjectName("ModuleLoader");
+	}
 
 	virtual ~ModuleLoader() {
 
-		m_instances.clear();
-		m_loaders.clear();
+		m_data.m_instances.clear();
+		m_data.m_loaders.clear();
 
 		//for (auto it = m_libraries.begin(), end = m_libraries.end(); it != end; ++it) {
 		//	it.value()->unload();
 		//}
 
-		m_libraries.clear();
+		m_data.m_libraries.clear();
 	}
 
 	QString path() const {
-		return m_path;
+		return m_data.m_settings.modulesDir;
 	}
 
 	void setContext(ModuleLoaderContext* ctx) {
-		m_ctx = ctx;
+		m_data.m_ctx = ctx;
 	}
 
 	ModuleLoaderContext* context() const {
-		return m_ctx;
+		return m_data.m_ctx;
 	}
 
 	bool hasInstance(const QString& name, const QString& settingsPath = QString()) const {
@@ -57,22 +99,22 @@ public:
 	}
 
 	auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType {
-		if (m_loaders.contains(name) == false) {
+		if (m_data.m_loaders.contains(name) == false) {
 			return nullptr;
 		}
 
-		auto ret = m_loaders[name]->load(this, parent, settingsPath);
+		auto ret = m_data.m_loaders[name]->load(this, parent, settingsPath);
 		if (ret == nullptr) {
 			return nullptr;
 		}
 
-		m_instances.insert(name, ret);
+		m_data.m_instances.insert(name, ret);
 		
 		QObject* o = dynamic_cast<QObject*>(ret.data());
 		connect(o, SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
 
 		if (o->objectName().isEmpty() == true) {
-			const int count = m_instances.count(name) - 1;
+			const int count = m_data.m_instances.count(name) - 1;
 			const QString objName = (count == 0) ? name : QString("%1 %2").arg(name).arg(count);
 			o->setObjectName(objName);
 		}
@@ -86,7 +128,7 @@ public:
 	}
 
 	auto find(const QString& uuid) const -> PluginType {
-		for (QMultiHash<QString, PluginType>::const_iterator i = m_instances.begin(); i != m_instances.end(); ++i) {
+		for (QMultiHash<QString, PluginType>::const_iterator i = m_data.m_instances.begin(); i != m_data.m_instances.end(); ++i) {
 			if (i->data()->uuid() == uuid) {
 				return i.value();
 			}
@@ -96,7 +138,7 @@ public:
 	}
 
 	auto findByObjectName(const QString& name) const -> PluginType {
-		for (QMultiHash<QString, PluginType>::const_iterator i = m_instances.begin(); i != m_instances.end(); ++i) {
+		for (QMultiHash<QString, PluginType>::const_iterator i = m_data.m_instances.begin(); i != m_data.m_instances.end(); ++i) {
 			if (dynamic_cast<QObject*>(i->data())->objectName() == name) {
 				return i.value();
 			}
@@ -108,7 +150,7 @@ public:
 	const QList<const T*> loaders() const {
 		QList<const T*> ret;
 
-		for (auto i = m_loaders.cbegin(), end = m_loaders.cend(); i != end; ++i) {
+		for (auto i = m_data.m_loaders.cbegin(), end = m_data.m_loaders.cend(); i != end; ++i) {
 			ret << i.value();
 		}
 
@@ -116,55 +158,51 @@ public:
 	}
 
 	qint32 loadPlugins() {
-		m_logger->message(QString("ModuleLoader::loadPlugins()"));
+		m_data.m_logger->message(QString("ModuleLoader::loadPlugins()"));
 		qint32 ret = 0;
 		QDirIterator it(path(), { "*.dll", "*.so", "*.dylib" }, QDir::Files);
 
-		m_logger->message(QString("ModuleLoader::loadPlugins: using plugins directory: %1").arg(it.path()));
+		m_data.m_logger->message(QString("ModuleLoader::loadPlugins: using plugins directory: %1").arg(it.path()));
 
-		QSettings settings = Settings::get();
-		auto list = settings.value("plugins/active").toString();
-		QStringList active;
+		QStringList active = m_data.m_settings.modulesEnabled;
 		bool isGui = Settings::isGui();
 
-		if (list.isEmpty() == false) {
-			active = list.split(' ');
-		}
 
-		m_logger->message(QString("ModuleLoader::loadPlugins: found plugins list %1").arg(list));
+		m_data.m_logger->message(QString("ModuleLoader::loadPlugins: found plugins list of %1 elements %2").arg(active.size()).arg(active.join(',')));
 
 		while (it.hasNext()) {
 			QString libpath = it.next();
 
-			m_logger->message(QString("ModuleLoader::loadPlugins: trying to load %1").arg(libpath));
+			m_data.m_logger->message(QString("ModuleLoader::loadPlugins: trying to load %1").arg(libpath));
 
 			if (active.isEmpty() == false) {
 				if (active.indexOf(it.fileInfo().baseName()) == -1) {
-					m_logger->message(QString("ModuleLoader::loadPlugins(): module %1 not active").arg(it.fileInfo().baseName()));
+					m_data.m_logger->message(QString("ModuleLoader::loadPlugins(): module %1 not active").arg(it.fileInfo().baseName()));
 					continue;
 				}
 			}
 
 			QLibrary* lib = new QLibrary(libpath);
 			if (lib == nullptr) {
-				m_logger->message(QString("ModuleLoader::loadPlugins(): failed to open library %1").arg(libpath));
+				m_data.m_logger->message(QString("ModuleLoader::loadPlugins(): failed to open library %1").arg(libpath));
 				continue;
 			}
 
 			if (lib->load() == false) {
-				m_logger->message(QString("ModuleLoader::loadPlugins(): failed to load %1 %2").arg(libpath).arg(lib->errorString()));
+				m_data.m_logger->message(QString("ModuleLoader::loadPlugins(): failed to load %1 %2").arg(libpath).arg(lib->errorString()));
 				delete lib;
 				continue;
 			}
 
 			QFileInfo info(libpath);
-			QString symbol = info.baseName() + "Loader";
+
+			QString symbol = info.baseName()+"_Loader";
 			QFunctionPointer sym = lib->resolve(symbol.toLocal8Bit());
 
 			Loader* ld = reinterpret_cast<Loader*>(sym);
 
 			if (ld == nullptr) {
-				m_logger->message(QString("ModuleLoader::loadPlugins(): failed to check library type %1").arg(libpath));
+				m_data.m_logger->message(QString("ModuleLoader::loadPlugins(): failed to check library type %1").arg(libpath));
 				lib->unload();
 				delete lib;
 				continue;
@@ -178,8 +216,8 @@ public:
 			}
 
 			logger()->message(QString("ModuleLoader::loadPlugins() loaded plugin name: %1 type: %2 version: %3").arg(ld->name()).arg(static_cast<qint64>(ld->type())).arg(ld->version()));
-			m_libraries[ld->name()] = lib;
-			m_loaders[ld->name()] = ld;
+			m_data.m_libraries[ld->name()] = lib;
+			m_data.m_loaders[ld->name()] = ld;
 			++ret;
 		}
 
@@ -189,7 +227,7 @@ public:
 			auto deps = it->depends();
 			for (auto begin = deps.begin(), end = deps.end(); begin != end; ++begin) {
 				if (hasLoader(*begin) == false) {
-					m_loaders[it->name()]->setEnabled(false);
+					m_data.m_loaders[it->name()]->setEnabled(false);
 					break;
 				}
 			}
@@ -224,10 +262,11 @@ public:
 			}
 		}
 
-		QList<T*> lds = m_loaders.values();
+		QList<T*> lds = m_data.m_loaders.values();
 		std::sort(lds.begin(), lds.end(), [](T* lhs, T* rhs) {
 			return lhs->weight() < rhs->weight();
 		});
+
 		for (auto item : lds) {
 			item->registerPlugin(context(), this, logger());
 		}
@@ -236,7 +275,7 @@ public:
 	}
 
 	void deleteInstance(const QString& uuid) {
-		m_instances.removeIf([uuid](QMultiHash<QString, PluginType>::iterator it) {
+		m_data.m_instances.removeIf([uuid](QMultiHash<QString, PluginType>::iterator it) {
 			if (it->data()->uuid() == uuid) {
 				return true;
 			}
@@ -247,7 +286,7 @@ public:
 
 	QList<PluginType> instances() const {
 		QList<decltype((static_cast<T*>(nullptr))->load(nullptr, nullptr))> ret;
-		for (auto it = m_instances.begin(), end = m_instances.end(); it != end; ++it) {
+		for (auto it = m_data.m_instances.begin(), end = m_data.m_instances.end(); it != end; ++it) {
 			ret << it.value();
 		}
 		return ret;
@@ -258,17 +297,17 @@ public:
 			return false;
 		}
 
-		if (m_loaders.contains(loader->name())) {
+		if (ModuleLoaderData<T>::m_loaders.contains(loader->name())) {
 			return false;
 		}
 
-		m_loaders[loader->name()] = loader;
+		ModuleLoaderData<T>::m_loaders[loader->name()] = loader;
 
 		return true;
 	}
 
 	Logger* logger() const {
-		return m_logger;
+		return m_data.m_logger;
 	}
 
 protected:
@@ -279,10 +318,10 @@ protected:
 
 	PluginType hasInstanceInternal(const QString& name, const QString& settingsPath) const {
 		if (settingsPath.isEmpty()) {
-			return m_instances.contains(name) ? m_instances[name] : nullptr;
+			return m_data.m_instances.contains(name) ? m_data.m_instances[name] : nullptr;
 		}
 
-		for (QMultiHash<QString, PluginType>::const_iterator i = m_instances.find(name); i != m_instances.end() && i.key() == name; ++i) {
+		for (QMultiHash<QString, PluginType>::const_iterator i = m_data.m_instances.find(name); i != m_data.m_instances.end() && i.key() == name; ++i) {
 			if (i->data()->settingsPath() == settingsPath) {
 				return i.value();
 			}
@@ -293,24 +332,20 @@ protected:
 
 private:
 	inline bool hasLoader(const QString& name) const {
-		return m_loaders.contains(name);
+		return m_data.m_loaders.contains(name);
 	}
 
-	QHash<QString, QLibrary*> m_libraries;
-	QMultiHash<QString, PluginType> m_instances;
-	static QHash<QString, T*> m_loaders;
-	ModuleLoaderContext* m_ctx = nullptr;
-	Logger* m_logger = nullptr;
-	QString m_path;
+	ModuleLoaderData<T> m_data;
 };
 
 typedef ModuleLoader<Loader> MLoader;
+
 template<typename T>
-QHash<QString, T*> ModuleLoader<T>::m_loaders = QHash<QString, T*>();
+QHash<QString, T*> ModuleLoaderData<T>::m_loaders = QHash<QString, T*>();
 
 #define REGISTER_STATIC_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight) \
-	PluginLoader<name, data> name##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); \
-	RegisterStaticPlugin name##RegisterLoader(&name##Loader);
+	PluginLoader<name, data> name##_##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); \
+	RegisterStaticPlugin name##RegisterLoader(&name##_##Loader);
 
 class RegisterStaticPlugin {
 public:

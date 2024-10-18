@@ -32,7 +32,7 @@
     <QtMoc Include="MainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="PluginList.h">
+    <QtMoc Include="Plugins.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="Instances.h">
@@ -64,7 +64,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PluginList.cpp">
+    <ClCompile Include="Plugins.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Instances.cpp">
@@ -96,6 +96,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MdiWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadingDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -70,6 +70,7 @@ struct QLinCommandData {
     QLinCommandState m_state = QLinCommandState::INITIAL;
     QTimer m_timer;
     qint32 m_try = 0;
+    qint64 m_startTime;
 };
 
 class QLINCOMMAND_EXPORT QLinCommand : public Widget {
@@ -83,6 +84,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QLinCommand::reset(Reset type)");
         initial();
         return true;
     }
@@ -102,6 +104,10 @@ public slots:
     void sendCommand(bool checked = true);
 
     void errorReady(const QByteArray& err);
+
+    QVariant exec() {
+        return QVariant();
+    }
 
 protected slots:
 

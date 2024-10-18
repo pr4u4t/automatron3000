@@ -23,24 +23,23 @@ void Splash::setProgress(int value) {
         m_progress = 0;
     }
 
-    update();
+    //update();
 }
 
-/*void Splash::drawContents(QPainter* painter) {
-    QSplashScreen::drawContents(painter);
-
+void Splash::drawContents(QPainter* painter) {
     // Set style for progressbar...
     QStyleOptionProgressBar pbstyle;
-    pbstyle.initFrom(this);
-    pbstyle.state = QStyle::State_Enabled;
-    pbstyle.textVisible = false;
+    //pbstyle.initFrom(this);
+    pbstyle.state = QStyle::State_Enabled | QStyle::State_Horizontal;
+    pbstyle.textVisible = true;
     pbstyle.minimum = 0;
     pbstyle.maximum = 100;
     pbstyle.progress = m_progress;
     pbstyle.invertedAppearance = false;
-    pbstyle.rect = QRect(0, 265, 380, 19); // Where is it.
+    pbstyle.rect = QRect(0, height()-20, width(), 20); // Where is it
 
     // Draw it...
     style()->drawControl(QStyle::CE_ProgressBar, &pbstyle, painter, this);
+
+    QSplashScreen::drawContents(painter);
 }
-*/

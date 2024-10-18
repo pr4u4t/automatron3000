@@ -13,8 +13,10 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QVBoxLayout>
 #include "../api/api.h"
 
@@ -25,10 +27,12 @@ class Ui_QCustomActionUI
 public:
     QVBoxLayout *verticalLayout;
     QLabel *title;
+    QProgressBar *progressBar;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer_2;
     QPushButton *pushButton;
     QSpacerItem *horizontalSpacer;
+    QTextEdit *textEdit;
     QSpacerItem *verticalSpacer;
 
     void setupUi(MdiChild *QCustomActionUI)
@@ -43,6 +47,12 @@ public:
         title->setTextFormat(Qt::MarkdownText);
 
         verticalLayout->addWidget(title);
+
+        progressBar = new QProgressBar(QCustomActionUI);
+        progressBar->setObjectName("progressBar");
+        progressBar->setValue(0);
+
+        verticalLayout->addWidget(progressBar);
 
         horizontalLayout = new QHBoxLayout();
         horizontalLayout->setObjectName("horizontalLayout");
@@ -61,6 +71,11 @@ public:
 
 
         verticalLayout->addLayout(horizontalLayout);
+
+        textEdit = new QTextEdit(QCustomActionUI);
+        textEdit->setObjectName("textEdit");
+
+        verticalLayout->addWidget(textEdit);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 

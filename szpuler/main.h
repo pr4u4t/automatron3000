@@ -8,6 +8,7 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 #include <QStyleHints>
+#include <QStandardPaths>
 
 #include "../api/api.h"
 
@@ -27,7 +28,11 @@ class Main : public QApplication{
     
     Q_OBJECT
 
-public:  
+public:
+    static constexpr const char* const appName = "Automatron 3000";
+    static constexpr const char* const org = "Pawel Ciejka";
+    static constexpr const char* const description = "Automatron 3000";
+
     Main(int& argc, char* argv[], Logger* log)
         : QApplication(argc, argv)
         , m_logger(log) {
@@ -90,9 +95,9 @@ public:
         parseArgumnets();
     }
     
-    static constexpr const char* appName = "Automatron 3000";
-    static constexpr const char* org = "Pawel Ciejka";
-    static constexpr const char* description = "Automatron 3000";
+    static QString configurationPath() {
+        return QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/" + appName;
+    }
     
 protected:
     

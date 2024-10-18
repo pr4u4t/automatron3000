@@ -49,6 +49,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QData::reset(Reset type)");
         return true;
     }
 
@@ -64,6 +65,10 @@ protected:
 
 public slots:
     void settingsChanged();
+
+    QVariant exec() override {
+        return QVariant();
+    }
 
 protected slots:
 

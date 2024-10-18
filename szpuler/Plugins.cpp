@@ -1,12 +1,12 @@
-#include "PluginList.h"
+#include "Plugins.h"
 #include <QCoreApplication>
 
-struct PluginListMenu {
-	PluginListMenu(QCoreApplication* app)
+struct PluginsMenu {
+	PluginsMenu(QCoreApplication* app)
 		: m_app(app) {
 		if (app != nullptr) {
 			m_pluginList = new QAction("Plugins");
-			m_pluginList->setData(QVariant("PluginList"));
+			m_pluginList->setData(QVariant("Plugins"));
 		}
 	}
 
@@ -14,7 +14,7 @@ struct PluginListMenu {
 	QCoreApplication* m_app = nullptr;
 };
 
-static bool PluginList_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, PluginListMenu* ctx, Logger* log) {
+static bool Plugins_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, PluginsMenu* ctx, Logger* log) {
 
 	log->message("PluginList_register");
 
@@ -26,7 +26,7 @@ static bool PluginList_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, P
 
 	ctx->m_app = QCoreApplication::instance();
 	ctx->m_pluginList = new QAction(ctx->m_app->translate("MainWindow", "Plugins"));
-	ctx->m_pluginList->setData(QVariant("PluginList"));
+	ctx->m_pluginList->setData(QVariant("Plugins"));
 	ctx->m_pluginList->setText(ctx->m_app->translate("MainWindow", "Plugins"));
 
 	QMenu* settingsMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
@@ -39,33 +39,33 @@ static bool PluginList_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, P
 	return true;
 }
 
-static bool PluginList_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, PluginListMenu* ctx, Logger* log) {
+static bool Plugins_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, PluginsMenu* ctx, Logger* log) {
 
 	return true;
 }
 
 REGISTER_STATIC_PLUGIN(
-	PluginList,
+	Plugins,
 	Plugin::Type::WIDGET,
 	"0.0.1",
 	"pawel.ciejka@gmail.com",
-	"Instances",
-	PluginList_register,
-	PluginList_unregister,
-	PluginListMenu,
+	"Plugins",
+	Plugins_register,
+	Plugins_unregister,
+	PluginsMenu,
 	{},
 	false,
 	1500
 )
 
-PluginList::PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
+Plugins::Plugins(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
 : Widget(ld, plugins, parent, settingsPath) {
 }
 
-void PluginList::settingsChanged() {
+void Plugins::settingsChanged() {
 }
 
-bool PluginList::initialize() {
+bool Plugins::initialize() {
 	QStandardItemModel* model = new QStandardItemModel(0, 5);
 
 	if (plugins() != nullptr) {
@@ -104,10 +104,10 @@ bool PluginList::initialize() {
 	return true;
 }
 
-bool PluginList::deinitialize() {
+bool Plugins::deinitialize() {
 	return true;
 }
 
-SettingsMdi* PluginList::settingsWindow() const {
+SettingsMdi* Plugins::settingsWindow() const {
 	return nullptr; // new SettingsDialog(nullptr, nullptr, settingsPath());
 }

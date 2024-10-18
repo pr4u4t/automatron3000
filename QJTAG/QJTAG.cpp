@@ -156,24 +156,26 @@ void QJTAG::command(bool checked) {
     exec();
 }
 
-void QJTAG::exec() {
+QVariant QJTAG::exec() {
     
     const auto set = settings<SettingsDialog::QJTAGSettings>();
     if (set->programPath.isEmpty()) {
         emit message("QJTAG::exec: JTAG program path not set");
         failed();
-        return;
+        return QVariant();
     }
 
     if (QFile::exists(set->programPath) == false) {
         emit message("specified executable does not exist");
         failed();
-        return;
+        return QVariant();
     }
 
     m_data.m_ui->execButton->setEnabled(false);
     inprogress();
     m_data.m_process.start(set->programPath, set->processArguments());
+
+    return QVariant();
 }
 
 void QJTAG::errorOccurred(QProcess::ProcessError error) {

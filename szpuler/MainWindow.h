@@ -27,11 +27,16 @@
 
 #include "DockManager.h"
 #include "DockAreaWidget.h"
-#include "Session.h"
 #include "DockComponentsFactory.h"
 #include "DockWidgetTab.h"
 #include "DockWidget.h"
 #include "Help.h"
+#include "LoadingDialog.h"
+
+enum class MainWindowQuit {
+    QUIT_SAVE,
+    QUIT_WITHOUT_SAVE
+};
 
 struct MainWindowSettings {
 
@@ -49,6 +54,8 @@ struct MainWindowSettings {
     static constexpr const bool lockValue = false;
     static constexpr const char* const kioskKey = "kiosk";
     static constexpr const bool kioskValue = false;
+    static constexpr const char* const perspectiveKey = "perspective";
+    static constexpr const char* const perspectiveValue = "Default";
 
     MainWindowSettings()
         : geometry(geometryValue)
@@ -57,27 +64,30 @@ struct MainWindowSettings {
         , translations(translationsValue)
         , hideMenu(hideMenuValue)
         , lock(lockValue)
-        , kiosk(kioskValue){
+        , kiosk(kioskValue)
+        , perspective(perspectiveValue){
     }
 
     MainWindowSettings(const QSettings& settings, const QString& settingsPath) 
-        : geometry(settings.value(geometryKey, geometryValue).toByteArray())
-        , fontSize(settings.value(fontSizeKey, fontSizeValue).toInt())
-        , statusTimeout(settings.value(statusTimeoutKey, statusTimeoutValue).toInt())
-        , translations(settings.value(translationsKey, translationsValue).toBool())
-        , hideMenu(settings.value(hideMenuKey, hideMenuValue).toBool())
-        , lock(settings.value(lockKey, lockValue).toBool())
-        , kiosk(settings.value(kioskKey, kioskValue).toBool()){
+        : geometry(settings.value(settingsPath + "/" + geometryKey, geometryValue).toByteArray())
+        , fontSize(settings.value(settingsPath + "/" + fontSizeKey, fontSizeValue).toInt())
+        , statusTimeout(settings.value(settingsPath + "/" + statusTimeoutKey, statusTimeoutValue).toInt())
+        , translations(settings.value(settingsPath + "/" + translationsKey, translationsValue).toBool())
+        , hideMenu(settings.value(settingsPath + "/" + hideMenuKey, hideMenuValue).toBool())
+        , lock(settings.value(settingsPath + "/" + lockKey, lockValue).toBool())
+        , kiosk(settings.value(settingsPath + "/" + kioskKey, kioskValue).toBool())
+        , perspective(settings.value(settingsPath + "/" + perspectiveKey, perspectiveValue).toString()){
     }
 
     void save(QSettings& settings, const QString& settingsPath) {
-        settings.setValue(geometryKey, geometry);
-        settings.setValue(fontSizeKey, fontSize);
-        settings.setValue(statusTimeoutKey, statusTimeout);
-        settings.setValue(translationsKey, translations);
-        settings.setValue(hideMenuKey, hideMenu);
-        settings.setValue(lockKey, lock);
-        settings.setValue(kioskKey, kiosk);
+        settings.setValue(settingsPath + "/" + geometryKey, geometry);
+        settings.setValue(settingsPath + "/" + fontSizeKey, fontSize);
+        settings.setValue(settingsPath + "/" + statusTimeoutKey, statusTimeout);
+        settings.setValue(settingsPath + "/" + translationsKey, translations);
+        settings.setValue(settingsPath + "/" + hideMenuKey, hideMenu);
+        settings.setValue(settingsPath + "/" + lockKey, lock);
+        settings.setValue(settingsPath + "/" + kioskKey, kiosk);
+        settings.setValue(settingsPath + "/" + perspectiveKey, perspective);
     }
 
     QByteArray geometry;
@@ -86,8 +96,11 @@ struct MainWindowSettings {
     bool translations;
     bool hideMenu;
     bool lock;
-    bool kiosk;
+    bool kiosk; 
+    QString perspective;
 };
+
+class Session;
 
 class MainWindow : public Window {
     Q_OBJECT
@@ -99,7 +112,7 @@ signals:
     
 public:
    
-    MainWindow(MLoader* plugins = nullptr, Logger* logger = nullptr);
+    MainWindow(const QSettings& settings, const QString& settingsPath, MLoader* plugins = nullptr, Logger* logger = nullptr);
 
     ~MainWindow(); 
     
@@ -117,6 +130,10 @@ public:
 
     bool toggleWindow(const QString& title);
 
+    bool hasWindowByTitle(const QString& name) const {
+        return findChildWindowByTitle(name) != nullptr;
+    }
+
 protected:
 
     QByteArray state() const;
@@ -131,7 +148,7 @@ signals:
 
     void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
 
-    void aboutToQuit();
+    void aboutToQuit(const MainWindowQuit& type);
 
     void sessionStore();
 
@@ -146,6 +163,14 @@ public slots:
     void createPreferences();
 
 private slots:
+
+    void startPerspectiveChange(const QString& perspective) {
+        m_loading.show();
+    }
+
+    void endPerspectiveChange(const QString& perspective) {
+        m_loading.hide();
+    }
 
     void about();
 
@@ -261,7 +286,7 @@ private:
     
     void createStatusBar();
     
-    void writeSettings();
+    //void writeSettings();
     
     void createToolbar();
 
@@ -300,6 +325,7 @@ private:
     QAction* m_saveState = nullptr;
     QAction* m_restoreState = nullptr;
     QAction* m_newPerspective = nullptr;
+    LoadingDialog m_loading;
 };
 
 class CustomDockWidgetTab : public ads::CDockWidgetTab {
@@ -326,8 +352,16 @@ protected:
 
             QObject::connect(settings, &QAction::triggered, [plugin, o, this]() {
                 SettingsMdi* settings = plugin->settingsWindow();
-                this->m_win->addSubWindow(settings, o->objectName() + "/Settings");
+                if (settings == nullptr) {
+                    //TODO: log message here
+                    return;
+                }
 
+                if (this->m_win->hasWindowByTitle(o->objectName() + "/Settings")) {
+                    this->m_win->toggleWindow(o->objectName() + "/Settings");
+                } else {
+                    this->m_win->addSubWindow(settings, o->objectName() + "/Settings");
+                }
             });
         }
     }

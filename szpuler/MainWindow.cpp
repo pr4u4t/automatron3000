@@ -8,7 +8,7 @@
 
 #include "logviewer.h"
 #include "Instances.h"
-#include "PluginList.h"
+#include "Plugins.h"
 #include "Preferences.h"
 #include "mainwindow.h"
 #include "../api/api.h"
@@ -38,13 +38,14 @@ private:
     MainWindow* m_win = nullptr;
 };
 
-MainWindow::MainWindow(MLoader* plugins, Logger* logger)
+MainWindow::MainWindow(const QSettings& settings, const QString& settingsPath, MLoader* plugins, Logger* logger)
     : m_plugins(plugins)
     , m_logger(logger)
-    , m_winSettings(Settings::get(), "General")
+    , m_winSettings(settings, "Window")
     , m_tbar(new QToolBar())
     , m_perspectiveComboBox(new QComboBox())
-    , m_perspectiveListAction(new QWidgetAction(this)){
+    , m_perspectiveListAction(new QWidgetAction(this))
+    , m_loading(this, logger){
 
     m_logger->message(QString("MainWindow::MainWindow: Using configuration: %1").arg(Settings::settingsPath()));
     
@@ -117,6 +118,9 @@ MainWindow::MainWindow(MLoader* plugins, Logger* logger)
     //    m_dockManager->lockDockWidgetFeaturesGlobally();
     //}
     addToolBar(m_tbar);
+
+    connect(m_dockManager, &ads::CDockManager::openingPerspective, this, &MainWindow::startPerspectiveChange);
+    connect(m_dockManager, &ads::CDockManager::perspectiveOpened, this, &MainWindow::endPerspectiveChange);
 }
 
 MainWindow::~MainWindow() {
@@ -133,6 +137,7 @@ MLoader* MainWindow::plugins() {
 
 void MainWindow::closeEvent(QCloseEvent *event){
     m_logger->message("MainWindow::closeEvent()", LoggerSeverity::LOG_DEBUG);
+    QSettings set = Settings::get();
 
     QMessageBox::StandardButton resBtn = QMessageBox::question(this, /*APP_NAME*/"",
         tr("Save current session?\n"),
@@ -140,12 +145,15 @@ void MainWindow::closeEvent(QCloseEvent *event){
     switch (resBtn) {
     case QMessageBox::Yes:
         m_logger->message("MainWindow::closeEvent: event accepted", LoggerSeverity::LOG_DEBUG);
-        writeSettings();
-        emit aboutToQuit();
+        m_winSettings.geometry = saveGeometry();
+        m_winSettings.perspective = m_perspectiveComboBox->currentText();
+        m_winSettings.save(set, "Window");
+        //writeSettings(); /TODO: save settings
+        emit aboutToQuit(MainWindowQuit::QUIT_SAVE);
         event->accept();
         break;
     case QMessageBox::No:
-        emit aboutToQuit();
+        emit aboutToQuit(MainWindowQuit::QUIT_WITHOUT_SAVE);
         event->accept();
         break;
     case QMessageBox::Cancel:
@@ -542,12 +550,14 @@ void MainWindow::createToolbar() {
     }
 }
 
+/*
 void MainWindow::writeSettings(){
     m_logger->message("MainWindow::writeSettings()", LoggerSeverity::LOG_DEBUG);
     QSettings setts = Settings::get();
     setts.setValue("geometry", saveGeometry());
     setts.setValue("perspective", m_perspectiveComboBox->currentText());
 }
+*/
 
 ads::CDockWidget* MainWindow::findChildWindow(const QString& name) const {
     m_logger->message(QString("MainWindow::findMdiChild(%1)").arg(name));

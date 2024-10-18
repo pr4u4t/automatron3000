@@ -33,6 +33,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QBadge::reset(Reset type)");
         return true;
     }
 
@@ -44,9 +45,9 @@ public slots:
 
     void settingsChanged();
 
-//protected:
-
-//    void resizeEvent(QResizeEvent* event);
+    QVariant exec() override {
+        return QVariant();
+    }
 
 private:
     Ui::QBadgeUI* m_ui = nullptr;

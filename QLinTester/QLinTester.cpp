@@ -197,7 +197,7 @@ void QLinTester::startTest() {
             tr("LIN device not open"),
             QMessageBox::StandardButton::Ok
         );
-
+        failed();
         return;
     }
 
@@ -277,10 +277,6 @@ void QLinTester::testStop() {
     //m_ui->pauseButton->setEnabled(false);
 }
 
-void QLinTester::init() {
-    
-}
-
 void QLinTester::success() {
     m_data.m_ui->passedLabel->setStyleSheet("QLabel { color : green; font-weight:bold; }");
     m_data.m_ui->passedLabel->setEnabled(true);
@@ -289,6 +285,7 @@ void QLinTester::success() {
     m_data.m_ui->testProgress->setValue(m_data.m_ui->testProgress->maximum());
     m_data.m_ui->testButton->setEnabled(true);
     m_data.m_ui->pushButton->setEnabled(false);
+    setStyleSheet("QLinTester { border:2px solid blue; }");
 }
 
 void QLinTester::failed() {
@@ -299,11 +296,13 @@ void QLinTester::failed() {
     m_data.m_ui->testProgress->setValue(m_data.m_ui->testProgress->maximum());
     m_data.m_ui->testButton->setEnabled(true);
     m_data.m_ui->pushButton->setEnabled(false);
+    setStyleSheet("QLinTester { border:2px solid red; }");
 }
 
 void QLinTester::inprogress() {
     m_data.m_ui->testButton->setEnabled(false);
     m_data.m_ui->pushButton->setEnabled(true);
+    setStyleSheet("QLinTester { border:2px solid blue; }");
 }
 
 void QLinTester::initial() {
@@ -314,4 +313,5 @@ void QLinTester::initial() {
     m_data.m_ui->passedLabel->setEnabled(false);
     m_data.m_ui->testButton->setEnabled(true);
     m_data.m_ui->pushButton->setEnabled(false);
+    setStyleSheet("");
 }

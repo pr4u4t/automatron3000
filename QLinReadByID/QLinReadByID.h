@@ -111,6 +111,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QLinReadByID::reset(Reset type)");
         initial();
         return true;
     }
@@ -133,6 +134,10 @@ public slots:
     void startRead();
 
     void readById(bool checked = true);
+
+    QVariant exec() override {
+        return QVariant();
+    }
 
 protected slots:
 

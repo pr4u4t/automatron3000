@@ -1,5 +1,5 @@
-#ifndef PLUGIN_LIST_H
-#define PLUGIN_LIST_H
+#ifndef PLUGINS_H
+#define PLUGINS_H
 
 #include <QTableView>
 #include <QStandardItemModel>
@@ -8,15 +8,15 @@
 #include "../api/api.h"
 #include "../core/core.h"
 
-class PluginList : public Widget {
+class Plugins : public Widget {
 
 	Q_OBJECT
 
 public:
 
-	PluginList(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
+	Plugins(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
 
-	~PluginList() {
+	~Plugins() {
 	
 	}
 
@@ -38,6 +38,9 @@ public slots:
 
 	void settingsChanged();
 
+	QVariant exec() {
+		return QVariant();
+	}
 };
 
 #endif

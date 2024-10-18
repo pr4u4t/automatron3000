@@ -16,13 +16,18 @@ public:
 
     Splash(const QString& path);
 
+    Splash& operator<<(const QString& msg) {
+        showMessage(msg, Qt::AlignBottom | Qt::AlignCenter, Qt::white);
+        return *this;
+    }
+
 public slots:
 
     void setProgress(int value);
 
 protected:
 
-    //void drawContents(QPainter* painter);
+    void drawContents(QPainter* painter);
 
 private:
     int m_progress = 0;

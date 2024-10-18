@@ -35,6 +35,7 @@ public:
     SettingsMdi* settingsWindow() const override;
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
+        emit message("QLinBus::reset(Reset type)");
         scanClear();
         return true;
     }
@@ -65,6 +66,10 @@ public slots:
     void disableSniff();
 
     void exportToJson();
+
+    QVariant exec() override {
+        return QVariant();
+    }
 
 protected:
 
