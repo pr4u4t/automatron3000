@@ -39,11 +39,11 @@ struct QCustomActionMenu {
 };
 
 static bool QCustomAction_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QCustomActionMenu* ctx, Logger* log) {
-    log->message("QBadge_register()");
+    log->message("QCustomAction_register()");
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QCustomAction_register(): application is non gui not registering");
         return false;
     }
 
@@ -76,7 +76,7 @@ static bool QCustomAction_register(ModuleLoaderContext* ldctx, PluginsLoader* ld
 }
 
 static bool QCustomAction_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QCustomActionMenu* ctx, Logger* log) {
-    log->message("QBadge_unregister()");
+    log->message("QCustomAction_unregister()");
     return true;
 }
 
@@ -128,7 +128,7 @@ QCustomAction::~QCustomAction() {
 }
 
 void QCustomAction::settingsChanged() {
-    emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+    emit message("QCustomAction::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<SettingsDialog::CustomActionSettings>();
     *set = SettingsDialog::CustomActionSettings(Settings::get(), settingsPath());
 

@@ -40,13 +40,17 @@ static bool QBadge_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QBadg
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QBadge_register: application is non gui not registering");
         return false;
     }
 
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
+    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
     if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_badgesMenu);
+        windowMenu->addMenu(ctx->m_badgesMenu);
+        //gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_badgesMenu);
+        log->message("QBadge_register: menu added");
+    } else {
+        log->message("QBadge_register: faiiled to find viusualization menu");
     }
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);

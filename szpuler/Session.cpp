@@ -14,6 +14,9 @@ SessionModuleInstanceList parseSessionModuleInstanceList(const QStringList& data
 
 QStringList serializeSessionModuleInstanceList(const SessionModuleInstanceList& list) {
     QStringList ret;
+    for (const auto& item : list) {
+        ret << item.toString();
+    }
 
     return ret;
 }
@@ -32,8 +35,7 @@ QStringList Session::orderOfModules() const {
                 order << exts[i]->name();
                 exts.removeAt(i);
                 --i;
-            }
-            else {
+            } else {
                 QStringList tmp = exts[i]->depends();
                 QSet<QString> deps(tmp.begin(), tmp.end());
                 QSet<QString> met(order.begin(), order.end());
@@ -53,37 +55,33 @@ QStringList Session::orderOfModules() const {
 qint64 Session::store() {
     m_data.m_logger->message("Sesson::store()");
     QString value;
-
-   // QByteArray state = window()->state();
-    //FIX
-
- //   if (settings().status() != QSettings::NoError) {
- //       m_data.m_logger->message("Session::store(): failed to save session/state");
- //   }
     
     auto order = orderOfModules();
     auto instances = plugins()->instances();
-    SessionModuleInstanceList session;
 
     for (auto item : order) {
-            for (auto instance : instances) {
-                if (instance->name() == item) {
-                    session << SessionModuleInstance(instance);
-                    /*
-                    if (instance->type() == Plugin::Type::WIDGET) {
-                        result << instance->name() + "-" + instance->uuid() + "@" + m_data.m_win->windowTitleByInstance(dynamic_cast<Widget*>(instance.data())).value();
-                    } else {
-                        result << instance->name() + "-" + instance->uuid();
-                    }
-                    */
+        for (auto instance : instances) {
+            if (instance->name() == item) {
+                SessionModuleInstance tmp(instance);
+                if (m_data.m_settings.instances.indexOf(tmp) == -1) {
+                    m_data.m_settings.instances << tmp;
                 }
             }
         }
+    }
 
-       // settings().setValue("session/plugins", result);
-       // if (settings().status() != QSettings::NoError) {
-       //     m_data.m_logger->message("Session::store(): failed to save session/plugins");
-       // }
+    SessionModuleInstanceList ordered;
+    for (auto item : order) {
+        for (const auto& instance : m_data.m_settings.instances) {
+            if (instance.m_plugin == item && ordered.indexOf(instance) == -1) {
+                ordered << instance;
+            }
+        }
+    }
+
+    m_data.m_settings.instances = ordered;
+    QSettings set = Settings::get();
+    m_data.m_settings.save(set, "Session");
 
     return 0;
 }
@@ -96,8 +94,19 @@ qint64 Session::restore() {
 
     if (m_data.m_settings.instances.size() > 0) {
         m_data.m_logger->message("Session::restore(): restore plugins instances: " + serializeSessionModuleInstanceList(m_data.m_settings.instances).join(","));
-            
-        for (auto it = m_data.m_settings.instances.begin(), end = m_data.m_settings.instances.end(); it != end; ++it, ++ret) {
+        
+        SessionModuleInstanceList ordered;
+
+        auto order = orderOfModules();
+        for (const auto& item : order) {
+            for (const auto& instance : m_data.m_settings.instances) {
+                if (item == instance.m_name && ordered.lastIndexOf(instance) == -1) {
+                    ordered << instance;
+                }
+            }
+        }
+
+        for (auto it = ordered.begin(), end = ordered.end(); it != end; ++it, ++ret) {
             auto plugin = plugins()->instance(it->m_name, window(), it->m_path, ModuleHint::DONT_INITIALIZE);
 
             if (plugin.isNull()) {
@@ -105,7 +114,7 @@ qint64 Session::restore() {
             }
         }
          
-        for (auto it = m_data.m_settings.instances.begin(), end = m_data.m_settings.instances.end(); it != end; ++it, ++ret) {
+        for (auto it = ordered.begin(), end = ordered.end(); it != end; ++it, ++ret) {
             auto plugin = plugins()->findByObjectName(it->m_name);
 
             if (plugin.isNull()) {
@@ -126,11 +135,7 @@ qint64 Session::restore() {
         return 0;
     }
 
-    //QByteArray state = settings().value("session/state").toByteArray();
-    //if (state.isEmpty() == false) {
-    //    m_logger->message("Session::restore() : restoring dock session");
-        window()->setState(QByteArray());
-    //}
+    emit sessionRestored();
 
     return ret;
 }

@@ -18,7 +18,7 @@ struct QCircularBarMenu {
             }
         }
 
-        m_QCircularBarMenu = new QMenu(m_app->translate("MainWindow", "Visualization"));
+        m_QCircularBarMenu = new QMenu(m_app->translate("MainWindow", "V&isualization"));
 
         m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
         m_QCircularBarMenu->addMenu(m_settings);
@@ -45,9 +45,12 @@ static bool QCircularBar_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
         return false;
     }
 
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
+    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
     if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QCircularBarMenu);
+        //gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QCircularBarMenu);
+        windowMenu->addMenu(ctx->m_QCircularBarMenu);
+    } else {
+        log->message("QCircularBar_register: failed to add menu");
     }
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
@@ -74,7 +77,7 @@ static bool QCircularBar_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
 }
 
 static bool QCircularBar_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QCircularBarMenu* ctx, Logger* log) {
-    log->message("QJTAG_unregister()");
+    log->message("QCircularBar_unregister");
     return true;
 }
 

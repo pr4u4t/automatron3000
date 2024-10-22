@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 
     splash << "creating session...";
     Session session(&ld, &log, Main::configurationPath() + "/" + "configuration.ini", &mainWin);
-    //QObject::connect(&mainWin, &MainWindow::sessionStore, &session, &Session::store);
+    QObject::connect(&session, &Session::sessionRestored, &mainWin, &MainWindow::sessionRestored);
     splash.setProgress(70);
 
     splash << "creating tray icon...";

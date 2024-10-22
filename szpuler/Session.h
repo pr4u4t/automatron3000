@@ -33,18 +33,30 @@ struct SessionModuleInstance {
 
     SessionModuleInstance(const MLoader::PluginType& instance) 
         : m_plugin(instance->name())
-        , m_path(instance->uuid())
+        , m_path(QString("%1-%2").arg(instance->name()).arg(instance->uuid()))
         , m_name(instance.dynamicCast<QObject>()->objectName()) {
     }
 
     SessionModuleInstance(const Plugin* instance)
         : m_plugin(instance->name())
-        , m_path(instance->uuid())
+        , m_path(QString("%1-%2").arg(instance->uuid()))
         , m_name(dynamic_cast<const QObject*>(instance)->objectName()) {
     }
 
-    operator QByteArray() const {
-        return QString("%1-{%2}@%3").arg(m_plugin).arg(m_path).arg(m_name).toLocal8Bit();
+    inline operator QByteArray() const {
+        return toByteArray();
+    }
+
+    inline bool operator==(const SessionModuleInstance& rhs) const {
+        return m_name == rhs.m_name && m_path == rhs.m_path && m_plugin == rhs.m_plugin;
+    }
+
+    inline QByteArray toByteArray() const {
+        return QString("%1@%2").arg(m_path).arg(m_name).toLocal8Bit();
+    }
+
+    inline QString toString() const {
+        return QString("%1@%2").arg(m_path).arg(m_name);
     }
 };
 
@@ -126,6 +138,8 @@ public slots:
 signals:
 
     void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
+
+    void sessionRestored();
 
 private:
 

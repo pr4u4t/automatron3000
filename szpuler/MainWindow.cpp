@@ -416,6 +416,8 @@ void MainWindow::createActions(){
 
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
 
+    m_visualMenu = menuBar()->addMenu(tr("V&isualization"));
+
     QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
     //QAction* pluginsList = new QAction(tr("Plugins"), this);
     //pluginsList->setData(QVariant("PluginsList"));
@@ -490,18 +492,15 @@ void MainWindow::setPlugins(MLoader* loader) {
     m_plugins = loader;
 }
 
-QByteArray MainWindow::state() const {
-    return m_dockManager != nullptr ? m_dockManager->saveState() : QByteArray();
+bool MainWindow::openPerspective(const QString& state) {
+    //TODO: check if perspective exists
+    m_perspectiveComboBox->setCurrentText(state);
+    m_dockManager->openPerspective(state);
+    return true;
 }
 
-void MainWindow::setState(const QByteArray& state) {
-    //if (m_dockManager != nullptr) {
-    //    m_dockManager->restoreState(state);
-    //    m_area = m_dockManager->dockArea(0);
-    //}
-    QString perspective = Settings::get().value("perspective", "Default").toString();
-    m_perspectiveComboBox->setCurrentText(perspective);
-    m_dockManager->openPerspective(perspective);
+void MainWindow::sessionRestored() {
+    openPerspective(m_winSettings.perspective);
 }
 
 void MainWindow::createStatusBar(){

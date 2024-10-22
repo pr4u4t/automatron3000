@@ -134,11 +134,9 @@ public:
         return findChildWindowByTitle(name) != nullptr;
     }
 
+    bool openPerspective(const QString& state);
+
 protected:
-
-    QByteArray state() const;
-
-    void setState(const QByteArray& state);
 
     ads::CDockWidget* addSubWindowInternal(QWidget* widget, const QString& title = QString());
 
@@ -161,6 +159,8 @@ public slots:
     void showStatusMessage(const QString& msg, int timeout = 0) override;
 
     void createPreferences();
+
+    void sessionRestored();
 
 private slots:
 
@@ -321,6 +321,7 @@ private:
     QComboBox* m_perspectiveComboBox = nullptr;
     QWidgetAction* m_perspectiveListAction = nullptr;
     QMenu* m_viewMenu = nullptr;
+    QMenu* m_visualMenu = nullptr;
     QAction* m_toggleToolbar = nullptr;
     QAction* m_saveState = nullptr;
     QAction* m_restoreState = nullptr;
