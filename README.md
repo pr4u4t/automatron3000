@@ -1,43 +1,79 @@
-# Szpuler
-Narzędzie wspomagające wybór odpowiednich komponentów.
+# Automatron 3000
+Automatron 3000 is a powerful data presentation and analysis tool designed for real-time monitoring and visualization. It allows seamless communication with various data sources such as Serial Port, LIN Bus, CAN, and ESP32 sensors. The data is displayed using interactive plots, meters, and gauges, making it ideal for monitoring systems, automotive diagnostics, sensor analysis, and much more.
 
-## Główne okno programu
-Okno składa się z menu górnego, paska statusu oraz centralnej kontrolki MDI (Multi Document Interface) umożliwiającej otwieranie okien funkcyjnych w głównym oknie programu. 
+## Features
+* Data Acquisition:
+    * Supports multiple data sources: Serial Port, LIN Bus, CAN, and ESP32 sensors.
+    * Real-time data retrieval with minimal latency.
+* Visualizations:
+    * Interactive plots for trend analysis.
+    * Customizable meters and gauges for monitoring key data points.
+    * Real-time updates to visual elements.
+    * Conversion of measurement values ​​in real time.
+* Flexible and Extensible:
+    * Easily customizable and extendable for additional data sources and meters through plugins.
+    * Scalable architecture for handling a variety of datasets.
+* Cross-Platform:
+    * Built using Qt, ensuring compatibility across major platforms like Windows, macOS, and Linux.
 
-![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/main_window.png?raw=true)
+## Supported Protocols:
+* Serial Port: Reads data from standard RS232/RS485 interfaces.
+* LIN Bus: Low-speed serial communication for automotive applications.
+* CAN Bus: High-speed bus communication, widely used in automotive and industrial systems.
+* Arduino, ESP32: Integration with sensors via wireless or wired ethernet.
 
-## Ustawienia
-Okno ustawień dostępne w menu górnym okna głównego serial/settings zawiera ustawienia portu serial/COM(rs232) służącego do komunikacji z urządzeniem arduino. Po lewej znajduje się menu wyboru portu umożliwiające wybranie portu lub wpisanie jego nazwy po wybraniu opcji custom. Po prawej znajdują się poddtawowe ustawienia portu serial takie np. baud rate, parity, flow control. Na dole okna znajdują się dwa pola wyboru, local echo oraz auto connect, którego zaznaczenie powoduje automatyczne otwarcie połączenia z portem szeregowym po uruchomieniu programu.
+## Plugins:
 
-![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/settings.png?raw=true)
+### QCustomAction
+The CustomAction plugin allows you to invoke methods from other plugins seamlessly. It includes optional features such as a progress bar and log window for tracking execution. For the methods to be callable, they must be marked with Q_INVOKABLE
 
-## Zdarzenia (Log)
-Okno  dostępne w menu górnym programu file/log umożliwia podgląd wszystkich zdarzeń zachodzących w programie i akcji podejmowanych przez program. Służy diagnostyce programu. Dziennik zdarzeń zapisywany jest w katalogu programu w pliku szpuler.log. 
+### QBadge
+The QBadge plugin enables the display of customizable badges with text descriptions, titles, and images, providing a simple way to visually represent information or status.
 
-![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/log.png?raw=true)
+### QCircularBar
+The QCircularBar plugin is a gauge that visualizes sensor data in a circular format. It features configurable units, maximum values, and threshold settings, offering a clear and customizable way to monitor sensor readings.
 
-## Konsola (Console)
-Okno dostępne w menu górnym okna głównego file/console umożliwia bezpośrednie wysyłanie znaków wpisanych do urządzenia po porcie szeregowym. Służy diagnostyce urządzenia oraz komunikacji z nim. Dane wysyłane są poprzez główne połączenie otwarte w programie konfigurowalne w Ustawieniach.
+### QJTAG
+The QJTAG plugin enables the execution of configurable programs with customizable arguments, providing flexibility for running external processes directly from within the application.
 
-![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/console.png?raw=true)
+### QKonsole
+The QKonsole plugin is a serial port terminal that allows you to send and receive commands, facilitating communication over serial connections for device control and data exchange.
 
-## Baza danych (Database)
-Okno dostępne w menu górnym okna głównego file/database, służy skanowaniu części i wysyłaniu ich kodów do urządzenia podpiętego pod port szeregowy. Centralnym elementem tego okna jest kontrolka tabeli wyświetlająca podgląd bazy danych programu lub listę zeskanowanych kodów w zależności od wyboru użytkownika. 
+### QLin
+The QLin plugin is a highly configurable LIN bus I/O device that operates using the Vector LIN USB interface, enabling seamless communication and control for LIN-based systems.
 
-![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/database.png?raw=true)
+### QLinBus
+The QLinBus plugin is a LIN bus scanner and sniffer that monitors and analyzes LIN bus communication using any available LIN bus I/O device, providing real-time data capture and diagnostics.
 
-W przeciwieństwie do oryginalnej wersji programu kody nie są tu przechowywane w plikach tekstowych a w bazie danych SQL (SQLite3). Zmiana ta pozwoliła na dodanie funkcji importu oraz eksportu bazy z programu. Pod główną kontrolką znajdują się trzy przyciski odpowiadające za import i eksport:
-- import dir
-- import csv
-- export csv
 
-### import katalogu (import dir)
-Uruchomienie tej funkcji służy importowi kodów szpul i półek z oryginalnej wersji programu. Po jej uruchomieniu wyświetla się okno dialogowe służące wyborowi katalogu w którym znajduje się baza oryginalnego szpulera w plikach *.txt. Po wybraniu katalogu i naciśnięciu przycisku "ok" import nastąpi automatycznie. Przykładowe okno dialogowe zaprezentowane poniżej. **uwaga import spowoduje usunięcie poprzednich danych z bazy, jest to nieodwracalne**
+## Usage
 
-![alt text](https://github.com/pr4u4t/szpuler/blob/main/doc/dialog.png?raw=true)
+1. Select Data Source:
 
-### import csv (import csv) 
-Uruchomienie tej funkcji powoduje import bazy danych z pliku csv. Plik ten może być wygenerowany w MS excel'u lub Libre Calc ze standardowego arkusza kalkulacyjnego [Excel zapis csv](https://support.microsoft.com/pl-pl/office/zapisywanie-skoroszytu-w-formacie-tekstowym-txt-lub-csv-3e9a9d6c-70da-4255-aa28-fcacf1f081e6). Wyeksportowana z programu baza danych może zostać wczytana w arkuszu kalkulacyjnym tam obrobiona, a później z powrotem zaimportowana do programu.
+    * Connect the tool to the desired data source (Serial Port, LIN, CAN, ESP32).
 
-### eksport csv (export csv)
-Uruchomienie tej funkcji służy eksportowi bazy danych programu do pliku tekstowego, po jej uruchomieniu użytkownik podaje plik docelowy poprzez okno dialogowe do którego ma zostać zapisana baza. W bazie tej można później wprowadzić zmiany w programie obsługującym arkusze kalkulacyjne i na powrót zaimportować ją korzystając z opcji opisanej powyżej.
+2. Configure Visualization:
+
+    * Set up the visualization by choosing between available plots, meters, or gauges.
+
+3. Start Monitoring:
+
+    * Begin real-time data monitoring and adjust parameters as needed for analysis.
+
+## Contributing
+Contributions are welcome! If you'd like to help improve Automatron 3000, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch (git checkout -b feature-branch).
+3. Commit your changes (git commit -m 'Add new feature').
+4. Push to the branch (git push origin feature-branch).
+4. Open a pull request.
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contact
+For any questions or suggestions, feel free to contact the project maintainer:
+
+Name: Paweł Ciejka\
+Email: pawel.ciejka@gmail.com
