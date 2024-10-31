@@ -18,41 +18,58 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
-
-    Q_OBJECT
-
-public:
-
+struct WebSettings : public PluginSettings {
     static constexpr const char* urlKey = "url";
     static constexpr const char* urlValue = nullptr;
     static constexpr const char* refreshKey = "refresh";
     static constexpr qint32 refreshValue = -1;
 
-    struct WebSettings : public PluginSettings {
-        WebSettings() 
-            : url(urlValue)
-            , refresh(refreshValue){
-        }
+    Q_GADGET
 
-        virtual ~WebSettings() = default;
+    Q_PROPERTY(QString url READ url WRITE setUrl)
+    Q_PROPERTY(qint32 refresh READ refresh WRITE setRefresh)
 
-        WebSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , url(settings.value(settingsPath + "/" + urlKey, urlValue).toString())
-            , refresh(settings.value(settingsPath + "/" + refreshKey, refreshValue).toInt()) {
-        }
+public:
+    WebSettings()
+        : m_url(urlValue)
+        , m_refresh(refreshValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + urlKey, url);
-            settings.setValue(settingsPath + "/" + refreshKey, refresh);
+    virtual ~WebSettings() = default;
 
-            PluginSettings::save(settings, settingsPath);
-        }
+    WebSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_url(settings.value(settingsPath + "/" + urlKey, urlValue).toString())
+        , m_refresh(settings.value(settingsPath + "/" + refreshKey, refreshValue).toInt()) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        QString url;
-        qint32 refresh;
-    };
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + urlKey, m_url);
+        settings.setValue(settingsPath + "/" + refreshKey, m_refresh);
+
+        PluginSettings::save(settings, settingsPath);
+    }
+
+    // Getter and Setter for url
+    QString url() const { return m_url; }
+    void setUrl(const QString& url) { m_url = url; }
+
+    // Getter and Setter for refresh
+    qint32 refresh() const { return m_refresh; }
+    void setRefresh(qint32 refresh) { m_refresh = refresh; }
+
+private:
+    QString m_url;
+    qint32 m_refresh;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
 

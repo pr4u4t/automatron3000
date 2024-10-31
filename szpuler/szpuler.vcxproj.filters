@@ -56,6 +56,12 @@
     <QtMoc Include="Help.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="WebServer.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="Service.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LogViewer.cpp">

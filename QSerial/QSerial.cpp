@@ -129,7 +129,7 @@ REGISTER_PLUGIN(
 )
 
 QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: IODevice(ld, plugins, parent, path, new SettingsDialog::SerialSettings()) //Settings::get(), path)),
+	: IODevice(ld, plugins, parent, path, new SerialSettings()) //Settings::get(), path)),
 	,  m_serial(new QSerialPort(this)){
 	emit message("QSerial::QSerial()", LoggerSeverity::LOG_DEBUG);
 
@@ -138,19 +138,19 @@ QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QStr
 
 bool QSerial::initialize() {
 
-	const auto set = settings<SettingsDialog::SerialSettings>();
-	*set = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+	const auto set = settings<SerialSettings>();
+	*set = SerialSettings(Settings::get(), settingsPath());
 
-	m_serial->setPortName(set->name);
-	m_serial->setBaudRate(set->baudRate);
-	m_serial->setDataBits(set->dataBits);
-	m_serial->setParity(set->parity);
-	m_serial->setStopBits(set->stopBits);
-	m_serial->setFlowControl(set->flowControl);
+	m_serial->setPortName(set->name());
+	m_serial->setBaudRate(set->baudRate());
+	m_serial->setDataBits(set->dataBits());
+	m_serial->setParity(set->parity());
+	m_serial->setStopBits(set->stopBits());
+	m_serial->setFlowControl(set->flowControl());
 
 	QObject::connect(m_serial, &QSerialPort::readyRead, this, &QSerial::readData);
 
-	if (settings<SettingsDialog::SerialSettings>()->autoConnect) {
+	if (settings<SerialSettings>()->autoConnect()) {
 		emit message(QString("QSerial::QSerial serial port open: %1").arg(open(QString()) ? tr("Success") : tr("Failed")));
 	}
 
@@ -249,7 +249,7 @@ void QSerial::settingsChanged() {
 		m_serial->close();
 	}
 
-	*(settings<SettingsDialog::SerialSettings>()) = SettingsDialog::SerialSettings(Settings::get(), settingsPath());
+	*(settings<SerialSettings>()) = SerialSettings(Settings::get(), settingsPath());
 	
 	/*
 	m_serial->setPortName(m_settings.name);

@@ -29,8 +29,10 @@
     <ClCompile Include="core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClInclude Include="core.h">
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="core.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
+    </QtMoc>
   </ItemGroup>
 </Project>

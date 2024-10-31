@@ -75,8 +75,8 @@ Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const 
 	: QObject(parent)
 	, Plugin(ld, plugins, path, set) {
 
-	if (set != nullptr && set->m_objectName.isEmpty() == false) {
-		setObjectName(set->m_objectName);
+	if (set != nullptr && set->objectName().isEmpty() == false) {
+		setObjectName(set->objectName());
 	}
 
 	QObject::connect(this, &QObject::objectNameChanged, this, &Extension::nameChanged);
@@ -85,11 +85,11 @@ Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const 
 void Extension::nameChanged(const QString& name) {
 
 	const auto set = settings<PluginSettings>();
-	if (set != nullptr && set->m_objectName != name) {
-		set->m_objectName = name;
+	if (set != nullptr && set->objectName() != name) {
+		set->objectName() = name;
 		QSettings s = Settings::get();
 		PluginSettings ps;
-		ps.m_objectName = name;
+		ps.setObjectName(name);
 		ps.save(s, settingsPath());
 		//set->save(s, settingsPath());
 	}
@@ -99,8 +99,8 @@ Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStrin
 	: Plugin(ld, plugins, path, set)
 	, MdiChild(parent) {
 	
-	if (set != nullptr && set->m_objectName.isEmpty() == false) {
-		setObjectName(set->m_objectName);
+	if (set != nullptr && set->objectName().isEmpty() == false) {
+		setObjectName(set->objectName());
 	}
 
 	QObject::connect(this, &QObject::objectNameChanged, this, &Widget::nameChanged);
@@ -112,11 +112,11 @@ void Widget::nameChanged(const QString& objName) {
 	if (set != nullptr) {
 		QRegExp rx("^"+name()+"([ ][0-9]+)?$");
 		if (rx.exactMatch(objName)) {
-			if (set->m_objectName != objName) {
-				set->m_objectName = objName;
+			if (set->objectName() != objName) {
+				set->objectName() = objName;
 				QSettings s = Settings::get();
 				PluginSettings ps;
-				ps.m_objectName = objName;
+				ps.setObjectName(objName);
 				ps.save(s, settingsPath());
 				//set->save(s, settingsPath());
 			}

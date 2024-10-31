@@ -16,12 +16,16 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
+struct CircularBarSettings : public PluginSettings {
+    Q_GADGET
 
-    Q_OBJECT
-
-public:
-
+    Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
+    Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
+    Q_PROPERTY(double threshold READ threshold WRITE setThreshold)
+    Q_PROPERTY(int precision READ precision WRITE setPrecision)
+    Q_PROPERTY(QString label READ label WRITE setLabel)
+    Q_PROPERTY(QString units READ units WRITE setUnits)
+    Q_PROPERTY(int steps READ steps WRITE setSteps)
 
     static constexpr const char* const minValueKey = "minValue";
     static constexpr double minValueValue = 0.0;
@@ -38,48 +42,113 @@ public:
     static constexpr const char* const stepsKey = "setps";
     static constexpr const int stepsValue = 0;
 
-    struct CircularBarSettings : public PluginSettings {
-        CircularBarSettings()
-            : minValue(minValueValue)
-            , maxValue(maxValueValue)
-            , threshold(thresholdValue)
-            , precision(precisionValue)
-            , label(labelValue)
-            , units(unitsValue)
-            , steps(stepsValue) {
-        }
+public:
+    CircularBarSettings()
+        : m_minValue(minValueValue)
+        , m_maxValue(maxValueValue)
+        , m_threshold(thresholdValue)
+        , m_precision(precisionValue)
+        , m_label(labelValue)
+        , m_units(unitsValue)
+        , m_steps(stepsValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        CircularBarSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , minValue(settings.value(settingsPath + "/" + minValueKey, minValueValue).toDouble())
-            , maxValue(settings.value(settingsPath + "/" + maxValueKey, maxValueValue).toDouble ())
-            , threshold(settings.value(settingsPath + "/" + thresholdKey, thresholdValue).toDouble())
-            , precision(settings.value(settingsPath + "/" + precisionKey, precisionValue).toInt())
-            , label(settings.value(settingsPath + "/" + labelKey, labelValue).toString())
-            , units(settings.value(settingsPath + "/" + unitsKey, unitsValue).toString())
-            , steps(settings.value(settingsPath + "/" + stepsKey, stepsValue).toInt()) {
-        }
+    CircularBarSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_minValue(settings.value(settingsPath + "/" + minValueKey, minValueValue).toDouble())
+        , m_maxValue(settings.value(settingsPath + "/" + maxValueKey, maxValueValue).toDouble())
+        , m_threshold(settings.value(settingsPath + "/" + thresholdKey, thresholdValue).toDouble())
+        , m_precision(settings.value(settingsPath + "/" + precisionKey, precisionValue).toInt())
+        , m_label(settings.value(settingsPath + "/" + labelKey, labelValue).toString())
+        , m_units(settings.value(settingsPath + "/" + unitsKey, unitsValue).toString())
+        , m_steps(settings.value(settingsPath + "/" + stepsKey, stepsValue).toInt()) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + minValueKey, minValue);
-            settings.setValue(settingsPath + "/" + maxValueKey, maxValue);
-            settings.setValue(settingsPath + "/" + thresholdKey, threshold);
-            settings.setValue(settingsPath + "/" + precisionKey, precision);
-            settings.setValue(settingsPath + "/" + labelKey, label);
-            settings.setValue(settingsPath + "/" + unitsKey, units);
-            settings.setValue(settingsPath + "/" + stepsKey, steps);
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + minValueKey, m_minValue);
+        settings.setValue(settingsPath + "/" + maxValueKey, m_maxValue);
+        settings.setValue(settingsPath + "/" + thresholdKey, m_threshold);
+        settings.setValue(settingsPath + "/" + precisionKey, m_precision);
+        settings.setValue(settingsPath + "/" + labelKey, m_label);
+        settings.setValue(settingsPath + "/" + unitsKey, m_units);
+        settings.setValue(settingsPath + "/" + stepsKey, m_steps);
 
-            PluginSettings::save(settings, settingsPath);
-        }
+        PluginSettings::save(settings, settingsPath);
+    }
 
-        double minValue;
-        double maxValue;
-        double threshold;
-        int precision;
-        QString label;
-        QString units;
-        int steps;
-    };
+    double minValue() const {
+        return m_minValue;
+    }
+
+    void setMinValue(double minValue) {
+        m_minValue = minValue;
+    }
+
+    double maxValue() const {
+        return m_maxValue;
+    }
+
+    void setMaxValue(double maxValue) {
+        m_maxValue = maxValue;
+    }
+
+    double threshold() {
+        return m_threshold;
+    }
+
+    void setThreshold(double threshold) {
+        m_threshold = threshold;
+    }
+
+    int precision() const {
+        return m_precision;
+    }
+
+    void setPrecision(int precision) {
+        m_precision = precision;
+    }
+
+    QString label() const {
+        return m_label;
+    }
+
+    void setLabel(const QString& label) {
+        m_label = label;
+    }
+
+    QString units() const {
+        return m_units;
+    }
+
+    void setUnits(const QString& units) {
+        m_units = units;
+    }
+
+    int steps() const {
+        return m_steps;
+    }
+
+    void setSteps(int steps) {
+        m_steps = steps;
+    }
+
+private:
+    double m_minValue;
+    double m_maxValue;
+    double m_threshold;
+    int m_precision;
+    QString m_label;
+    QString m_units;
+    int m_steps;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
 

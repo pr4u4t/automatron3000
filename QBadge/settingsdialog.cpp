@@ -26,7 +26,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
 SettingsDialog::~SettingsDialog() {}
 
-SettingsDialog::BadgeSettings SettingsDialog::dataSettings() const {
+BadgeSettings SettingsDialog::dataSettings() const {
     return m_currentSettings;
 }
 
@@ -37,18 +37,18 @@ QString SettingsDialog::settingsPath() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->imagePathEdit->setText(m_currentSettings.imagePath);
-    m_ui->textEdit->setText(m_currentSettings.text);
-    m_ui->titleEdit->setText(m_currentSettings.title);
+    m_ui->imagePathEdit->setText(m_currentSettings.imagePath());
+    m_ui->textEdit->setText(m_currentSettings.text());
+    m_ui->titleEdit->setText(m_currentSettings.title());
 
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.imagePath = m_ui->imagePathEdit->text();
-    m_currentSettings.text = m_ui->textEdit->document()->toMarkdown();
-    m_currentSettings.title = m_ui->titleEdit->text();
+    m_currentSettings.setImagePath(m_ui->imagePathEdit->text());
+    m_currentSettings.setText(m_ui->textEdit->document()->toMarkdown());
+    m_currentSettings.setTitle(m_ui->titleEdit->text());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

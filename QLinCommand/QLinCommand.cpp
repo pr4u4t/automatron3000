@@ -108,7 +108,7 @@ REGISTER_PLUGIN(
 )
 
 QLinCommand::QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinCommandSettings(Settings::get(), settingsPath))
+    : Widget(ld, plugins, parent, settingsPath, new LinCommandSettings(Settings::get(), settingsPath))
     , m_data(new Ui::QLinCommandUI) {
     m_data.m_ui->setupUi(this);
     //settingsChanged();
@@ -124,34 +124,34 @@ SettingsMdi* QLinCommand::settingsWindow() const {
 
 bool QLinCommand::initialize() {
     emit message("QLinCommand::init()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::LinCommandSettings>();
-    *(set) = SettingsDialog::LinCommandSettings(Settings::get(), settingsPath());
+    const auto set = settings<LinCommandSettings>();
+    *(set) = LinCommandSettings(Settings::get(), settingsPath());
     
-    m_data.m_ui->title->setText(set->title);
-    m_data.m_ui->pushButton->setText(set->buttonText);
+    m_data.m_ui->title->setText(set->title());
+    m_data.m_ui->pushButton->setText(set->buttonText());
 
-    if (set->linDevice.isEmpty()) {
+    if (set->linDevice().isEmpty()) {
         emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
         return false;
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
     auto lin = plugin.dynamicCast<IODevice>();
     m_data.m_lin = lin;
     connect(lin.data(), &IODevice::dataReady, this, &QLinCommand::dataReady);
     connect(lin.data(), &IODevice::error, this, &QLinCommand::errorReady);
     
     if (lin->isOpen() == false) {
-        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice));
+        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice()));
         if (lin->open() == false) {
-            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice));
+            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice()));
         }
     }
 
     QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
 
-    if (set->previous.isEmpty() == false) {
-        connect(plugins()->findByObjectName(set->previous).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+    if (set->previous().isEmpty() == false) {
+        connect(plugins()->findByObjectName(set->previous()).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
     }
 
     return true;
@@ -163,34 +163,34 @@ bool QLinCommand::deinitialize() {
 
 void QLinCommand::settingsChanged() {
     emit message("QLinCommand::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::LinCommandSettings>();
-    *(set) = SettingsDialog::LinCommandSettings(Settings::get(), settingsPath());
+    const auto set = settings<LinCommandSettings>();
+    *(set) = LinCommandSettings(Settings::get(), settingsPath());
     
     disconnect(this, SLOT(dataReady(const QByteArray&)));
     disconnect(this, SLOT(errorReady(const QByteArray&)));
     disconnect(this, SLOT(previousSuccess(const QByteArray&)));
 
-    m_data.m_ui->title->setText(set->title);
-    m_data.m_ui->pushButton->setText(set->buttonText);
+    m_data.m_ui->title->setText(set->title());
+    m_data.m_ui->pushButton->setText(set->buttonText());
     
-    if (set->linDevice.isEmpty()) {
+    if (set->linDevice().isEmpty()) {
         emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
         return;
     }
 
-    if (set->previous.isEmpty() == false) {
+    if (set->previous().isEmpty() == false) {
         emit message("QLinReadByID::settingsChanged: previous not empty");
-        auto prev = plugins()->findByObjectName(set->previous);
+        auto prev = plugins()->findByObjectName(set->previous());
         if (prev.isNull() == false) {
             emit message("QLinReadByID::settingsChanged: connecting previous");
             connect(prev.dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
         }
         else {
-            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous));
+            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous()));
         }
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
     auto lin = plugin.dynamicCast<IODevice>();
     m_data.m_lin = lin;
     
@@ -198,9 +198,9 @@ void QLinCommand::settingsChanged() {
     connect(lin.data(), &IODevice::error, this, &QLinCommand::errorReady);
     
     if (lin->isOpen() == false) {
-        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice));
+        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice()));
         if (lin->open() == false) {
-            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice));
+            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice()));
         }
     }
 
@@ -377,12 +377,12 @@ void QLinCommand::send() {
     m_data.m_state = QLinCommandState::READ;
     inprogress();
 
-    const auto set = settings<SettingsDialog::LinCommandSettings>();
-    QByteArray data = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
+    const auto set = settings<LinCommandSettings>();
+    QByteArray data = QByteArray(1 + (set->frameData().size() - 2) / 2, 0);
     quint32 value;
 
-    for (int i = 2; i < set->frameData.size(); i += 2) {
-        QString tmp = set->frameData.mid(i, 2);
+    for (int i = 2; i < set->frameData().size(); i += 2) {
+        QString tmp = set->frameData().mid(i, 2);
         value = tmp.toUInt(nullptr, 16);
         data[1 + i / 2 - 1] = value;
     }
@@ -394,7 +394,7 @@ void QLinCommand::send() {
         return;
     }
     memcpy(&m_data.m_frame, data.constData() + 1, sizeof(m_data.m_frame));
-    QThread::msleep(set->interval);
+    QThread::msleep(set->interval());
     //QCoreApplication::processEvents(QEventLoop::AllEvents, set->interval);
     data = QByteArray(1, 0);
     data[0] = QString("0x3d").toUInt(nullptr, 16);
@@ -419,8 +419,8 @@ void QLinCommand::previousSuccess(const QByteArray& data) {
 
 void QLinCommand::sendCommand(bool checked) {
     emit message("QLinCommand::sendCommand()");
-    const auto set = settings<SettingsDialog::LinCommandSettings>();
-    m_data.m_try = set->tries;
+    const auto set = settings<LinCommandSettings>();
+    m_data.m_try = set->tries();
     m_data.m_startTime = QDateTime::currentMSecsSinceEpoch();
     send();
 }

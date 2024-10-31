@@ -42,7 +42,7 @@ SettingsDialog::~SettingsDialog() {
     delete m_ui;
 }
 
-SettingsDialog::DataSettings SettingsDialog::dataSettings() const {
+DataSettings SettingsDialog::dataSettings() const {
     emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
@@ -50,36 +50,36 @@ SettingsDialog::DataSettings SettingsDialog::dataSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->dbDriver->setCurrentIndex(m_ui->dbDriver->findText(m_currentSettings.dbDriver));
-    m_ui->dbUri->setText(m_currentSettings.dbUri);
-    m_ui->dbName->setText(m_currentSettings.dbName);
-    m_ui->dbTable->setText(m_currentSettings.dbTable);
-    m_ui->dbLock->setCurrentIndex(m_ui->dbLock->findText(m_currentSettings.dbLock ? tr("Yes") : tr("No")));
-    m_ui->dbLockPass->setText(m_currentSettings.dbLockPass);
-    m_ui->dbLockPassConfirm->setText(m_currentSettings.dbLockPass);
-    m_ui->serialPrefix->setText(m_currentSettings.serialPrefix);
-    m_ui->codeRegexp->setText(m_currentSettings.barcodeRegexp);
-    m_ui->serialInterval->setText(QString::number(m_currentSettings.serialInterval));
-    m_ui->removeChars->setText(m_currentSettings.removeChars);
-    m_ui->clearCode->setText(QString::number(m_currentSettings.clearCode));
-    m_ui->keepClear->setChecked(m_currentSettings.keepClear);
+    m_ui->dbDriver->setCurrentIndex(m_ui->dbDriver->findText(m_currentSettings.dbDriver()));
+    m_ui->dbUri->setText(m_currentSettings.dbUri());
+    m_ui->dbName->setText(m_currentSettings.dbName());
+    m_ui->dbTable->setText(m_currentSettings.dbTable());
+    m_ui->dbLock->setCurrentIndex(m_ui->dbLock->findText(m_currentSettings.dbLock() ? tr("Yes") : tr("No")));
+    m_ui->dbLockPass->setText(m_currentSettings.dbLockPass());
+    m_ui->dbLockPassConfirm->setText(m_currentSettings.dbLockPass());
+    m_ui->serialPrefix->setText(m_currentSettings.serialPrefix());
+    m_ui->codeRegexp->setText(m_currentSettings.barcodeRegexp());
+    m_ui->serialInterval->setText(QString::number(m_currentSettings.serialInterval()));
+    m_ui->removeChars->setText(m_currentSettings.removeChars());
+    m_ui->clearCode->setText(QString::number(m_currentSettings.clearCode()));
+    m_ui->keepClear->setChecked(m_currentSettings.keepClear());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.dbDriver = m_ui->dbDriver->currentText();
-    m_currentSettings.dbUri = m_ui->dbUri->text();
-    m_currentSettings.dbName = m_ui->dbName->text();
-    m_currentSettings.dbTable = m_ui->dbTable->text();
-    m_currentSettings.dbLock = m_ui->dbLock->currentText() == tr("Yes") ? true : false;
-    m_currentSettings.dbLockPass = m_ui->dbLockPass->text().toLocal8Bit();
-    m_currentSettings.serialPrefix = m_ui->serialPrefix->text();
-    m_currentSettings.barcodeRegexp = m_ui->codeRegexp->text();
-    m_currentSettings.serialInterval = m_ui->serialInterval->text().isEmpty() ? -1 : m_ui->serialInterval->text().toInt();
-    m_currentSettings.removeChars = m_ui->removeChars->text();
-    m_currentSettings.clearCode = m_ui->clearCode->text().isEmpty() ? -1 : m_ui->clearCode->text().toInt();
-    m_currentSettings.keepClear = m_ui->keepClear->isChecked();
+    m_currentSettings.setDbDriver(m_ui->dbDriver->currentText());
+    m_currentSettings.setDbUri(m_ui->dbUri->text());
+    m_currentSettings.setDbName(m_ui->dbName->text());
+    m_currentSettings.setDbTable(m_ui->dbTable->text());
+    m_currentSettings.setDbLock(m_ui->dbLock->currentText() == tr("Yes") ? true : false);
+    m_currentSettings.setDbLockPass(m_ui->dbLockPass->text().toLocal8Bit());
+    m_currentSettings.setSerialPrefix(m_ui->serialPrefix->text());
+    m_currentSettings.setBarcodeRegexp(m_ui->codeRegexp->text());
+    m_currentSettings.setSerialInterval(m_ui->serialInterval->text().isEmpty() ? -1 : m_ui->serialInterval->text().toInt());
+    m_currentSettings.setRemoveChars(m_ui->removeChars->text());
+    m_currentSettings.setClearCode(m_ui->clearCode->text().isEmpty() ? -1 : m_ui->clearCode->text().toInt());
+    m_currentSettings.setKeepClear(m_ui->keepClear->isChecked());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
@@ -87,8 +87,8 @@ void SettingsDialog::updateSettings() {
 
 void SettingsDialog::ok() {
     emit message("SettingsDialog::ok");
-    if (m_currentSettings.dbLock && m_currentSettings.dbLockPass.isEmpty() != true) {
-        PasswordDialog d(this, m_currentSettings.dbLockPass);
+    if (m_currentSettings.dbLock() && m_currentSettings.dbLockPass().isEmpty() != true) {
+        PasswordDialog d(this, m_currentSettings.dbLockPass());
         if (d.exec() != QDialog::Accepted) {
             return;
         }
@@ -107,8 +107,8 @@ void SettingsDialog::ok() {
 void SettingsDialog::apply() {
     emit message("SettingsDialog::apply");
 
-    if (m_currentSettings.dbLock && m_currentSettings.dbLockPass.isEmpty() != true) {
-        PasswordDialog d(this, m_currentSettings.dbLockPass);
+    if (m_currentSettings.dbLock() && m_currentSettings.dbLockPass().isEmpty() != true) {
+        PasswordDialog d(this, m_currentSettings.dbLockPass());
         if (d.exec() != QDialog::Accepted) {
             return;
         }

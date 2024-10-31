@@ -92,7 +92,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="core_global.h" />
-    <ClInclude Include="core.h" />
+    <QtMoc Include="core.h" />
     <ClCompile Include="core.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

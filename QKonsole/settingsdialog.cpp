@@ -38,7 +38,7 @@ SettingsDialog::~SettingsDialog() {
     delete m_ui;
 }
 
-SettingsDialog::KonsoleSettings SettingsDialog::konsoleSettings() const {
+KonsoleSettings SettingsDialog::konsoleSettings() const {
     emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
@@ -46,15 +46,15 @@ SettingsDialog::KonsoleSettings SettingsDialog::konsoleSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->prompt->setText(m_currentSettings.prompt);
-    m_ui->localEcho->setChecked(m_currentSettings.localEcho);
+    m_ui->prompt->setText(m_currentSettings.prompt());
+    m_ui->localEcho->setChecked(m_currentSettings.localEcho());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.prompt = m_ui->prompt->text();
-    m_currentSettings.localEcho = m_ui->localEcho->isChecked();
+    m_currentSettings.setPrompt(m_ui->prompt->text());
+    m_currentSettings.setLocalEcho(m_ui->localEcho->isChecked());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

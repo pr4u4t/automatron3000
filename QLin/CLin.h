@@ -22,7 +22,7 @@ class CLin : public QObject {
 	//static constexpr const int DEFAULT_RX_QUEUE_SIZE = 256;
 
 public:
-	CLin(const SettingsDialog::LinSettings* settings);
+	CLin(const LinSettings* settings);
 
 	~CLin();
 
@@ -107,14 +107,14 @@ public:
 		return ret;
 	}
 
-	static XLstatus LINSaveConfiuration(const SettingsDialog::LinSettings& settings) {
+	static XLstatus LINSaveConfiuration(const LinSettings& settings) {
 		return xlSetApplConfig(										// Registration of Application with default settings
-							settings.appName.toLocal8Bit().data(),	// Application Name
-							settings.hwChannel.appChannel,			// Application channel 0 or 1
-							settings.hwChannel.hwType,				// hwType  (CANcardXL...)
-							settings.hwChannel.hwIndex,				// Index of hardware (slot) (0,1,...)
-							settings.hwChannel.hwChannel,			// Index of channel (connector) (0,1,...)
-							settings.hwChannel.busType				// the application is for LIN.
+							settings.appName().toLocal8Bit().data(),	// Application Name
+							settings.hwChannel().appChannel,			// Application channel 0 or 1
+							settings.hwChannel().hwType,				// hwType  (CANcardXL...)
+							settings.hwChannel().hwIndex,				// Index of hardware (slot) (0,1,...)
+							settings.hwChannel().hwChannel,			// Index of channel (connector) (0,1,...)
+							settings.hwChannel().busType				// the application is for LIN.
 		);
 	}
 
@@ -156,7 +156,7 @@ private:
 	XLhandle m_hMsgEvent;
 	BYTE m_data[8];
 	static bool m_driverOpen;
-	const SettingsDialog::LinSettings* m_settings = nullptr;
+	const LinSettings* m_settings = nullptr;
 };
 
 #endif

@@ -24,7 +24,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
 SettingsDialog::~SettingsDialog() {}
 
-SettingsDialog::WebSettings SettingsDialog::dataSettings() const {
+WebSettings SettingsDialog::dataSettings() const {
     return m_currentSettings;
 }
 
@@ -35,15 +35,15 @@ QString SettingsDialog::settingsPath() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->urlEdit->setText(m_currentSettings.url);
-    m_ui->refreshEdit->setValue(m_currentSettings.refresh);
+    m_ui->urlEdit->setText(m_currentSettings.url());
+    m_ui->refreshEdit->setValue(m_currentSettings.refresh());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.url = m_ui->urlEdit->text();
-    m_currentSettings.refresh = m_ui->refreshEdit->value();
+    m_currentSettings.setUrl(m_ui->urlEdit->text());
+    m_currentSettings.setRefresh(m_ui->refreshEdit->value());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

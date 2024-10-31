@@ -106,7 +106,7 @@ REGISTER_PLUGIN(
 
 
 QLinWriteByID::QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath))
+    : Widget(ld, plugins, parent, settingsPath, new LinWriteByIDSettings(Settings::get(), settingsPath))
     , m_data(new Ui::QLinWriteByIDUI) {
     m_data.m_ui->setupUi(this);
     QObject::connect(m_data.m_ui->pushButton, &QPushButton::clicked, this, &QLinWriteByID::writeById);
@@ -116,22 +116,22 @@ QLinWriteByID::~QLinWriteByID() {
 }
 
 bool QLinWriteByID::initialize() {
-    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
-    *set = SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath());
+    const auto set = settings<LinWriteByIDSettings>();
+    *set = LinWriteByIDSettings(Settings::get(), settingsPath());
 
     
 
     emit message("QLinTester::init()", LoggerSeverity::LOG_DEBUG);
    
-    m_data.m_ui->title->setText(set->title);
+    m_data.m_ui->title->setText(set->title());
 
-    if (set->linDevice.isEmpty()) {
+    if (set->linDevice().isEmpty()) {
         emit message("QLinWriteByID::init: lin device name empty");
         emit message("QLinWriteByID::init: !!! please select lin device in settings !!!");
         return false;
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
     m_data.m_lin = plugin.dynamicCast<IODevice>();
 
     if (m_data.m_lin.isNull()) {
@@ -143,7 +143,7 @@ bool QLinWriteByID::initialize() {
     connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinWriteByID::dataReady);
     if (m_data.m_lin->isOpen() == false) {
         if (m_data.m_lin->open() == false) {
-            emit message(QString("QLinWriteByID::init: failed to open device: %1").arg(set->linDevice));
+            emit message(QString("QLinWriteByID::init: failed to open device: %1").arg(set->linDevice()));
         }
     }
 
@@ -152,9 +152,9 @@ bool QLinWriteByID::initialize() {
     //
 
     
-    if (set->dataSource.isEmpty() == false) {
-        emit message(QString("QLinWriteByID::settingsChanged: connecting data source %1").arg(set->dataSource));
-        auto source = plugins()->findByObjectName(set->dataSource);
+    if (set->dataSource().isEmpty() == false) {
+        emit message(QString("QLinWriteByID::settingsChanged: connecting data source %1").arg(set->dataSource()));
+        auto source = plugins()->findByObjectName(set->dataSource());
         if (source.isNull() == false) {
             connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
         }
@@ -169,16 +169,16 @@ bool QLinWriteByID::deinitialize() {
 
 void QLinWriteByID::settingsChanged() {
     emit message("QLinWriteByID::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
-    *set = SettingsDialog::LinWriteByIDSettings(Settings::get(), settingsPath());
+    const auto set = settings<LinWriteByIDSettings>();
+    *set = LinWriteByIDSettings(Settings::get(), settingsPath());
 
-    m_data.m_ui->title->setText(set->title);
+    m_data.m_ui->title->setText(set->title());
 
     disconnect(this, SLOT(dataReady(const QByteArray&)));
     disconnect(this, SLOT(linClosed()));
     disconnect(this, SLOT(fillInput(const QByteArray&)));
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
     m_data.m_lin = plugin.dynamicCast<IODevice>();
 
     if (m_data.m_lin.isNull()) {
@@ -189,7 +189,7 @@ void QLinWriteByID::settingsChanged() {
     connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinWriteByID::dataReady);
     if (m_data.m_lin->isOpen() == false) {
         if (m_data.m_lin->open() == false) {
-            emit message(QString("QLinWriteByID::init: failed to open device: %1").arg(set->linDevice));
+            emit message(QString("QLinWriteByID::init: failed to open device: %1").arg(set->linDevice()));
         }
     }
 
@@ -198,9 +198,9 @@ void QLinWriteByID::settingsChanged() {
     //
 
 
-    if (set->dataSource.isEmpty() == false) {
-        emit message(QString("QLinWriteByID::settingsChanged: connecting data source %1").arg(set->dataSource));
-        auto source = plugins()->findByObjectName(set->dataSource);
+    if (set->dataSource().isEmpty() == false) {
+        emit message(QString("QLinWriteByID::settingsChanged: connecting data source %1").arg(set->dataSource()));
+        auto source = plugins()->findByObjectName(set->dataSource());
         if (source.isNull() == false) {
             connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
         }
@@ -303,13 +303,13 @@ std::optional<LinFrame> QLinWriteByID::dataFromResponse(const QByteArray& data) 
 void QLinWriteByID::startWrite() {
     QByteArray data = m_data.m_ui->valueEdit->text().toLocal8Bit();
     QByteArrayList lst = data.split(' ');
-    const auto set = settings<SettingsDialog::LinWriteByIDSettings>();
+    const auto set = settings<LinWriteByIDSettings>();
 
-    QByteArray fdata = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
+    QByteArray fdata = QByteArray(1 + (set->frameData().size() - 2) / 2, 0);
     quint32 value;
 
-    for (int i = 2; i < set->frameData.size(); i += 2) {
-        QString tmp = set->frameData.mid(i, 2);
+    for (int i = 2; i < set->frameData().size(); i += 2) {
+        QString tmp = set->frameData().mid(i, 2);
         value = tmp.toUInt(nullptr, 16);
         fdata[1 + i / 2 - 1] = value;
     }
@@ -325,7 +325,7 @@ void QLinWriteByID::startWrite() {
         auto packet = frames.dequeue();
         QByteArray buffer = packet;
         m_data.m_lin->write(buffer);
-        QThread::msleep(set->interval);
+        QThread::msleep(set->interval());
     }    
 }  
 

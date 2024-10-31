@@ -79,7 +79,7 @@ REGISTER_PLUGIN(
 )
 
 QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-	: Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinTesterSettings(Settings::get(), settingsPath))
+	: Widget(ld, plugins, parent, settingsPath, new LinTesterSettings(Settings::get(), settingsPath))
     , m_data(new Ui::QLinTesterUI) {
     m_data.m_ui->setupUi(this);
     connect(m_data.m_ui->testButton, &QPushButton::clicked, this, &QLinTester::startTest);
@@ -92,16 +92,16 @@ QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, cons
 bool QLinTester::initialize() {
     emit message("QLinTester::initialize()", LoggerSeverity::LOG_DEBUG);
     
-    const auto set = settings<SettingsDialog::LinTesterSettings>();
-    *(set) = SettingsDialog::LinTesterSettings(Settings::get(), settingsPath());
+    const auto set = settings<LinTesterSettings>();
+    *(set) = LinTesterSettings(Settings::get(), settingsPath());
 
-    if (set->linDevice.isEmpty()) {
+    if (set->linDevice().isEmpty()) {
         emit message("QLinTester::init: lin device name empty");
         emit message("QLinTester::init: !!! please select lin device in settings !!!");
         return false;
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
     m_data.m_lin = plugin.dynamicCast<IODevice>();
 
     if (m_data.m_lin.isNull()) {
@@ -129,8 +129,8 @@ bool QLinTester::deinitialize() {
 
 void QLinTester::settingsChanged() {
     emit message("QLinTester::settingsChanged()");
-    const auto set = settings<SettingsDialog::LinTesterSettings>();
-    *(set) = SettingsDialog::LinTesterSettings(Settings::get(), settingsPath());
+    const auto set = settings<LinTesterSettings>();
+    *(set) = LinTesterSettings(Settings::get(), settingsPath());
 
     disconnect(this, SLOT(dataReady(const QByteArray&)));
     disconnect(this, SLOT(linClosed));
@@ -140,7 +140,7 @@ void QLinTester::settingsChanged() {
         return;
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
     m_data.m_lin = plugin.dynamicCast<IODevice>();
 
     if (m_data.m_lin.isNull()) {
@@ -206,13 +206,13 @@ void QLinTester::startTest() {
             Q_RETURN_ARG(int, m_data.m_slaveID));
     }
 
-    auto set = settings<SettingsDialog::LinTesterSettings>();
+    auto set = settings<LinTesterSettings>();
 
     switch (m_data.m_state) {
     case QLinTesterState::STOP:
     case QLinTesterState::INITIAL:
         m_data.m_responses = 0;
-        m_data.m_ui->testProgress->setRange(0, set->tries*(set->testStopID-set->testStartID));
+        m_data.m_ui->testProgress->setRange(0, set->tries()*(set->testStopID() - set->testStartID()));
         initial();
     case QLinTesterState::NEXT_TRY:
     case QLinTesterState::PAUSE:
@@ -237,21 +237,21 @@ void QLinTester::linClosed() {
 void QLinTester::testStep() {
     emit message("QLinTester::testStep()");
 
-    auto set = settings<SettingsDialog::LinTesterSettings>();
+    auto set = settings<LinTesterSettings>();
 
-    if (m_data.m_test <= set->testStopID) {
+    if (m_data.m_test <= set->testStopID()) {
         if (m_data.m_test != m_data.m_slaveID) {
             QByteArray data(1, static_cast<char>(m_data.m_test));
             m_data.m_lin->write(data);
-            m_data.m_ui->testProgress->setValue(m_data.m_try * (set->testStopID - set->testStartID)+ m_data.m_test);
+            m_data.m_ui->testProgress->setValue(m_data.m_try * (set->testStopID() - set->testStartID()) + m_data.m_test);
         }
         ++m_data.m_test;
     } else {
         m_data.m_state = QLinTesterState::STOP;
-        m_data.m_test = set->testStartID;
+        m_data.m_test = set->testStartID();
         m_data.m_timer.stop();
         ++m_data.m_try;
-        if (m_data.m_try < set->tries) {
+        if (m_data.m_try < set->tries()) {
             m_data.m_state = QLinTesterState::NEXT_TRY;
             startTest();
         } else {
@@ -269,7 +269,7 @@ void QLinTester::testStep() {
 void QLinTester::testStop() {
     emit message("QLinTester::scanStop()", LoggerSeverity::LOG_DEBUG);
     m_data.m_state = QLinTesterState::STOP;
-    m_data.m_test = settings<SettingsDialog::LinTesterSettings>()->testStartID;
+    m_data.m_test = settings<LinTesterSettings>()->testStartID();
     m_data.m_timer.stop();
     m_data.m_ui->testButton->setEnabled(true);
     m_data.m_ui->pushButton->setEnabled(false);

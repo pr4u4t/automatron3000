@@ -40,7 +40,7 @@ SettingsDialog::~SettingsDialog() {
     delete m_ui;
 }
 
-SettingsDialog::LinReadByIDSettings SettingsDialog::lintesterSettings() const {
+LinReadByIDSettings SettingsDialog::lintesterSettings() const {
     emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
@@ -48,23 +48,23 @@ SettingsDialog::LinReadByIDSettings SettingsDialog::lintesterSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->frameData->setText(m_currentSettings.frameData);
-    m_ui->interval->setValue(m_currentSettings.interval);
-    m_ui->tries->setValue(m_currentSettings.tries);
-    m_ui->title->setText(m_currentSettings.title);
-    m_ui->linEdit->setText(m_currentSettings.linDevice);
-    m_ui->previousEdit->setText(m_currentSettings.previous);
+    m_ui->frameData->setText(m_currentSettings.frameData());
+    m_ui->interval->setValue(m_currentSettings.interval());
+    m_ui->tries->setValue(m_currentSettings.tries());
+    m_ui->title->setText(m_currentSettings.title());
+    m_ui->linEdit->setText(m_currentSettings.linDevice());
+    m_ui->previousEdit->setText(m_currentSettings.previous());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.frameData = m_ui->frameData->text().toLocal8Bit();
-    m_currentSettings.interval = m_ui->interval->value();
-    m_currentSettings.tries = m_ui->tries->value();
-    m_currentSettings.title = m_ui->title->text();
-    m_currentSettings.linDevice = m_ui->linEdit->text();
-    m_currentSettings.previous = m_ui->previousEdit->text();
+    m_currentSettings.setFrameData(m_ui->frameData->text().toLocal8Bit());
+    m_currentSettings.setInterval(m_ui->interval->value());
+    m_currentSettings.setTries(m_ui->tries->value());
+    m_currentSettings.setTitle(m_ui->title->text());
+    m_currentSettings.setLinDevice(m_ui->linEdit->text());
+    m_currentSettings.setPrevious(m_ui->previousEdit->text());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

@@ -16,13 +16,7 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
-
-    Q_OBJECT
-
-public:
-
-
+struct LinCommandSettings : public PluginSettings {
     static constexpr const char* const frameDataKey = "frameData";
     static constexpr const char* const intervalKey = "Interval";
     static constexpr const char* const triesKey = "tries";
@@ -39,48 +33,94 @@ public:
     static constexpr const char* const previousValue = nullptr;
     static constexpr const char* const linDeviceValue = nullptr;
 
-    struct LinCommandSettings : public PluginSettings {
-        LinCommandSettings()
-            : frameData(frameDataValue)
-            , interval(intervalValue)
-            , tries(triesValue)
-            , title(titleValue)
-            , buttonText(buttonTextValue)
-            , previous(previousValue)
-            , linDevice(linDeviceValue){
-        }
+    Q_GADGET
 
-        LinCommandSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , frameData(settings.value(settingsPath + "/" + frameDataKey, frameDataValue).toByteArray())
-            , interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
-            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
-            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
-            , buttonText(settings.value(settingsPath + "/" + buttonTextKey, buttonTextValue).toString())
-            , previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString())
-            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()){
-        }
+    Q_PROPERTY(QByteArray frameData READ frameData WRITE setFrameData)
+    Q_PROPERTY(qint64 interval READ interval WRITE setInterval)
+    Q_PROPERTY(uint8_t tries READ tries WRITE setTries)
+    Q_PROPERTY(QString title READ title WRITE setTitle)
+    Q_PROPERTY(QString buttonText READ buttonText WRITE setButtonText)
+    Q_PROPERTY(QString previous READ previous WRITE setPrevious)
+    Q_PROPERTY(QString linDevice READ linDevice WRITE setLinDevice)
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + frameDataKey, frameData);
-            settings.setValue(settingsPath + "/" + intervalKey, interval);
-            settings.setValue(settingsPath + "/" + triesKey, tries);
-            settings.setValue(settingsPath + "/" + titleKey, title);
-            settings.setValue(settingsPath + "/" + buttonTextKey, buttonText);
-            settings.setValue(settingsPath + "/" + previousKey, previous);
-            settings.setValue(settingsPath + "/" + previousKey, previous);
+public:
+    LinCommandSettings()
+        : m_frameData(frameDataValue)
+        , m_interval(intervalValue)
+        , m_tries(triesValue)
+        , m_title(titleValue)
+        , m_buttonText(buttonTextValue)
+        , m_previous(previousValue)
+        , m_linDevice(linDeviceValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-            PluginSettings::save(settings, settingsPath);
-        }
+    LinCommandSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_frameData(settings.value(settingsPath + "/" + frameDataKey, frameDataValue).toByteArray())
+        , m_interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
+        , m_tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
+        , m_title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
+        , m_buttonText(settings.value(settingsPath + "/" + buttonTextKey, buttonTextValue).toString())
+        , m_previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString())
+        , m_linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        QByteArray frameData;
-        qint64 interval;
-        uint8_t tries;
-        QString title;
-        QString buttonText;
-        QString previous;
-        QString linDevice;
-    };
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + frameDataKey, m_frameData);
+        settings.setValue(settingsPath + "/" + intervalKey, m_interval);
+        settings.setValue(settingsPath + "/" + triesKey, m_tries);
+        settings.setValue(settingsPath + "/" + titleKey, m_title);
+        settings.setValue(settingsPath + "/" + buttonTextKey, m_buttonText);
+        settings.setValue(settingsPath + "/" + previousKey, m_previous);
+        settings.setValue(settingsPath + "/" + linDeviceKey, m_linDevice);
+
+        PluginSettings::save(settings, settingsPath);
+    }
+
+    QByteArray frameData() const { return m_frameData; }
+    void setFrameData(const QByteArray& frameData) { m_frameData = frameData; }
+
+    // Getter and Setter for interval
+    qint64 interval() const { return m_interval; }
+    void setInterval(qint64 interval) { m_interval = interval; }
+
+    // Getter and Setter for tries
+    uint8_t tries() const { return m_tries; }
+    void setTries(uint8_t tries) { m_tries = tries; }
+
+    // Getter and Setter for title
+    QString title() const { return m_title; }
+    void setTitle(const QString& title) { m_title = title; }
+
+    // Getter and Setter for buttonText
+    QString buttonText() const { return m_buttonText; }
+    void setButtonText(const QString& buttonText) { m_buttonText = buttonText; }
+
+    // Getter and Setter for previous
+    QString previous() const { return m_previous; }
+    void setPrevious(const QString& previous) { m_previous = previous; }
+
+    // Getter and Setter for linDevice
+    QString linDevice() const { return m_linDevice; }
+    void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
+
+private:
+    QByteArray m_frameData;
+    qint64 m_interval;
+    uint8_t m_tries;
+    QString m_title;
+    QString m_buttonText;
+    QString m_previous;
+    QString m_linDevice;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
 

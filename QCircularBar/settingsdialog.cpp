@@ -22,7 +22,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
 SettingsDialog::~SettingsDialog() {}
 
-SettingsDialog::CircularBarSettings SettingsDialog::circularbarSettings() const {
+CircularBarSettings SettingsDialog::circularbarSettings() const {
     return m_currentSettings;
 }
 
@@ -33,25 +33,25 @@ QString SettingsDialog::settingsPath() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->minValueEdit->setValue(m_currentSettings.minValue);
-    m_ui->maxValueEdit->setValue(m_currentSettings.maxValue);
-    m_ui->tresholdEdit->setValue(m_currentSettings.threshold);
-    m_ui->precisionEdit->setValue(m_currentSettings.precision);
-    m_ui->labelEdit->setText(m_currentSettings.label);
-    m_ui->unitsEdit->setText(m_currentSettings.units);
-    m_ui->stepsEdit->setValue(m_currentSettings.steps);
+    m_ui->minValueEdit->setValue(m_currentSettings.minValue());
+    m_ui->maxValueEdit->setValue(m_currentSettings.maxValue());
+    m_ui->tresholdEdit->setValue(m_currentSettings.threshold());
+    m_ui->precisionEdit->setValue(m_currentSettings.precision());
+    m_ui->labelEdit->setText(m_currentSettings.label());
+    m_ui->unitsEdit->setText(m_currentSettings.units());
+    m_ui->stepsEdit->setValue(m_currentSettings.steps());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.minValue = m_ui->minValueEdit->value();
-    m_currentSettings.maxValue = m_ui->maxValueEdit->value();
-    m_currentSettings.threshold = m_ui->tresholdEdit->value();
-    m_currentSettings.precision = m_ui->precisionEdit->value();
-    m_currentSettings.label = m_ui->labelEdit->text();
-    m_currentSettings.units = m_ui->unitsEdit->text();
-    m_currentSettings.steps = m_ui->stepsEdit->value();
+    m_currentSettings.setMinValue(m_ui->minValueEdit->value());
+    m_currentSettings.setMaxValue(m_ui->maxValueEdit->value());
+    m_currentSettings.setThreshold(m_ui->tresholdEdit->value());
+    m_currentSettings.setPrecision(m_ui->precisionEdit->value());
+    m_currentSettings.setLabel(m_ui->labelEdit->text());
+    m_currentSettings.setUnits(m_ui->unitsEdit->text());
+    m_currentSettings.setSteps(m_ui->stepsEdit->value());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

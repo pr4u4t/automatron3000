@@ -80,7 +80,7 @@ REGISTER_PLUGIN(
 )
 
 QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path, new SettingsDialog::KonsoleSettings(Settings::get(), path))
+    : Widget(ld, plugins, parent, path, new KonsoleSettings(Settings::get(), path))
     , m_data(new QTerminal(this, tr("<b>Welcome to LIN terminal</b>"))) {
     //settingsChanged();
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
@@ -102,18 +102,18 @@ SettingsMdi* QLinKonsole::settingsWindow() const {
 bool QLinKonsole::initialize() {
 
     emit message("QLinKonsole::init()");
-    const auto set = settings<SettingsDialog::KonsoleSettings>();
-    *(set) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
+    const auto set = settings<KonsoleSettings>();
+    *(set) = KonsoleSettings(Settings::get(), settingsPath());
 
-    if (set->linDevice.isEmpty() == true) {
+    if (set->linDevice().isEmpty() == true) {
         emit message("QLinKonsole::init: lin device name == nullptr");
         return false;
     }
 
-    auto io = plugins()->instance(set->linDevice, nullptr);
+    auto io = plugins()->instance(set->linDevice(), nullptr);
 
     if (io.isNull() == true) {
-        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice));
+        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice()));
     }
 
     connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
@@ -136,22 +136,22 @@ bool QLinKonsole::deinitialize() {
 
 void QLinKonsole::settingsChanged() {
     emit message("QLinKonsole::settingsChanged()");
-    const auto set = settings<SettingsDialog::KonsoleSettings>();
-    *(set) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
-    m_data.m_terminal->setPrompt(set->prompt); //setLocalEchoEnabled(m_settings.localEcho);
+    const auto set = settings<KonsoleSettings>();
+    *(set) = KonsoleSettings(Settings::get(), settingsPath());
+    m_data.m_terminal->setPrompt(set->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
     disconnect(this, SLOT(putData(const QByteArray&)));
     disconnect(this, SLOT(putData(const QString&, LoggerSeverity)));
     m_data.m_lin = nullptr;
 
-    if (set->linDevice.isEmpty() == true) {
+    if (set->linDevice().isEmpty() == true) {
         emit message("QLinKonsole::init: lin device name == nullptr");
         return;
     }
 
-    auto io = plugins()->instance(set->linDevice, nullptr);
+    auto io = plugins()->instance(set->linDevice(), nullptr);
 
     if (io.isNull() == true) {
-        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice));
+        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice()));
         return;
     }
 
@@ -196,7 +196,7 @@ void QLinKonsole::enterPressed(const QString& command) {
     QRegularExpression rx("[\\s]+");
     for (auto it = commands.begin(), end = commands.end(); it != end; ++it) {
         processCommand((*it).trimmed().replace(rx, " "));
-        QThread::msleep(settings<SettingsDialog::KonsoleSettings>()->commandDelay);
+        QThread::msleep(settings<KonsoleSettings>()->commandDelay());
     }
 }
 

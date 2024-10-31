@@ -16,13 +16,7 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
-
-    Q_OBJECT
-
-public:
-
-
+struct LinTesterSettings : public PluginSettings {
     static constexpr const char* const testStartIDKey = "testStartID";
     static constexpr const char* const testStopIDKey = "testStopID";
     static constexpr const char* const testIntervalKey = "testInterval";
@@ -34,41 +28,78 @@ public:
     static constexpr const qint64 testIntervalValue = 0;
     static constexpr const uint8_t triesValue = 3;
     static constexpr const char* const linDeviceValue = nullptr;
+    
+    Q_GADGET
 
-    struct LinTesterSettings : public PluginSettings {
-        LinTesterSettings()
-            : testStartID(testStartIDValue)
-            , testStopID(testStopIDValue)
-            , testInterval(testIntervalValue)
-            , tries(triesValue)
-            , linDevice(linDeviceValue){
-        }
+    Q_PROPERTY(uint8_t testStartID READ testStartID WRITE setTestStartID)
+    Q_PROPERTY(uint8_t testStopID READ testStopID WRITE setTestStopID)
+    Q_PROPERTY(qint64 testInterval READ testInterval WRITE setTestInterval)
+    Q_PROPERTY(uint8_t tries READ tries WRITE setTries)
+    Q_PROPERTY(QString linDevice READ linDevice WRITE setLinDevice)
 
-        LinTesterSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , testStartID(settings.value(settingsPath + "/" + testStartIDKey, testStartIDValue).toUInt())
-            , testStopID(settings.value(settingsPath + "/" + testStopIDKey, testStopIDValue).toUInt())
-            , testInterval(settings.value(settingsPath + "/" + testIntervalKey, testIntervalValue).toInt())
-            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt())
-            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()) {
-        }
+public:
+    LinTesterSettings()
+        : m_testStartID(testStartIDValue)
+        , m_testStopID(testStopIDValue)
+        , m_testInterval(testIntervalValue)
+        , m_tries(triesValue)
+        , m_linDevice(linDeviceValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + testStartIDKey, testStartID);
-            settings.setValue(settingsPath + "/" + testStopIDKey, testStopID);
-            settings.setValue(settingsPath + "/" + testIntervalKey, testInterval);
-            settings.setValue(settingsPath + "/" + triesKey, tries);
-            settings.setValue(settingsPath + "/" + linDeviceKey, linDevice);
+    LinTesterSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_testStartID(settings.value(settingsPath + "/" + testStartIDKey, testStartIDValue).toUInt())
+        , m_testStopID(settings.value(settingsPath + "/" + testStopIDKey, testStopIDValue).toUInt())
+        , m_testInterval(settings.value(settingsPath + "/" + testIntervalKey, testIntervalValue).toInt())
+        , m_tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt())
+        , m_linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-            PluginSettings::save(settings, settingsPath);
-        }
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + testStartIDKey, m_testStartID);
+        settings.setValue(settingsPath + "/" + testStopIDKey, m_testStopID);
+        settings.setValue(settingsPath + "/" + testIntervalKey, m_testInterval);
+        settings.setValue(settingsPath + "/" + triesKey, m_tries);
+        settings.setValue(settingsPath + "/" + linDeviceKey, m_linDevice);
 
-        uint8_t testStartID = 0;
-        uint8_t testStopID = 0;
-        qint64 testInterval = 0;
-        uint8_t tries = 0;
-        QString linDevice;
-    };
+        PluginSettings::save(settings, settingsPath);
+    }
+
+    // Getter and Setter for testStartID
+    uint8_t testStartID() const { return m_testStartID; }
+    void setTestStartID(uint8_t testStartID) { m_testStartID = testStartID; }
+
+    // Getter and Setter for testStopID
+    uint8_t testStopID() const { return m_testStopID; }
+    void setTestStopID(uint8_t testStopID) { m_testStopID = testStopID; }
+
+    // Getter and Setter for testInterval
+    qint64 testInterval() const { return m_testInterval; }
+    void setTestInterval(qint64 testInterval) { m_testInterval = testInterval; }
+
+    // Getter and Setter for tries
+    uint8_t tries() const { return m_tries; }
+    void setTries(uint8_t tries) { m_tries = tries; }
+
+    // Getter and Setter for linDevice
+    QString linDevice() const { return m_linDevice; }
+    void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
+
+private:
+    uint8_t m_testStartID = 0;
+    uint8_t m_testStopID = 0;
+    qint64 m_testInterval = 0;
+    uint8_t m_tries = 0;
+    QString m_linDevice;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
 

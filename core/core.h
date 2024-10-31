@@ -18,23 +18,44 @@ struct ModuleLoaderSettings {
 	static constexpr const char* const modulesDirKey = "directory";
 	static constexpr const char* const modulesDirValue = "./plugins";
 
+	Q_GADGET
+	Q_PROPERTY(QStringList modulesEnabled READ modulesEnabled WRITE setModulesEnabled)
+	Q_PROPERTY(QString modulesDir READ modulesDir WRITE setModulesDir)
+
+public:
 	ModuleLoaderSettings()
-		: modulesEnabled(modulesEnabledValue)
-		, modulesDir(modulesDirValue){
+		: m_modulesEnabled(modulesEnabledValue)
+		, m_modulesDir(modulesDirValue){
 	}
 
 	ModuleLoaderSettings(const QSettings& settings, const QString& settingsPath)
-		: modulesEnabled(settings.value(settingsPath + "/" + modulesEnabledKey, modulesEnabledValue).toStringList())
-		, modulesDir(settings.value(settingsPath + "/" + modulesDirKey, modulesDirValue).toString()) {
+		: m_modulesEnabled(settings.value(settingsPath + "/" + modulesEnabledKey, modulesEnabledValue).toStringList())
+		, m_modulesDir(settings.value(settingsPath + "/" + modulesDirKey, modulesDirValue).toString()) {
 	}
 
 	void save(QSettings& settings, const QString& settingsPath) const {
-		settings.setValue(settingsPath + "/" + modulesEnabledKey, modulesEnabled);
-		settings.setValue(settingsPath + "/" + modulesDirKey, modulesDir);
+		settings.setValue(settingsPath + "/" + modulesEnabledKey, m_modulesEnabled);
+		settings.setValue(settingsPath + "/" + modulesDirKey, m_modulesDir);
 	}
 
-	QStringList modulesEnabled;
-	QString modulesDir;
+	QStringList modulesEnabled() const {
+		return m_modulesEnabled;
+	}
+
+	void setModulesEnabled(const QStringList& modulesEnabled) {
+		m_modulesEnabled = modulesEnabled;
+	}
+
+	QString modulesDir() const {
+		return m_modulesDir;
+	}
+
+	void setModulesDir(const QString& modulesDir) {
+		m_modulesDir = modulesDir;
+	}
+
+	QStringList m_modulesEnabled;
+	QString m_modulesDir;
 };
 
 template<typename T>
@@ -79,7 +100,7 @@ public:
 	}
 
 	QString path() const {
-		return m_data.m_settings.modulesDir;
+		return m_data.m_settings.modulesDir();
 	}
 
 	void setContext(ModuleLoaderContext* ctx) {
@@ -164,7 +185,7 @@ public:
 
 		m_data.m_logger->message(QString("ModuleLoader::loadPlugins: using plugins directory: %1").arg(it.path()));
 
-		QStringList active = m_data.m_settings.modulesEnabled;
+		QStringList active = m_data.m_settings.modulesEnabled();
 		bool isGui = Settings::isGui();
 
 

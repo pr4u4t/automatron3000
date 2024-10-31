@@ -38,7 +38,7 @@ SettingsDialog::~SettingsDialog() {
     delete m_ui;
 }
 
-SettingsDialog::LinTesterSettings SettingsDialog::lintesterSettings() const {
+LinTesterSettings SettingsDialog::lintesterSettings() const {
     emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
@@ -46,21 +46,21 @@ SettingsDialog::LinTesterSettings SettingsDialog::lintesterSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->testStartID->setValue(m_currentSettings.testStartID);
-    m_ui->testStopID->setValue(m_currentSettings.testStopID);
-    m_ui->interval->setValue(m_currentSettings.testInterval);
-    m_ui->tries->setValue(m_currentSettings.tries);
-    m_ui->linEdit->setText(m_currentSettings.linDevice);
+    m_ui->testStartID->setValue(m_currentSettings.testStartID());
+    m_ui->testStopID->setValue(m_currentSettings.testStopID());
+    m_ui->interval->setValue(m_currentSettings.testInterval());
+    m_ui->tries->setValue(m_currentSettings.tries());
+    m_ui->linEdit->setText(m_currentSettings.linDevice());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.testStartID = m_ui->testStartID->value();
-    m_currentSettings.testStopID = m_ui->testStopID->value();
-    m_currentSettings.testInterval = m_ui->interval->value();
-    m_currentSettings.tries = m_ui->tries->value();
-    m_currentSettings.linDevice = m_ui->linEdit->text();
+    m_currentSettings.setTestStartID(m_ui->testStartID->value());
+    m_currentSettings.setTestStopID(m_ui->testStopID->value());
+    m_currentSettings.setTestInterval(m_ui->interval->value());
+    m_currentSettings.setTries(m_ui->tries->value());
+    m_currentSettings.setLinDevice(m_ui->linEdit->text());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

@@ -106,7 +106,7 @@ REGISTER_PLUGIN(
 )
 
 QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath, new SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath))
+    : Widget(ld, plugins, parent, settingsPath, new LinReadByIDSettings(Settings::get(), settingsPath))
     , m_data(new Ui::QLinReadByIDUI) {
     m_data.m_ui->setupUi(this);
     //settingsChanged();
@@ -116,31 +116,31 @@ QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
 
 bool QLinReadByID::initialize() {
     emit message("QLinReadByID::init()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::LinReadByIDSettings>();
-    *(set) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
-    m_data.m_ui->title->setText(set->title);
+    const auto set = settings<LinReadByIDSettings>();
+    *(set) = LinReadByIDSettings(Settings::get(), settingsPath());
+    m_data.m_ui->title->setText(set->title());
     
-    if (set->linDevice.isEmpty()) {
+    if (set->linDevice().isEmpty()) {
         emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
         return false;
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
 
-    if (set->previous.isEmpty() == false) {
+    if (set->previous().isEmpty() == false) {
         emit message("QLinReadByID::settingsChanged: previous not empty");
-        auto prev = plugins()->findByObjectName(set->previous);
+        auto prev = plugins()->findByObjectName(set->previous());
         if (prev.isNull() == false) {
             emit message("QLinReadByID::settingsChanged: connecting previous");
             connect(prev.dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
         }
         else {
-            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous));
+            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous()));
         }
     }
 
     if (plugin.isNull() == true) {
-        emit message(QString("QLinReadByID::init lin device == nullptr").arg(set->linDevice));
+        emit message(QString("QLinReadByID::init lin device == nullptr").arg(set->linDevice()));
         return false;
     }
 
@@ -149,7 +149,7 @@ bool QLinReadByID::initialize() {
     connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinReadByID::dataReady);
     if (m_data.m_lin->isOpen() == false) {
         if (m_data.m_lin->open() == false) {
-            emit message(QString("QLinReadByID::init: failed to open lin device %1").arg(set->linDevice));
+            emit message(QString("QLinReadByID::init: failed to open lin device %1").arg(set->linDevice()));
             return false;
         }
     }
@@ -160,27 +160,27 @@ bool QLinReadByID::initialize() {
 
 void QLinReadByID::settingsChanged() {
     emit message("QLinReadByID::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::LinReadByIDSettings>();
-    *(set) = SettingsDialog::LinReadByIDSettings(Settings::get(), settingsPath());
-    m_data.m_ui->title->setText(set->title);
+    const auto set = settings<LinReadByIDSettings>();
+    *(set) = LinReadByIDSettings(Settings::get(), settingsPath());
+    m_data.m_ui->title->setText(set->title());
     disconnect(this, SLOT(previousSuccess(const QByteArray&)));
     disconnect(this, SLOT(dataReady(const QByteArray&)));
 
-    if (set->previous.isEmpty() == false) {
+    if (set->previous().isEmpty() == false) {
         emit message("QLinReadByID::settingsChanged: previous not empty");
-        auto prev = plugins()->findByObjectName(set->previous);
+        auto prev = plugins()->findByObjectName(set->previous());
         if (prev.isNull() == false) {
             emit message("QLinReadByID::settingsChanged: connecting previous");
             connect(prev.dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
         } else {
-            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous));
+            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous()));
         }
     }
 
-    auto plugin = plugins()->instance(set->linDevice, 0);
+    auto plugin = plugins()->instance(set->linDevice(), 0);
 
     if (plugin.isNull() == true) {
-        emit message(QString("QLinReadByID::init lin device == nullptr").arg(set->linDevice));
+        emit message(QString("QLinReadByID::init lin device == nullptr").arg(set->linDevice()));
         return;
     }
 
@@ -189,7 +189,7 @@ void QLinReadByID::settingsChanged() {
     connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinReadByID::dataReady);
     if (m_data.m_lin->isOpen() == false) {
         if (m_data.m_lin->open() == false) {
-            emit message(QString("QLinReadByID::init: failed to open lin device %1").arg(set->linDevice));
+            emit message(QString("QLinReadByID::init: failed to open lin device %1").arg(set->linDevice()));
             return;
         }
     }
@@ -307,7 +307,7 @@ bool QLinReadByID::processFirstFrame(const UDSfirstFrame* frame) {
         return false;
     }
 
-    auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    auto set = settings<LinReadByIDSettings>();
     m_data.m_remaining = static_cast<int>(frame->LEN) - 5;
 
     QString tmp = QString::number(frame->data[0], 16);
@@ -316,7 +316,7 @@ bool QLinReadByID::processFirstFrame(const UDSfirstFrame* frame) {
     tmp = QString::number(frame->data[1], 16);
     m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
     m_data.m_lin->write(QByteArray(1, 0x3d));
-    QThread::msleep(set->interval);
+    QThread::msleep(set->interval());
 
     return true;
 }
@@ -327,14 +327,14 @@ bool QLinReadByID::processConsecutiveFrame(const UDSconsecutiveFrame* frame) {
         return false;
     }
 
-    auto set = settings<SettingsDialog::LinReadByIDSettings>();
+    auto set = settings<LinReadByIDSettings>();
 
     if (m_data.m_remaining > 6) {
         for (int i = 0; i < 6; ++i) {
             const QString tmp = QString::number(frame->data[i], 16);
             m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
         }
-        QThread::msleep(set->interval);
+        QThread::msleep(set->interval());
         m_data.m_lin->write(QByteArray(1, 0x3d));
         m_data.m_remaining -= 6;
     } else {
@@ -440,16 +440,16 @@ void QLinReadByID::initial() {
 
 void QLinReadByID::startRead() {
     emit message("QLinReadByID::startRead()");
-    auto set = settings<SettingsDialog::LinReadByIDSettings>();
-    QByteArray data = QByteArray(1 + (set->frameData.size() - 2) / 2, 0);
+    auto set = settings<LinReadByIDSettings>();
+    QByteArray data = QByteArray(1 + (set->frameData().size() - 2) / 2, 0);
     quint32 value;
     
     inprogress();
     m_data.m_state = QLinReadByIDState::READ;
     m_data.m_result.clear();
 
-    for (int i = 2; i < set->frameData.size(); i += 2) {
-        QString tmp = set->frameData.mid(i, 2);
+    for (int i = 2; i < set->frameData().size(); i += 2) {
+        QString tmp = set->frameData().mid(i, 2);
         value = tmp.toUInt(nullptr, 16);
         data[1 + i / 2 - 1] = value;
     }
@@ -462,7 +462,7 @@ void QLinReadByID::startRead() {
         return;
     }
     memcpy(&m_data.m_frame, data.constData()+1, sizeof(m_data.m_frame));
-    QThread::msleep(set->interval);
+    QThread::msleep(set->interval());
     data = QByteArray(1, 0);
     data[0] = QString("0x3d").toUInt(nullptr, 16);
     if(m_data.m_lin->write(data) == -1) {
@@ -488,8 +488,8 @@ void QLinReadByID::linOpened() {
 
 void QLinReadByID::readById(bool checked) {
     emit message("QLinReadByID::readById(bool checked)");
-    const auto set = settings<SettingsDialog::LinReadByIDSettings>();
-    m_data.m_try = set->tries;
+    const auto set = settings<LinReadByIDSettings>();
+    m_data.m_try = set->tries();
     m_data.m_startTime = QDateTime::currentMSecsSinceEpoch();
     startRead();
 }

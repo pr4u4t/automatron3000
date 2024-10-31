@@ -13,6 +13,7 @@
 #include <QCoreApplication>
 #include "api_global.h"
 
+#include <QStack>
 #include <QGuiApplication>
 #include <QApplication>
 #include "window.h"
@@ -23,13 +24,16 @@ class PluginsLoader;
 class SettingsMdi;
 
 struct API_EXPORT PluginSettings {
-
+	
+	Q_GADGET
+	Q_PROPERTY(QString objectName READ objectName WRITE setObjectName)
 public:
 
 	PluginSettings() = default;
 
 	PluginSettings(const QSettings& settings, const QString& settingsPath)
 		: m_objectName(settings.value(settingsPath + "/objectName").toString()) {
+		registerMetaObject(&staticMetaObject);
 	}
 
 	virtual void save(QSettings& settings, const QString& settingsPath) const {
@@ -38,7 +42,30 @@ public:
 
 	virtual ~PluginSettings() = default;
 
+	void setObjectName(const QString& objectName) {
+		m_objectName = objectName;
+	}
+
+	QString objectName() const {
+		return m_objectName;
+	}
+
+	const QStack<const QMetaObject*>& metaStack() const {
+		return m_metaStack;
+	}
+
+protected:
+
+	void registerMetaObject(const QMetaObject* o) {
+		if (!m_metaStack.contains(o)) {
+			m_metaStack.push(o);
+		}
+	}
+
+private:
+
 	QString m_objectName;
+	QStack<const QMetaObject*> m_metaStack;
 };
 
 struct PluginPrivate {
@@ -102,12 +129,6 @@ public:
 
 	virtual bool deinitialize() = 0;
 
-protected:
-
-	PluginsLoader* plugins() const;
-
-	Loader* loader() const;
-
 	template<typename T>
 	T* settings() const {
 		return dynamic_cast<T*>(m_d.m_settings);
@@ -117,6 +138,12 @@ protected:
 	PluginSettings* settings() const {
 		return m_d.m_settings;
 	}
+
+protected:
+
+	PluginsLoader* plugins() const;
+
+	Loader* loader() const;
 
 	//void updateSettings(const PluginSettings& settings);
 

@@ -15,6 +15,7 @@
 #include "Session.h"
 #include "../api/api.h"
 #include "Splash.h"
+#include "WebServer.h"
 
 int main(int argc, char *argv[]){
     Settings::setConfigurationPath(Main::configurationPath());
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]){
     splash.setProgress(80);
     mainWin.setPlugins(&ld);
 
-    splash << "restoting session...";
+    splash << "restoring session...";
     session.restore();
     splash.setProgress(90);
 
@@ -69,6 +70,9 @@ int main(int argc, char *argv[]){
     tray.show();
 
     QObject::connect(&mainWin, SIGNAL(aboutToQuit(const MainWindowQuit&)), &session, SLOT(aboutToQuit(const MainWindowQuit&)));
+
+    WebServer server(&ld);
+    server.start();
 
     return app.exec();
 }

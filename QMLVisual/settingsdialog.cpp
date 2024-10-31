@@ -27,7 +27,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
 SettingsDialog::~SettingsDialog() {}
 
-SettingsDialog::MLVisualSettings SettingsDialog::visualSettings() const {
+MLVisualSettings SettingsDialog::visualSettings() const {
     return m_currentSettings;
 }
 
@@ -38,15 +38,15 @@ QString SettingsDialog::settingsPath() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->viewPathEdit->setText(m_currentSettings.viewerPath);
-    m_ui->searchPathEdit->setText(m_currentSettings.searchPath);
+    m_ui->viewPathEdit->setText(m_currentSettings.viewerPath());
+    m_ui->searchPathEdit->setText(m_currentSettings.searchPath());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.viewerPath = m_ui->viewPathEdit->text();
-    m_currentSettings.searchPath = m_ui->searchPathEdit->text();
+    m_currentSettings.setViewerPath(m_ui->viewPathEdit->text());
+    m_currentSettings.setSearchPath(m_ui->searchPathEdit->text());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

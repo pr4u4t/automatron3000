@@ -43,7 +43,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
 SettingsDialog::~SettingsDialog() {}
 
-SettingsDialog::QJTAGSettings SettingsDialog::dataSettings() const {
+QJTAGSettings SettingsDialog::dataSettings() const {
     return m_currentSettings;
 }
 
@@ -54,23 +54,23 @@ QString SettingsDialog::settingsPath() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->programPathEdit->setText(m_currentSettings.programPath);
-    m_ui->buttonLabelEdit->setText(m_currentSettings.buttonLabel);
-    m_ui->titleEdit->setText(m_currentSettings.title);
-    m_ui->triesEdit->setValue(m_currentSettings.tries);
-    m_ui->previousEdit->setText(m_currentSettings.previous);
-    fillModel(m_currentSettings.arguments);
+    m_ui->programPathEdit->setText(m_currentSettings.programPath());
+    m_ui->buttonLabelEdit->setText(m_currentSettings.buttonLabel());
+    m_ui->titleEdit->setText(m_currentSettings.title());
+    m_ui->triesEdit->setValue(m_currentSettings.tries());
+    m_ui->previousEdit->setText(m_currentSettings.previous());
+    fillModel(m_currentSettings.arguments());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.programPath = m_ui->programPathEdit->text();
-    m_currentSettings.buttonLabel = m_ui->buttonLabelEdit->text();
-    m_currentSettings.title = m_ui->titleEdit->text();
-    m_currentSettings.arguments = arguments<QJsonArray>(m_model);
-    m_currentSettings.tries = m_ui->triesEdit->value();
-    m_currentSettings.previous = m_ui->previousEdit->text();
+    m_currentSettings.setProgramPath(m_ui->programPathEdit->text());
+    m_currentSettings.setButtonLabel(m_ui->buttonLabelEdit->text());
+    m_currentSettings.setTitle(m_ui->titleEdit->text());
+    m_currentSettings.setArguments(arguments<QJsonArray>(m_model));
+    m_currentSettings.setTries(m_ui->triesEdit->value());
+    m_currentSettings.setPrevious(m_ui->previousEdit->text());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

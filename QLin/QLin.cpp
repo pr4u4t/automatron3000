@@ -214,17 +214,17 @@ REGISTER_PLUGIN(
 )
 
 QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: IODevice(ld, plugins, parent, path, new SettingsDialog::LinSettings(Settings::get(), path))
+	: IODevice(ld, plugins, parent, path, new LinSettings(Settings::get(), path))
 	, m_open(false)
-	, m_lin(new CLin(settings<SettingsDialog::LinSettings>())) {
+	, m_lin(new CLin(settings<LinSettings>())) {
 	connect(m_lin, &CLin::message, this, &QLin::message);
 	connect(m_lin, &CLin::dataReady, this, &QLin::dataReady);
 	connect(m_lin, &CLin::error, this, &QLin::error);
 }
 
 bool QLin::initialize() {
-	const auto set = settings<SettingsDialog::LinSettings>();
-	*set = SettingsDialog::LinSettings(Settings::get(), settingsPath());
+	const auto set = settings<LinSettings>();
+	*set = LinSettings(Settings::get(), settingsPath());
 	return true;
 }
 
@@ -234,14 +234,14 @@ bool QLin::deinitialize() {
 
 void QLin::settingsChanged() {
 	emit message("QLin::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-	const auto set = settings<SettingsDialog::LinSettings>();
-	*set = SettingsDialog::LinSettings(Settings::get(), settingsPath());
+	const auto set = settings<LinSettings>();
+	*set = LinSettings(Settings::get(), settingsPath());
 	close();
 	open(QString());
 }
 
 int QLin::slaveID() const {
-	return settings<SettingsDialog::LinSettings>()->slaveID;
+	return settings<LinSettings>()->slaveID();
 }
 
 bool QLin::open(const QString& url) {
@@ -301,7 +301,7 @@ qint64 QLin::write(const QString& data) {
 		return -1;
 	}
 
-	if (settings<SettingsDialog::LinSettings>()->mode == SettingsDialog::LinSettings::Mode::SLAVE) {
+	if (settings<LinSettings>()->mode() == LinSettings::Mode::SLAVE) {
 		emit message("QLin::write(): SLAVE mode cannot send", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}
@@ -354,7 +354,7 @@ qint64 QLin::write(const QByteArray& data) {
 		return -1;
 	}
 
-	if (settings<SettingsDialog::LinSettings>()->mode == SettingsDialog::LinSettings::Mode::SLAVE) {
+	if (settings<LinSettings>()->mode() == LinSettings::Mode::SLAVE) {
 		emit message("QLin::write(): not in master mode write unavailable", LoggerSeverity::LOG_ERROR);
 		return -1;
 	}

@@ -100,7 +100,7 @@ QMLVisual::QMLVisual(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
         plugins,
         parent,
         sPath,
-        new SettingsDialog::MLVisualSettings() // Settings::get(), sPath)
+        new MLVisualSettings() // Settings::get(), sPath)
     ),
     m_viewer(new QQuickWidget(this)){
     setLayout(new QVBoxLayout());
@@ -137,10 +137,10 @@ bool QMLVisual::deinitialize() {
 
 void QMLVisual::settingsChanged() {
     emit message("QMLVisual::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::MLVisualSettings>();
-    *set = SettingsDialog::MLVisualSettings(Settings::get(), settingsPath());
+    const auto set = settings<MLVisualSettings>();
+    *set = MLVisualSettings(Settings::get(), settingsPath());
 
-    m_viewer->setSource(QUrl::fromLocalFile(set->viewerPath));
+    m_viewer->setSource(QUrl::fromLocalFile(set->viewerPath()));
     m_viewer->setResizeMode(QQuickWidget::SizeRootObjectToView);
 
     const auto err = m_viewer->errors();

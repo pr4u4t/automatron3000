@@ -5,7 +5,7 @@
 bool CLin::m_driverOpen = false;
 
 
-CLin::CLin(const SettingsDialog::LinSettings* settings)
+CLin::CLin(const LinSettings* settings)
 	: m_xlPortHandle(XL_INVALID_PORTHANDLE)
 	, m_xlChannelMask(0)
 	, m_settings(settings)
@@ -37,12 +37,12 @@ XLstatus CLin::LINOpen() {
 	);
 
 
-	if (LINFindDevice(m_settings->hwChannel) == false) {
-		emit message(QString("CLin::LINOpen(): device %1 serial %2 not found").arg(m_settings->hwChannel.name).arg(m_settings->hwChannel.serialNumber), LoggerSeverity::LOG_ERROR);
+	if (LINFindDevice(m_settings->hwChannel()) == false) {
+		emit message(QString("CLin::LINOpen(): device %1 serial %2 not found").arg(m_settings->hwChannel().name).arg(m_settings->hwChannel().serialNumber), LoggerSeverity::LOG_ERROR);
 		return ret;
 	}
 
-	if ((ret = LINGetChannelMask(m_settings->appName, m_settings->hwChannel, &xlChannelMask)) != XL_SUCCESS) {
+	if ((ret = LINGetChannelMask(m_settings->appName(), m_settings->hwChannel(), &xlChannelMask)) != XL_SUCCESS) {
 		emit message("CLin::LINOpen(): failed to get channel mask", LoggerSeverity::LOG_ERROR);
 		return ret;
 	}
@@ -52,10 +52,10 @@ XLstatus CLin::LINOpen() {
 
 	ret = xlOpenPort(
 		&m_xlPortHandle, 
-		m_settings->appName.toLocal8Bit().data(), 
+		m_settings->appName().toLocal8Bit().data(),
 		xlChannelMask, 
 		&xlPermissionMask, 
-		m_settings->queueSize, 
+		m_settings->queueSize(),
 		XL_INTERFACE_VERSION, 
 		XL_BUS_TYPE_LIN
 	);
@@ -82,7 +82,7 @@ XLstatus CLin::LINOpen() {
 
 	//xlResetClock(m_xlPortHandle);
 
-	if (m_settings->mode != SettingsDialog::LinSettings::Mode::SLAVE) {
+	if (m_settings->mode() != LinSettings::Mode::SLAVE) {
 		if ((ret = linInitMaster()) != XL_SUCCESS) {
 			emit message("CLin::LINInit(): init master failed", LoggerSeverity::LOG_ERROR);
 			return ret;
@@ -115,7 +115,7 @@ XLstatus CLin::linSetSlave(int linID, const unsigned char* data, size_t size) {
 	memcpy(sdata, m_data, 8);
 	memcpy(sdata, data, size);
 
-	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask, (unsigned char)linID, sdata, m_settings->dlc[linID], m_settings->checksumMethod);
+	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask, (unsigned char)linID, sdata, m_settings->dlc()[linID], m_settings->checksumMethod());
 	sprintf_s(tmp, sizeof(tmp), "Set Slave ID CM: '0x%I64x', status: %d", m_xlChannelMask, xlStatus);
 	emit message(tmp);
 
@@ -127,7 +127,7 @@ XLstatus CLin::LINSendMasterReq(unsigned int linID, const unsigned char* data, s
 
 	//ret = xlLinWakeUp(m_xlPortHandle, m_xlChannelMask[MASTER]);
 
-	ret = linSetSlave(m_settings->slaveID, data, size);
+	ret = linSetSlave(m_settings->slaveID(), data, size);
 
 	//send the master request
 	if ((ret = xlLinSendRequest(m_xlPortHandle, m_xlChannelMask, (unsigned char)linID, 0)) != XL_SUCCESS) {
@@ -191,8 +191,8 @@ XLstatus CLin::linInitMaster() {
 
 	XLlinStatPar xlStatPar = {0};
 	xlStatPar.LINMode = XL_LIN_MASTER;
-	xlStatPar.baudrate = m_settings->baudrate;
-	xlStatPar.LINVersion = m_settings->linVersion;
+	xlStatPar.baudrate = m_settings->baudrate();
+	xlStatPar.LINVersion = m_settings->linVersion();
 
 	ret = xlLinSetChannelParams(m_xlPortHandle, m_xlChannelMask, xlStatPar);
 
@@ -213,7 +213,7 @@ XLstatus CLin::linInitMaster() {
 
 	// set the DLC for all ID's to DEFAULT_LIN_DLC
 	for (int i = 0; i < 64; i++) {
-		DLC[i] = m_settings->dlc[i];
+		DLC[i] = m_settings->dlc()[i];
 	}
 
 	ret = xlLinSetDLC(m_xlPortHandle, m_xlChannelMask, DLC);
@@ -231,22 +231,22 @@ XLstatus CLin::linInitMaster() {
 	// Setup the channel as a SLAVE also
 	// ---------------------------------------
 
-	if (m_settings->mode == SettingsDialog::LinSettings::Mode::MASTER_WITH_SLAVE) {
+	if (m_settings->mode() == LinSettings::Mode::MASTER_WITH_SLAVE) {
 		memset(m_data, 0, 8);
-		memcpy(m_data, m_settings->initialData.constData(), m_settings->initialData.size());
+		memcpy(m_data, m_settings->initialData().constData(), m_settings->initialData().size());
 
 
 		ret = xlLinSetSlave(
 			m_xlPortHandle,
 			m_xlChannelMask,
-			m_settings->slaveID,
+			m_settings->slaveID(),
 			m_data,
-			m_settings->slaveDLC,
-			m_settings->checksumMethod
+			m_settings->slaveDLC(),
+			m_settings->checksumMethod()
 		);
 
 		emit message(QString("CLin::linInitMaster(): xlLinSetSlave set slave id:%1, CM: %2, status: %3")
-			.arg(m_settings->slaveID)
+			.arg(m_settings->slaveID())
 			.arg(m_xlChannelMask)
 			.arg(ret)
 		);
@@ -254,7 +254,7 @@ XLstatus CLin::linInitMaster() {
 		ret = xlLinSwitchSlave(
 			m_xlPortHandle,
 			m_xlChannelMask,
-			m_settings->slaveID,
+			m_settings->slaveID(),
 			XL_LIN_SLAVE_ON
 		);
 
@@ -266,7 +266,7 @@ XLstatus CLin::linInitMaster() {
 		ret = xlLinSwitchSlave(
 			m_xlPortHandle,
 			m_xlChannelMask,
-			m_settings->slaveID,
+			m_settings->slaveID(),
 			XL_LIN_SLAVE_OFF
 		);
 
@@ -310,8 +310,8 @@ XLstatus CLin::linInitSlave() {
 	XLlinStatPar     xlStatPar;
 
 	xlStatPar.LINMode = XL_LIN_SLAVE;
-	xlStatPar.baudrate = m_settings->baudrate;
-	xlStatPar.LINVersion = m_settings->linVersion;		
+	xlStatPar.baudrate = m_settings->baudrate();
+	xlStatPar.LINVersion = m_settings->linVersion();		
 
 
 	xlStatus = xlLinSetChannelParams(m_xlPortHandle, m_xlChannelMask, xlStatPar);
@@ -330,7 +330,7 @@ XLstatus CLin::linInitSlave() {
 
 	// set the DLC for all ID's to DEFAULT_LIN_DLC
 	for (int i = 0; i < 64; i++) {
-		DLC[i] = m_settings->dlc[i];
+		DLC[i] = m_settings->dlc()[i];
 	}
 
 	xlStatus = xlLinSetDLC(m_xlPortHandle, m_xlChannelMask, DLC);
@@ -347,10 +347,10 @@ XLstatus CLin::linInitSlave() {
 	// ---------------------------------------
 
 	memset(data, 0, 8);
-	memcpy(m_data, m_settings->initialData.constData(), m_settings->initialData.size());
+	memcpy(m_data, m_settings->initialData().constData(), m_settings->initialData().size());
 
-	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask, m_settings->slaveID, data, m_settings->slaveDLC, m_settings->checksumMethod);
-	sprintf_s(tmp, sizeof(tmp), "Set Slave id:%d, CM: '0x%I64x', status: %d\n", m_settings->slaveID, m_xlChannelMask, xlStatus);
+	xlStatus = xlLinSetSlave(m_xlPortHandle, m_xlChannelMask, m_settings->slaveID(), data, m_settings->slaveDLC(), m_settings->checksumMethod());
+	sprintf_s(tmp, sizeof(tmp), "Set Slave id:%d, CM: '0x%I64x', status: %d\n", m_settings->slaveID(), m_xlChannelMask, xlStatus);
 	emit message(tmp);
 
 	if (xlStatus != XL_SUCCESS) {
@@ -378,7 +378,7 @@ XLstatus CLin::linInitSlave() {
 	xlStatus = xlLinSwitchSlave(
 		m_xlPortHandle,
 		m_xlChannelMask,
-		m_settings->slaveID,
+		m_settings->slaveID(),
 		XL_LIN_SLAVE_ON
 	);
 

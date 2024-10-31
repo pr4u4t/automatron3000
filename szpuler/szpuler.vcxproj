@@ -38,7 +38,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.6.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;widgets;core5compat;help;webenginecore;webenginewidgets</QtModules>
+    <QtModules>core;gui;widgets;core5compat;help;webenginecore;webenginewidgets;httpserver</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -146,6 +146,8 @@
     <QtRcc Include="szpuler.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Service.h" />
+    <QtMoc Include="WebServer.h" />
     <QtMoc Include="Splash.h" />
     <QtMoc Include="Preferences.h" />
     <QtMoc Include="PreferencePage.h" />

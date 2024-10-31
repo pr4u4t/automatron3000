@@ -97,7 +97,7 @@ QJTAG::QJTAG(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
         plugins, 
         parent, 
         settingsPath, 
-        new SettingsDialog::QJTAGSettings(Settings::get(), settingsPath)
+        new QJTAGSettings(Settings::get(), settingsPath)
     )
     , m_data(new Ui::QJTAGUI) {
     m_data.m_ui->setupUi(this);
@@ -128,16 +128,16 @@ bool QJTAG::saveSettings() {
 
 void QJTAG::settingsChanged() {
     emit message("QJTAG::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::QJTAGSettings>();
-    *set = SettingsDialog::QJTAGSettings(Settings::get(), settingsPath());
+    const auto set = settings<QJTAGSettings>();
+    *set = QJTAGSettings(Settings::get(), settingsPath());
 
-    m_data.m_ui->execButton->setText(set->buttonLabel);
-    m_data.m_ui->title->setText(set->title);
+    m_data.m_ui->execButton->setText(set->buttonLabel());
+    m_data.m_ui->title->setText(set->title());
 
     m_data.m_arguments = set->processArguments();
     disconnect(this, SLOT(previousSuccess(const QByteArray&)));
-    if (set->previous.isEmpty() == false) {
-        connect(plugins()->findByObjectName(set->previous).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+    if (set->previous().isEmpty() == false) {
+        connect(plugins()->findByObjectName(set->previous()).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
     }
 }
 
@@ -158,14 +158,14 @@ void QJTAG::command(bool checked) {
 
 QVariant QJTAG::exec() {
     
-    const auto set = settings<SettingsDialog::QJTAGSettings>();
-    if (set->programPath.isEmpty()) {
+    const auto set = settings<QJTAGSettings>();
+    if (set->programPath().isEmpty()) {
         emit message("QJTAG::exec: JTAG program path not set");
         failed();
         return QVariant();
     }
 
-    if (QFile::exists(set->programPath) == false) {
+    if (QFile::exists(set->programPath()) == false) {
         emit message("specified executable does not exist");
         failed();
         return QVariant();
@@ -173,7 +173,7 @@ QVariant QJTAG::exec() {
 
     m_data.m_ui->execButton->setEnabled(false);
     inprogress();
-    m_data.m_process.start(set->programPath, set->processArguments());
+    m_data.m_process.start(set->programPath(), set->processArguments());
 
     return QVariant();
 }
@@ -182,11 +182,11 @@ void QJTAG::errorOccurred(QProcess::ProcessError error) {
     emit message("QJTAG::errorOccurred(QProcess::ProcessError error)");
     emit message("QJTAG::errorOccurred: "+errorString(error));
 
-    const auto set = settings<SettingsDialog::QJTAGSettings>();
+    const auto set = settings<QJTAGSettings>();
 
     if (error == QProcess::FailedToStart) {
         ++m_data.m_try;
-        if (m_data.m_try < set->tries) {
+        if (m_data.m_try < set->tries()) {
             exec();
             return;
         }
@@ -195,7 +195,7 @@ void QJTAG::errorOccurred(QProcess::ProcessError error) {
 }
 
 void QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus) {
-    const auto set = settings<SettingsDialog::QJTAGSettings>();
+    const auto set = settings<QJTAGSettings>();
 
     emit message("QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus)");
     emit message(QString("QJTAG::finished: %1 %2").arg(exitCode).arg(exitStatusString(exitStatus)));
@@ -207,7 +207,7 @@ void QJTAG::finished(int exitCode, QProcess::ExitStatus exitStatus) {
         break;
     default:
         ++m_data.m_try;
-        if (m_data.m_try < set->tries) {
+        if (m_data.m_try < set->tries()) {
             exec();
             return;
         }

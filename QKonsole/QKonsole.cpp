@@ -82,7 +82,7 @@ QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
         plugins, 
         parent, 
         path, 
-        new SettingsDialog::KonsoleSettings() //Settings::get(), path)
+        new KonsoleSettings() //Settings::get(), path)
     )
     , m_terminal(new QTerminal(this, tr("<b>Welcome to serial (rs-232) terminal</b>"))) {
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
@@ -127,6 +127,6 @@ void QKonsole::enterPressed(const QString& command) {
 }
 
 void QKonsole::settingsChanged() {
-    *(settings<SettingsDialog::KonsoleSettings>()) = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
-    m_terminal->setPrompt(settings<SettingsDialog::KonsoleSettings>()->prompt); //setLocalEchoEnabled(m_settings.localEcho);
+    *(settings<KonsoleSettings>()) = KonsoleSettings(Settings::get(), settingsPath());
+    m_terminal->setPrompt(settings<KonsoleSettings>()->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
 }

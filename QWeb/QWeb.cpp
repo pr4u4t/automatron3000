@@ -101,7 +101,7 @@ QWeb::QWeb(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& s
         plugins,
         parent,
         sPath,
-        new SettingsDialog::WebSettings() // Settings::get(), sPath)
+        new WebSettings() // Settings::get(), sPath)
     )
     , m_ui(new Ui::QWebUI) {
     m_ui->setupUi(this);
@@ -138,9 +138,9 @@ bool QWeb::deinitialize() {
 
 void QWeb::settingsChanged() {
     emit message("QWeb::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::WebSettings>();
-    *set = SettingsDialog::WebSettings(Settings::get(), settingsPath());
-    m_ui->webView->setUrl(QUrl(set->url));
+    const auto set = settings<WebSettings>();
+    *set = WebSettings(Settings::get(), settingsPath());
+    m_ui->webView->setUrl(QUrl(set->url()));
 }
 
 SettingsMdi* QWeb::settingsWindow() const {

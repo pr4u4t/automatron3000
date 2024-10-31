@@ -100,7 +100,7 @@ QCustomAction::QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent
         plugins,
         parent,
         sPath,
-        new SettingsDialog::CustomActionSettings() //Settings::get(), sPath)
+        new CustomActionSettings() //Settings::get(), sPath)
     )
     , m_ui(new Ui::QCustomActionUI) {
     m_ui->setupUi(this);
@@ -129,13 +129,13 @@ QCustomAction::~QCustomAction() {
 
 void QCustomAction::settingsChanged() {
     emit message("QCustomAction::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::CustomActionSettings>();
-    *set = SettingsDialog::CustomActionSettings(Settings::get(), settingsPath());
+    const auto set = settings<CustomActionSettings>();
+    *set = CustomActionSettings(Settings::get(), settingsPath());
 
-    m_ui->pushButton->setText(set->buttonText);
-    m_ui->title->setText(set->title);
-    m_ui->progressBar->setHidden(!set->progress);
-    m_ui->textEdit->setHidden(!set->verbose);
+    m_ui->pushButton->setText(set->buttonText());
+    m_ui->title->setText(set->title());
+    m_ui->progressBar->setHidden(!set->progress());
+    m_ui->textEdit->setHidden(!set->verbose());
 }
 
 SettingsMdi* QCustomAction::settingsWindow() const {
@@ -145,7 +145,7 @@ SettingsMdi* QCustomAction::settingsWindow() const {
 }
 
 void QCustomAction::execClicked(bool checked) {
-    const auto set = settings<SettingsDialog::CustomActionSettings>();
+    const auto set = settings<CustomActionSettings>();
     QStringList jobs = set->jobList();
 
     m_ui->progressBar->setMaximum(jobs.size());
@@ -164,7 +164,7 @@ void QCustomAction::execClicked(bool checked) {
         emit message(QString("QCustomAction::execClicked: %1::%2: status: %3").arg(jobs[i]).arg(jobs[i+1]).arg(retVal));
         m_ui->progressBar->setValue(i+2);
         jobMessage(QString("Progress.............%1").arg(m_ui->progressBar->text()));
-        QCoreApplication::processEvents(QEventLoop::AllEvents, set->interval);
+        QCoreApplication::processEvents(QEventLoop::AllEvents, set->interval());
     }
 
     //m_ui->progressBar->setValue(m_ui->progressBar->maximum());

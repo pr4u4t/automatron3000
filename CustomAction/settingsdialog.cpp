@@ -39,7 +39,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 
 SettingsDialog::~SettingsDialog() {}
 
-SettingsDialog::CustomActionSettings SettingsDialog::dataSettings() const {
+CustomActionSettings SettingsDialog::dataSettings() const {
     return m_currentSettings;
 }
 
@@ -50,13 +50,13 @@ QString SettingsDialog::settingsPath() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->buttonEdit->setText(m_currentSettings.buttonText);
-    m_ui->titleEdit->setText(m_currentSettings.title);
-    m_ui->verboseCheckbox->setChecked(m_currentSettings.verbose);
-    m_ui->progressCheckbox->setChecked(m_currentSettings.progress);
-    m_ui->intervalSpin->setValue(m_currentSettings.interval);
+    m_ui->buttonEdit->setText(m_currentSettings.buttonText());
+    m_ui->titleEdit->setText(m_currentSettings.title());
+    m_ui->verboseCheckbox->setChecked(m_currentSettings.verbose());
+    m_ui->progressCheckbox->setChecked(m_currentSettings.progress());
+    m_ui->intervalSpin->setValue(m_currentSettings.interval());
 
-    fillModel(m_currentSettings.pluginsActions);
+    fillModel(m_currentSettings.pluginsActions());
 }
 
 void SettingsDialog::customMenuRequested(QPoint point) {
@@ -143,12 +143,12 @@ void SettingsDialog::removeArgument() {
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.buttonText = m_ui->buttonEdit->text();
-    m_currentSettings.title = m_ui->titleEdit->text();
-    m_currentSettings.pluginsActions = actions<QJsonArray>(m_model);
-    m_currentSettings.verbose = m_ui->verboseCheckbox->isChecked();
-    m_currentSettings.progress = m_ui->progressCheckbox->isChecked();
-    m_currentSettings.interval = m_ui->intervalSpin->value();
+    m_currentSettings.setButtonText(m_ui->buttonEdit->text());
+    m_currentSettings.setTitle(m_ui->titleEdit->text());
+    m_currentSettings.setPluginsActions(actions<QJsonArray>(m_model));
+    m_currentSettings.setVerbose(m_ui->verboseCheckbox->isChecked());
+    m_currentSettings.setProgress(m_ui->progressCheckbox->isChecked());
+    m_currentSettings.setInterval(m_ui->intervalSpin->value());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

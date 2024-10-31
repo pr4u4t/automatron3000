@@ -101,7 +101,7 @@ QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStrin
         plugins, 
         parent, 
         sPath, 
-        new SettingsDialog::BadgeSettings() // Settings::get(), sPath)
+        new BadgeSettings() // Settings::get(), sPath)
     )
     , m_ui(new Ui::QBadgeUI) {
     m_ui->setupUi(this);
@@ -138,14 +138,14 @@ bool QBadge::deinitialize() {
 
 void QBadge::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::BadgeSettings>();
-    *set = SettingsDialog::BadgeSettings(Settings::get(), settingsPath());
+    const auto set = settings<BadgeSettings>();
+    *set = BadgeSettings(Settings::get(), settingsPath());
 
-    m_ui->label->setText(set->text);
-    m_ui->title->setText(set->title);
+    m_ui->label->setText(set->text());
+    m_ui->title->setText(set->title());
 
     QPixmap pix;
-    if (set->imagePath.isEmpty() == false && pix.load(set->imagePath)) {
+    if (set->imagePath().isEmpty() == false && pix.load(set->imagePath())) {
         m_ui->image->setPixmap(pix);
     }
 }

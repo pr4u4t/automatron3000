@@ -101,7 +101,7 @@ QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
         plugins, 
         parent, 
         path, 
-        new SettingsDialog::CircularBarSettings() //Settings::get(), path)
+        new CircularBarSettings() //Settings::get(), path)
     )
     , m_lcd(new QLCDNumber(this)){
 }
@@ -172,16 +172,16 @@ bool QCircularBar::deinitialize() {
 
 void QCircularBar::settingsChanged() {
     emit message("QCircularBar::settingsChanged()", LoggerSeverity::LOG_DEBUG);
-    const auto set = settings<SettingsDialog::CircularBarSettings>();
-    *set = SettingsDialog::CircularBarSettings(Settings::get(), settingsPath());
+    const auto set = settings<CircularBarSettings>();
+    *set = CircularBarSettings(Settings::get(), settingsPath());
 
-    setMinValue(set->minValue);
-    setMaxValue(set->maxValue);
-    setThreshold(set->threshold);
-    setPrecision(set->precision);
-    setLabel(set->label);
-    setUnits(set->units);
-    setSteps(set->steps);
+    setMinValue(set->minValue());
+    setMaxValue(set->maxValue());
+    setThreshold(set->threshold());
+    setPrecision(set->precision());
+    setLabel(set->label());
+    setUnits(set->units());
+    setSteps(set->steps());
 
     update();
 }

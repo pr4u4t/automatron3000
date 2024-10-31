@@ -77,9 +77,9 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     m_sdlcModel->setHeaderData(0, Qt::Horizontal, tr("Size"));
     m_ui->DLC->setMinimumHeight(m_ui->slaveInitialData->verticalHeader()->sectionSize(0) * 65);
 
-    m_ui->modeGroup->setId(m_ui->masterCheck, SettingsDialog::LinSettings::Mode::MASTER);
-    m_ui->modeGroup->setId(m_ui->slaveCheck, SettingsDialog::LinSettings::Mode::SLAVE);
-    m_ui->modeGroup->setId(m_ui->masterNslave, SettingsDialog::LinSettings::Mode::MASTER_WITH_SLAVE);
+    m_ui->modeGroup->setId(m_ui->masterCheck, LinSettings::Mode::MASTER);
+    m_ui->modeGroup->setId(m_ui->slaveCheck, LinSettings::Mode::SLAVE);
+    m_ui->modeGroup->setId(m_ui->masterNslave, LinSettings::Mode::MASTER_WITH_SLAVE);
 
     m_ui->checksumMethod->model()->setData(m_ui->checksumMethod->model()->index(0, 0), XL_LIN_CALC_CHECKSUM, Qt::ItemDataRole::UserRole);
     m_ui->checksumMethod->model()->setData(m_ui->checksumMethod->model()->index(1, 0), XL_LIN_CALC_CHECKSUM_ENHANCED, Qt::ItemDataRole::UserRole);
@@ -101,14 +101,14 @@ SettingsDialog::~SettingsDialog() {
     delete m_ui;
 }
 
-SettingsDialog::LinSettings SettingsDialog::linSettings() const {
+LinSettings SettingsDialog::linSettings() const {
     emit message("SettingsDialog::settings", LoggerSeverity::LOG_DEBUG);
     return m_currentSettings;
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings", LoggerSeverity::LOG_DEBUG);
-    switch (m_currentSettings.linVersion) {
+    switch (m_currentSettings.linVersion()) {
         case XL_LIN_VERSION_1_3:
             m_ui->linVersion->setCurrentIndex(m_ui->linVersion->findText("1.3"));
             break;
@@ -122,29 +122,29 @@ void SettingsDialog::fillFromSettings() {
             break;
     }
 
-    m_ui->modeGroup->button(m_currentSettings.mode)->setChecked(true);
+    m_ui->modeGroup->button(m_currentSettings.mode())->setChecked(true);
 
-    m_ui->slaveID->setValue(m_currentSettings.slaveID);
-    m_ui->autoConnect->setChecked(m_currentSettings.autoConnect);
-    m_ui->baudrate->setValue(m_currentSettings.baudrate);
+    m_ui->slaveID->setValue(m_currentSettings.slaveID());
+    m_ui->autoConnect->setChecked(m_currentSettings.autoConnect());
+    m_ui->baudrate->setValue(m_currentSettings.baudrate());
 
-    for (qsizetype it = 0, end = m_currentSettings.initialData.size(); it < end; ++it) {
-         m_model->setData(m_model->index(it, 0),"0x"+QString().setNum(static_cast<unsigned char>(m_currentSettings.initialData.at(it)), 16));
+    for (qsizetype it = 0, end = m_currentSettings.initialData().size(); it < end; ++it) {
+         m_model->setData(m_model->index(it, 0),"0x"+QString().setNum(static_cast<unsigned char>(m_currentSettings.initialData().at(it)), 16));
     }
 
-    for (qsizetype it = 0, end = m_currentSettings.dlc.size(); it < end; ++it) {
-        m_sdlcModel->setData(m_sdlcModel->index(it, 0), QString::number(m_currentSettings.dlc.at(it)));
+    for (qsizetype it = 0, end = m_currentSettings.dlc().size(); it < end; ++it) {
+        m_sdlcModel->setData(m_sdlcModel->index(it, 0), QString::number(m_currentSettings.dlc().at(it)));
     }
 
-    m_ui->configName->setText(m_currentSettings.appName);
-    m_ui->SlaveDLC->setValue(m_currentSettings.slaveDLC);
+    m_ui->configName->setText(m_currentSettings.appName());
+    m_ui->SlaveDLC->setValue(m_currentSettings.slaveDLC());
     QList<XLchannelConfig> channels = CLin::LINGetDevices();
 
     if (channels.size() == 0) {
         emit message("SettingsDialog::fillFromSettings: no LIN channels found");
     }
 
-    if (CLin::LINFindDevice(m_currentSettings.hwChannel) == false) {
+    if (CLin::LINFindDevice(m_currentSettings.hwChannel()) == false) {
         emit message("SettingsDialog::fillFromSettings: ****************************************************************", LoggerSeverity::LOG_WARNING);
         emit message("SettingsDialog::fillFromSettings: Platform configuration changed please update you settings", LoggerSeverity::LOG_WARNING);
         emit message("SettingsDialog::fillFromSettings: and save before proceeding", LoggerSeverity::LOG_WARNING);
@@ -154,13 +154,13 @@ void SettingsDialog::fillFromSettings() {
     int i = 0;
     for (auto it = channels.begin(), end = channels.end(); it != end; ++it) {
         m_ui->channelCombo->addItem(QString("%1 serial: %2").arg((*it).name).arg((*it).serialNumber), QVariant::fromValue(ChannelConfig(*it)));
-        if ((*it) == m_currentSettings.hwChannel) {
+        if ((*it) == m_currentSettings.hwChannel()) {
             m_ui->channelCombo->setCurrentIndex(i);
         }
         ++i;
     }
 
-    m_ui->queueSize->setValue(m_currentSettings.queueSize);
+    m_ui->queueSize->setValue(m_currentSettings.queueSize());
     switch (m_ui->checksumMethod->currentData(Qt::ItemDataRole::UserRole).toInt()) {
         case XL_LIN_CALC_CHECKSUM:
             m_ui->checksumMethod->setCurrentIndex(0);
@@ -187,34 +187,36 @@ void SettingsDialog::updateSettings() {
     QString version = m_ui->linVersion->currentText();
 
     if (version == "1.3") {
-        m_currentSettings.linVersion = XL_LIN_VERSION_1_3;
+        m_currentSettings.setLinVersion(XL_LIN_VERSION_1_3);
     } else if (version == "2.0") {
-        m_currentSettings.linVersion = XL_LIN_VERSION_2_0;
+        m_currentSettings.setLinVersion(XL_LIN_VERSION_2_0);
     } else if (version == "2.1") {
-        m_currentSettings.linVersion = XL_LIN_VERSION_2_1;
+        m_currentSettings.setLinVersion(XL_LIN_VERSION_2_1);
     }
 
-    m_currentSettings.slaveID = static_cast<unsigned char>(m_ui->slaveID->text().toUInt());
+    m_currentSettings.setSlaveID(static_cast<unsigned char>(m_ui->slaveID->text().toUInt()));
 
-    m_currentSettings.mode = static_cast<LinSettings::Mode>(m_ui->modeGroup->checkedId());
-    m_currentSettings.autoConnect = m_ui->autoConnect->isChecked();
+    m_currentSettings.setMode(static_cast<LinSettings::Mode>(m_ui->modeGroup->checkedId()));
+    m_currentSettings.setAutoConnect(m_ui->autoConnect->isChecked());
 
+    QByteArray tmp = m_currentSettings.initialData();
     for (auto it = m_model->index(0, 0); it.isValid(); it = it.siblingAtRow(it.row() + 1)) {
-        m_currentSettings.initialData[it.row()] = it.data().toString().toInt(nullptr, 16);
+        tmp[it.row()] = it.data().toString().toInt(nullptr, 16);
     }
+    m_currentSettings.setInitialData(tmp);
 
-    m_currentSettings.baudrate = m_ui->baudrate->value();
+    m_currentSettings.setBaudrate(m_ui->baudrate->value());
 
     for (auto it = m_sdlcModel->index(0, 0); it.isValid(); it = it.siblingAtRow(it.row() + 1)) {
-        m_currentSettings.dlc[it.row()] = it.data().toString().toInt();
+        m_currentSettings.dlc()[it.row()] = it.data().toString().toInt();
     }
 
     QVariant channel = m_ui->channelCombo->itemData(m_ui->channelCombo->currentIndex(), Qt::UserRole);
     ChannelConfig config = channel.value<ChannelConfig>();
-    m_currentSettings.hwChannel = config;
+    m_currentSettings.setHwChannel(config);
 
-    m_currentSettings.queueSize = m_ui->queueSize->value();
-    m_currentSettings.checksumMethod = m_ui->checksumMethod->currentData(Qt::ItemDataRole::UserRole).toInt();
+    m_currentSettings.setQueueSize(m_ui->queueSize->value());
+    m_currentSettings.setChecksumMethod(m_ui->checksumMethod->currentData(Qt::ItemDataRole::UserRole).toInt());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());

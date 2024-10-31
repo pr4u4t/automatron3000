@@ -45,7 +45,7 @@ SettingsDialog::~SettingsDialog(){
     delete m_ui;
 }
 
-SettingsDialog::SerialSettings SettingsDialog::serialSettings() const{
+SerialSettings SettingsDialog::serialSettings() const{
     emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
@@ -164,58 +164,58 @@ void SettingsDialog::fillFromSettings(){
     emit message("SettingsDialog::fillFromSettings");
     int idx;
     
-    if((idx = m_ui->serialPortInfoListBox->findText(m_currentSettings.name)) == -1){
-        if(m_currentSettings.name.isEmpty()){
+    if((idx = m_ui->serialPortInfoListBox->findText(m_currentSettings.name())) == -1){
+        if(m_currentSettings.name().isEmpty()) {
             m_ui->serialPortInfoListBox->setCurrentIndex(0);
         }else{
             m_ui->serialPortInfoListBox->setCurrentIndex(4);
-            m_ui->serialPortInfoListBox->setCurrentText(m_currentSettings.name);
+            m_ui->serialPortInfoListBox->setCurrentText(m_currentSettings.name());
         }
     } else{
         m_ui->serialPortInfoListBox->setCurrentIndex(idx);
     }
     
-    if((idx = m_ui->baudRateBox->findText(QString::number(m_currentSettings.baudRate))) == -1){
+    if((idx = m_ui->baudRateBox->findText(QString::number(m_currentSettings.baudRate()))) == -1){
         m_ui->baudRateBox->setCurrentIndex(4);
-        m_ui->baudRateBox->setCurrentText(QString::number(m_currentSettings.baudRate));
+        m_ui->baudRateBox->setCurrentText(QString::number(m_currentSettings.baudRate()));
     } else{
         m_ui->baudRateBox->setCurrentIndex(idx);
     }
     
-    m_ui->dataBitsBox->setCurrentIndex(m_ui->dataBitsBox->findData(m_currentSettings.dataBits));
-    m_ui->parityBox->setCurrentIndex(m_ui->parityBox->findData(m_currentSettings.parity));
-    m_ui->stopBitsBox->setCurrentIndex(m_ui->stopBitsBox->findData(m_currentSettings.stopBits));
-    m_ui->flowControlBox->setCurrentIndex(m_ui->flowControlBox->findData(m_currentSettings.flowControl));
-    m_ui->localEchoCheckBox->setChecked(m_currentSettings.localEchoEnabled);
-    m_ui->autoConnectCheckBox->setChecked(m_currentSettings.autoConnect);
+    m_ui->dataBitsBox->setCurrentIndex(m_ui->dataBitsBox->findData(m_currentSettings.dataBits()));
+    m_ui->parityBox->setCurrentIndex(m_ui->parityBox->findData(m_currentSettings.parity()));
+    m_ui->stopBitsBox->setCurrentIndex(m_ui->stopBitsBox->findData(m_currentSettings.stopBits()));
+    m_ui->flowControlBox->setCurrentIndex(m_ui->flowControlBox->findData(m_currentSettings.flowControl()));
+    m_ui->localEchoCheckBox->setChecked(m_currentSettings.localEchoEnabled());
+    m_ui->autoConnectCheckBox->setChecked(m_currentSettings.autoConnect());
 }
 
 void SettingsDialog::updateSettings(){
     emit message("SettingsDialog::updateSettings");
     
-    m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
+    m_currentSettings.setName(m_ui->serialPortInfoListBox->currentText());
 
     if (m_ui->baudRateBox->currentIndex() == 4) {
-        m_currentSettings.baudRate = m_ui->baudRateBox->currentText().toInt();
+        m_currentSettings.setBaudRate(m_ui->baudRateBox->currentText().toInt());
     } else {
         const auto baudRateData = m_ui->baudRateBox->currentData();
-        m_currentSettings.baudRate = baudRateData.value<QSerialPort::BaudRate>();
+        m_currentSettings.setBaudRate(baudRateData.value<QSerialPort::BaudRate>());
     }
 
     const auto dataBitsData = m_ui->dataBitsBox->currentData();
-    m_currentSettings.dataBits = dataBitsData.value<QSerialPort::DataBits>();
+    m_currentSettings.setDataBits(dataBitsData.value<QSerialPort::DataBits>());
 
     const auto parityData = m_ui->parityBox->currentData();
-    m_currentSettings.parity = parityData.value<QSerialPort::Parity>();
+    m_currentSettings.setParity(parityData.value<QSerialPort::Parity>());
 
     const auto stopBitsData = m_ui->stopBitsBox->currentData();
-    m_currentSettings.stopBits = stopBitsData.value<QSerialPort::StopBits>();
+    m_currentSettings.setStopBits(stopBitsData.value<QSerialPort::StopBits>());
 
     const auto flowControlData = m_ui->flowControlBox->currentData();
-    m_currentSettings.flowControl = flowControlData.value<QSerialPort::FlowControl>();
+    m_currentSettings.setFlowControl(flowControlData.value<QSerialPort::FlowControl>());
 
-    m_currentSettings.localEchoEnabled = m_ui->localEchoCheckBox->isChecked();
-    m_currentSettings.autoConnect = m_ui->autoConnectCheckBox->isChecked();
+    m_currentSettings.setLocalEchoEnabled(m_ui->localEchoCheckBox->isChecked());
+    m_currentSettings.setAutoConnect(m_ui->autoConnectCheckBox->isChecked());
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
 }

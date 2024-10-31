@@ -21,12 +21,7 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
-
-    Q_OBJECT
-
-public:
-
+struct QJTAGSettings : public PluginSettings {
     static constexpr const char* const titleKey = "title";
     static constexpr const char* const titleValue = "JTAG";
     static constexpr const char* const buttonLabelKey = "buttonLabel";
@@ -40,68 +35,110 @@ public:
     static constexpr const char* const previousKey = "previous";
     static constexpr const char* const previousValue = nullptr;
 
-    struct QJTAGSettings : public PluginSettings {
-        QJTAGSettings() 
-            : title(titleValue)
-            , buttonLabel(buttonLabelValue)
-            , programPath(programPathValue)
-            , arguments()
-            , tries(triesValue)
-            , previous(previousValue){
-        }
+    Q_GADGET
+    Q_PROPERTY(QString title READ title WRITE setTitle)
+    Q_PROPERTY(QString buttonLabel READ buttonLabel WRITE setButtonLabel)
+    Q_PROPERTY(QString programPath READ programPath WRITE setProgramPath)
+    Q_PROPERTY(QJsonArray arguments READ arguments WRITE setArguments)
+    Q_PROPERTY(int tries READ tries WRITE setTries)
+    Q_PROPERTY(QString previous READ previous WRITE setPrevious)
 
-        QJTAGSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
-            , buttonLabel(settings.value(settingsPath + "/" + buttonLabelKey, buttonLabelValue).toString())
-            , programPath(settings.value(settingsPath + "/" + programPathKey, programPathValue).toString())
-            , arguments(settings.value(settingsPath + "/" + argumentsKey, argumentsValue).toJsonArray())
-            , tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt())
-            , previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString()){
-        }
+public:
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + titleKey, title);
-            settings.setValue(settingsPath + "/" + buttonLabelKey, buttonLabel);
-            settings.setValue(settingsPath + "/" + programPathKey, programPath);
-            settings.setValue(settingsPath + "/" + argumentsKey, arguments);
-            settings.setValue(settingsPath + "/" + triesKey, tries);
-            settings.setValue(settingsPath + "/" + previousKey, previous);
+    QJTAGSettings()
+        : m_title(titleValue)
+        , m_buttonLabel(buttonLabelValue)
+        , m_programPath(programPathValue)
+        , m_arguments()
+        , m_tries(triesValue)
+        , m_previous(previousValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-            PluginSettings::save(settings, settingsPath);
-        }
+    QJTAGSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
+        , m_buttonLabel(settings.value(settingsPath + "/" + buttonLabelKey, buttonLabelValue).toString())
+        , m_programPath(settings.value(settingsPath + "/" + programPathKey, programPathValue).toString())
+        , m_arguments(settings.value(settingsPath + "/" + argumentsKey, argumentsValue).toJsonArray())
+        , m_tries(settings.value(settingsPath + "/" + triesKey, triesValue).toInt())
+        , m_previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString()) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        QStringList processArguments() const {
-            QStringList ret;
-            
-            for (QJsonArray::const_iterator iter = arguments.begin(), end = arguments.end(); iter != end; ++iter) {
-                const QJsonObject o = iter->toObject();
-                if (o["enabled"].toBool() == false) {
-                    continue;
-                }
-                
-                QString tmp = o["argument"].toString();
-                if (tmp.isEmpty() == false) {
-                    ret << tmp;
-                }
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + titleKey, m_title);
+        settings.setValue(settingsPath + "/" + buttonLabelKey, m_buttonLabel);
+        settings.setValue(settingsPath + "/" + programPathKey, m_programPath);
+        settings.setValue(settingsPath + "/" + argumentsKey, m_arguments);
+        settings.setValue(settingsPath + "/" + triesKey, m_tries);
+        settings.setValue(settingsPath + "/" + previousKey, m_previous);
 
-                tmp = o["value"].toString();
-                if (tmp.isEmpty() == false) {
-                    ret << tmp;
-                }
+        PluginSettings::save(settings, settingsPath);
+    }
+
+    QStringList processArguments() const {
+        QStringList ret;
+
+        for (QJsonArray::const_iterator iter = m_arguments.begin(), end = m_arguments.end(); iter != end; ++iter) {
+            const QJsonObject o = iter->toObject();
+            if (o["enabled"].toBool() == false) {
+                continue;
             }
 
-            return ret;
+            QString tmp = o["argument"].toString();
+            if (tmp.isEmpty() == false) {
+                ret << tmp;
+            }
+
+            tmp = o["value"].toString();
+            if (tmp.isEmpty() == false) {
+                ret << tmp;
+            }
         }
 
-        QString title;
-        QString buttonLabel;
-        QString programPath;
-        QJsonArray arguments;
-        int tries;
-        QString previous;
-    };
+        return ret;
+    }
 
+    // Getter and Setter for m_title
+    QString title() const { return m_title; }
+    void setTitle(const QString& title) { m_title = title; }
+
+    // Getter and Setter for m_buttonLabel
+    QString buttonLabel() const { return m_buttonLabel; }
+    void setButtonLabel(const QString& buttonLabel) { m_buttonLabel = buttonLabel; }
+
+    // Getter and Setter for m_programPath
+    QString programPath() const { return m_programPath; }
+    void setProgramPath(const QString& programPath) { m_programPath = programPath; }
+
+    // Getter and Setter for m_arguments
+    QJsonArray arguments() const { return m_arguments; }
+    void setArguments(const QJsonArray& arguments) { m_arguments = arguments; }
+
+    // Getter and Setter for m_tries
+    int tries() const { return m_tries; }
+    void setTries(int tries) { m_tries = tries; }
+
+    // Getter and Setter for m_previous
+    QString previous() const { return m_previous; }
+    void setPrevious(const QString& previous) { m_previous = previous; }
+
+private:
+
+    QString m_title;
+    QString m_buttonLabel;
+    QString m_programPath;
+    QJsonArray m_arguments;
+    int m_tries;
+    QString m_previous;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
 
     ~SettingsDialog();

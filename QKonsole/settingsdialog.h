@@ -16,39 +16,57 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
-
-    Q_OBJECT
-
-public:
-
+struct KonsoleSettings : public PluginSettings {
     static constexpr const char* promptKey = "prompt";
     static constexpr const char* localEchoKey = "localEcho";
 
     static constexpr const char* promptValue = "-> ";
     static constexpr const bool localEchoValue = true;
 
-    struct KonsoleSettings : public PluginSettings {
-        KonsoleSettings()
-            : prompt(promptValue)
-            , localEcho(localEchoValue){}
+    Q_GADGET
+    Q_PROPERTY(QString prompt READ prompt WRITE setPrompt)
+    Q_PROPERTY(bool localEcho READ localEcho WRITE setLocalEcho)
 
-        KonsoleSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , prompt(promptValue)
-            , localEcho(localEchoValue) {}
+public:
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + promptKey, prompt);
-            settings.setValue(settingsPath + "/" + localEchoKey, localEcho);
+    KonsoleSettings()
+        : m_prompt(promptValue)
+        , m_localEcho(localEchoValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-            PluginSettings::save(settings, settingsPath);
-        }
+    KonsoleSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_prompt(promptValue)
+        , m_localEcho(localEchoValue) {
+        registerMetaObject(&staticMetaObject);
+    }
 
-        QString prompt;
-        bool localEcho;
-    };
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + promptKey, m_prompt);
+        settings.setValue(settingsPath + "/" + localEchoKey, m_localEcho);
 
+        PluginSettings::save(settings, settingsPath);
+    }
+
+    QString prompt() const { return m_prompt; }
+    void setPrompt(const QString& prompt) { m_prompt = prompt; }
+
+    // Getter and Setter for m_localEcho
+    bool localEcho() const { return m_localEcho; }
+    void setLocalEcho(bool localEcho) { m_localEcho = localEcho; }
+
+private:
+    QString m_prompt;
+    bool m_localEcho;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
+ 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
 
     ~SettingsDialog();

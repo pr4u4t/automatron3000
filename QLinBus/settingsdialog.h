@@ -16,13 +16,7 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-class SettingsDialog : public SettingsMdi {
-
-    Q_OBJECT
-
-public:
-
-    
+struct LinBusSettings : public PluginSettings {
     static constexpr const char* scanStartIDKey = "scanStartID";
     static constexpr const char* scanStopIDKey = "scanStopID";
     static constexpr const char* scanIntervalKey = "scanInterval";
@@ -34,41 +28,74 @@ public:
     static constexpr const qint64 scanIntervalValue = 0;
     static constexpr const bool colorsValue = true;
     static constexpr const char* const linDeviceValue = nullptr;
-   
 
-    struct LinBusSettings : public PluginSettings {
-        LinBusSettings()
-            : scanStartID(scanStartIDValue)
-            , scanStopID(scanStopIDValue)
-            , scanInterval(scanIntervalValue)
-            , enableColors(colorsValue){
-        }
+    Q_GADGET
+    Q_PROPERTY(uint8_t scanStartID READ scanStartID WRITE setScanStartID)
+    Q_PROPERTY(uint8_t scanStopID READ scanStopID WRITE setScanStopID)
+    Q_PROPERTY(qint64 scanInterval READ scanInterval WRITE setScanInterval)
+    Q_PROPERTY(bool enableColors READ enableColors WRITE setEnableColors)
+    Q_PROPERTY(QString linDevice READ linDevice WRITE setLinDevice)
 
-        LinBusSettings(const QSettings& settings, const QString& settingsPath)
-            : PluginSettings(settings, settingsPath)
-            , scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
-            , scanStopID(settings.value(settingsPath + "/" + scanStopIDKey, scanStopIDValue).toUInt())
-            , scanInterval(settings.value(settingsPath + "/" + scanIntervalKey, scanIntervalValue).toInt())
-            , enableColors(settings.value(settingsPath + "/" + colorsKey, colorsValue).toBool())
-            , linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()){
-        }
+public:
+    LinBusSettings()
+        : m_scanStartID(scanStartIDValue)
+        , m_scanStopID(scanStopIDValue)
+        , m_scanInterval(scanIntervalValue)
+        , m_enableColors(colorsValue) {
 
-        void save(QSettings& settings, const QString& settingsPath) const {
-            settings.setValue(settingsPath + "/" + scanStartIDKey, scanStartID);
-            settings.setValue(settingsPath + "/" + scanStopIDKey, scanStopID);
-            settings.setValue(settingsPath + "/" + scanIntervalKey, scanInterval);
-            settings.setValue(settingsPath + "/" + colorsKey, enableColors);
-            settings.setValue(settingsPath + "/" + linDeviceKey, linDevice);
+    }
 
-            PluginSettings::save(settings, settingsPath);
-        }
+    LinBusSettings(const QSettings& settings, const QString& settingsPath)
+        : PluginSettings(settings, settingsPath)
+        , m_scanStartID(settings.value(settingsPath + "/" + scanStartIDKey, scanStartIDValue).toUInt())
+        , m_scanStopID(settings.value(settingsPath + "/" + scanStopIDKey, scanStopIDValue).toUInt())
+        , m_scanInterval(settings.value(settingsPath + "/" + scanIntervalKey, scanIntervalValue).toInt())
+        , m_enableColors(settings.value(settingsPath + "/" + colorsKey, colorsValue).toBool())
+        , m_linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()) {
+    }
 
-        uint8_t scanStartID;
-        uint8_t scanStopID;
-        qint64 scanInterval;
-        bool enableColors;
-        QString linDevice;
-    };
+    void save(QSettings& settings, const QString& settingsPath) const {
+        settings.setValue(settingsPath + "/" + scanStartIDKey, m_scanStartID);
+        settings.setValue(settingsPath + "/" + scanStopIDKey, m_scanStopID);
+        settings.setValue(settingsPath + "/" + scanIntervalKey, m_scanInterval);
+        settings.setValue(settingsPath + "/" + colorsKey, m_enableColors);
+        settings.setValue(settingsPath + "/" + linDeviceKey, m_linDevice);
+
+        PluginSettings::save(settings, settingsPath);
+    }
+
+    uint8_t scanStartID() const { return m_scanStartID; }
+    void setScanStartID(uint8_t scanStartID) { m_scanStartID = scanStartID; }
+
+    // Getter and Setter for scanStopID
+    uint8_t scanStopID() const { return m_scanStopID; }
+    void setScanStopID(uint8_t scanStopID) { m_scanStopID = scanStopID; }
+
+    // Getter and Setter for scanInterval
+    qint64 scanInterval() const { return m_scanInterval; }
+    void setScanInterval(qint64 scanInterval) { m_scanInterval = scanInterval; }
+
+    // Getter and Setter for enableColors
+    bool enableColors() const { return m_enableColors; }
+    void setEnableColors(bool enableColors) { m_enableColors = enableColors; }
+
+    // Getter and Setter for linDevice
+    QString linDevice() const { return m_linDevice; }
+    void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
+
+private:
+    uint8_t m_scanStartID;
+    uint8_t m_scanStopID;
+    qint64 m_scanInterval;
+    bool m_enableColors;
+    QString m_linDevice;
+};
+
+class SettingsDialog : public SettingsMdi {
+
+    Q_OBJECT
+
+public:
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
 

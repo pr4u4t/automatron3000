@@ -38,7 +38,7 @@ SettingsDialog::~SettingsDialog() {
     delete m_ui;
 }
 
-SettingsDialog::LinBusSettings SettingsDialog::linbusSettings() const {
+LinBusSettings SettingsDialog::linbusSettings() const {
     emit message("SettingsDialog::settings");
     return m_currentSettings;
 }
@@ -46,21 +46,21 @@ SettingsDialog::LinBusSettings SettingsDialog::linbusSettings() const {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
 
-    m_ui->scanStartID->setValue(m_currentSettings.scanStartID);
-    m_ui->scanStopID->setValue(m_currentSettings.scanStopID);
-    m_ui->scanInterval->setValue(m_currentSettings.scanInterval);
-    m_ui->enableColors->setChecked(m_currentSettings.enableColors);
-    m_ui->linEdit->setText(m_currentSettings.linDevice);
+    m_ui->scanStartID->setValue(m_currentSettings.scanStartID());
+    m_ui->scanStopID->setValue(m_currentSettings.scanStopID());
+    m_ui->scanInterval->setValue(m_currentSettings.scanInterval());
+    m_ui->enableColors->setChecked(m_currentSettings.enableColors());
+    m_ui->linEdit->setText(m_currentSettings.linDevice());
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.scanStartID = m_ui->scanStartID->value();
-    m_currentSettings.scanStopID = m_ui->scanStopID->value();
-    m_currentSettings.scanInterval = m_ui->scanInterval->value();
-    m_currentSettings.enableColors = m_ui->enableColors->isChecked();
-    m_currentSettings.linDevice = m_ui->linEdit->text();
+    m_currentSettings.setScanStartID(m_ui->scanStartID->value());
+    m_currentSettings.setScanStopID(m_ui->scanStopID->value());
+    m_currentSettings.setScanInterval(m_ui->scanInterval->value());
+    m_currentSettings.setEnableColors(m_ui->enableColors->isChecked());
+    m_currentSettings.setLinDevice(m_ui->linEdit->text());
 
     QSettings s = Settings::get();
     m_currentSettings.save(s, settingsPath());
