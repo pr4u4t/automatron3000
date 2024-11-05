@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qt/qml/remotesettings">
+        <file>main.qml</file>
+    </qresource>
+</RCC>
