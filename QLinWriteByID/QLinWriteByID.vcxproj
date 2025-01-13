@@ -122,6 +122,12 @@
     <QtUic Include="linwritebyid.ui" />
     <QtUic Include="settingsdialog.ui" />
   </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="QLinWriteByID_pl_PL.ts">
+      <QmOutputDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)translations</QmOutputDir>
+      <BuildAction Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">lrelease</BuildAction>
+    </QtTranslation>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />

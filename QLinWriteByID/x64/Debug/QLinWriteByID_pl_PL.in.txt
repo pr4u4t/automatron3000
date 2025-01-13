@@ -1,0 +1,7 @@
+settingsdialog.cpp
+QLinWriteByID.cpp
+qlinwritebyid_global.h
+settingsdialog.h
+QLinWriteByID.h
+linwritebyid.ui
+settingsdialog.ui
