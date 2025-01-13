@@ -12,113 +12,103 @@
         <translation type="vanished">&amp;Plik</translation>
     </message>
     <message>
-        <location filename="QKonsole.cpp" line="11"/>
-        <source>Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="QKonsole.cpp" line="20"/>
-        <source>Konsole</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="QKonsole.cpp" line="34"/>
-        <source>&amp;Serial</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="QKonsole.cpp" line="44"/>
-        <source>Konsole-Settings</source>
-        <translation type="unfinished"></translation>
+        <location filename="QLinKonsole.cpp" line="37"/>
+        <source>&amp;LinBus</source>
+        <translation>&amp;Szyna Lin</translation>
     </message>
 </context>
 <context>
-    <name>QKonsole</name>
+    <name>QLinKonsole</name>
     <message>
-        <location filename="QKonsole.cpp" line="68"/>
-        <source>&lt;b&gt;Welcome to serial (rs-232) terminal&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
+        <location filename="QLinKonsole.cpp" line="76"/>
+        <source>&lt;b&gt;Welcome to LIN terminal&lt;/b&gt;</source>
+        <translation>&lt;b&gt;Witamy w terminalu LIN&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
     <name>QTerminal</name>
     <message>
-        <location filename="terminal.cpp" line="706"/>
+        <location filename="terminal.cpp" line="705"/>
         <source>Undo</source>
-        <translation type="unfinished"></translation>
+        <translation>Cofnij</translation>
+    </message>
+    <message>
+        <location filename="terminal.cpp" line="706"/>
+        <source>Ctrl+Z</source>
+        <translation>Ctrl+Z</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="707"/>
-        <source>Ctrl+Z</source>
-        <translation type="unfinished"></translation>
+        <source>Redo</source>
+        <translation>Powtórz</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="708"/>
-        <source>Redo</source>
-        <translation type="unfinished"></translation>
+        <source>Ctrl+Y</source>
+        <translation>Ctrl+Y</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="709"/>
-        <source>Ctrl+Y</source>
-        <translation type="unfinished"></translation>
+        <source>Cut</source>
+        <translation>Wytnij</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="710"/>
-        <source>Cut</source>
-        <translation type="unfinished"></translation>
+        <source>Ctrl+X</source>
+        <translation>Ctrl+X</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="711"/>
-        <source>Ctrl+X</source>
-        <translation type="unfinished"></translation>
+        <source>Copy</source>
+        <translation>Copy</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="712"/>
-        <source>Copy</source>
-        <translation type="unfinished"></translation>
+        <source>Ctrl+Ins</source>
+        <translation>Ctrl+Ins</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="713"/>
-        <source>Ctrl+Ins</source>
-        <translation type="unfinished"></translation>
+        <source>Paste</source>
+        <translation>Wklej</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="714"/>
-        <source>Paste</source>
-        <translation type="unfinished"></translation>
+        <source>Ctrl+V</source>
+        <translation>Ctrl+V</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="715"/>
-        <source>Ctrl+V</source>
-        <translation type="unfinished"></translation>
+        <source>Delete</source>
+        <translation>Usuń</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="716"/>
-        <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <source>Del</source>
+        <translation>Del</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="717"/>
-        <source>Del</source>
-        <translation type="unfinished"></translation>
+        <source>Select All</source>
+        <translation>Zaznacz wszystko</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="718"/>
-        <source>Select All</source>
-        <translation type="unfinished"></translation>
+        <source>Ctrl+A</source>
+        <translation>Ctrl+A</translation>
     </message>
     <message>
         <location filename="terminal.cpp" line="719"/>
-        <source>Ctrl+A</source>
-        <translation type="unfinished"></translation>
+        <source>Clear</source>
+        <translation>Wyczyść</translation>
     </message>
     <message>
-        <location filename="terminal.cpp" line="780"/>
+        <location filename="terminal.cpp" line="782"/>
         <source>:\</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="terminal.cpp" line="782"/>
+        <location filename="terminal.cpp" line="784"/>
         <source>/</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128,35 +118,45 @@
     <message>
         <location filename="settingsdialog.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Formularz</translation>
     </message>
     <message>
         <location filename="settingsdialog.ui" line="22"/>
         <source>Local echo</source>
-        <translation type="unfinished"></translation>
+        <translation>Lokalne echo</translation>
     </message>
     <message>
         <location filename="settingsdialog.ui" line="29"/>
         <source>Prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Znak zachęty</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="76"/>
+        <location filename="settingsdialog.ui" line="46"/>
+        <source>Command delay [ms]</source>
+        <translation>Odstęp między komenadmi [ms]</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="56"/>
+        <source>Lin Device</source>
+        <translation>Urządzenie Lin</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="96"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="83"/>
+        <location filename="settingsdialog.ui" line="103"/>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation>Zastosuj</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="90"/>
+        <location filename="settingsdialog.ui" line="110"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="16"/>
+        <location filename="settingsdialog.cpp" line="17"/>
         <source>N/A</source>
         <translation type="unfinished"></translation>
     </message>

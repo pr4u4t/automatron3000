@@ -75,6 +75,9 @@
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
+    <QtTranslation>
+      <BuildAction>lrelease</BuildAction>
+    </QtTranslation>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
@@ -121,6 +124,9 @@
   <ItemGroup>
     <QtUic Include="linreadbyid.ui" />
     <QtUic Include="settingsdialog.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="QLinReadByID_pl_PL.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

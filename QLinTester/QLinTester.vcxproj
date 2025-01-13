@@ -122,6 +122,9 @@
     <QtUic Include="qlintester.ui" />
     <QtUic Include="settingsdialog.ui" />
   </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="QLinTester_pl_PL.ts" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />

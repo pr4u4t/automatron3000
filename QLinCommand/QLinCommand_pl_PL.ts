@@ -4,52 +4,42 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QLinReadByID.cpp" line="39"/>
+        <location filename="QLinCommand.cpp" line="41"/>
         <source>&amp;LinBus</source>
         <translation>&amp;Szyna Lin</translation>
     </message>
 </context>
 <context>
-    <name>QLinReadByIDUI</name>
+    <name>QLinCommandUI</name>
     <message>
-        <location filename="linreadbyid.ui" line="14"/>
+        <location filename="lincommand.ui" line="14"/>
         <source>Form</source>
         <translation>Formularz</translation>
     </message>
     <message>
-        <location filename="linreadbyid.ui" line="20"/>
-        <source>Read By ID</source>
-        <translation>Odczyt po identyfikatorze</translation>
+        <location filename="lincommand.ui" line="20"/>
+        <source>Command</source>
+        <translation>Komenda</translation>
     </message>
     <message>
-        <location filename="linreadbyid.ui" line="51"/>
+        <location filename="lincommand.ui" line="51"/>
         <source>FAILED</source>
         <translation>BŁĄD</translation>
     </message>
     <message>
-        <location filename="linreadbyid.ui" line="67"/>
+        <location filename="lincommand.ui" line="67"/>
         <source>IN PROGRESS</source>
         <translation>W TRAKCIE</translation>
     </message>
     <message>
-        <location filename="linreadbyid.ui" line="83"/>
+        <location filename="lincommand.ui" line="83"/>
         <source>SUCCESS</source>
         <translation>SUKCES</translation>
     </message>
     <message>
-        <location filename="linreadbyid.ui" line="110"/>
-        <source>HEX:</source>
-        <translation>HEX:</translation>
-    </message>
-    <message>
-        <location filename="linreadbyid.ui" line="120"/>
-        <source>ASCII: </source>
-        <translation>ASCII: </translation>
-    </message>
-    <message>
-        <location filename="linreadbyid.ui" line="151"/>
-        <source>Read</source>
-        <translation>Read</translation>
+        <location filename="lincommand.ui" line="123"/>
+        <source>Execute</source>
+        <translation>Wykonaj</translation>
     </message>
 </context>
 <context>
@@ -81,26 +71,31 @@
     </message>
     <message>
         <location filename="settingsdialog.ui" line="62"/>
+        <source>Button text</source>
+        <translation>Tekst przycisku</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="72"/>
         <source>Previous</source>
         <translation>Poprzednik</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="72"/>
+        <location filename="settingsdialog.ui" line="82"/>
         <source>Lin Device</source>
-        <translation>Urządzenie LIN</translation>
+        <translation>Urządzenie Lin</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="112"/>
+        <location filename="settingsdialog.ui" line="122"/>
         <source>Apply</source>
         <translation>Zastosuj</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="119"/>
+        <location filename="settingsdialog.ui" line="129"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="settingsdialog.ui" line="126"/>
+        <location filename="settingsdialog.ui" line="136"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
