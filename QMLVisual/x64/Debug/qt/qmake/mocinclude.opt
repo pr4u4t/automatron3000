@@ -1,0 +1,46 @@
+-IC:/Qt/6.8.1/msvc2022_64/mkspecs/win32-msvc
+-IC:/Users/Admin/Documents/GitHub/szpuler/QMLVisual/x64/Debug/qt/qmake
+-IC:/Qt/6.8.1/msvc2022_64/include
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuickControls2
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuickDialogs2
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuickLayouts
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuick/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuick/6.8.1/QtQuick
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuickWidgets
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQuick
+-IC:/Qt/6.8.1/msvc2022_64/include/QtCharts
+-IC:/Qt/6.8.1/msvc2022_64/include/QtOpenGLWidgets
+-IC:/Qt/6.8.1/msvc2022_64/include/QtOpenGL
+-IC:/Qt/6.8.1/msvc2022_64/include/QtGui/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtGui/6.8.1/QtGui
+-IC:/Qt/6.8.1/msvc2022_64/include/QtWidgets
+-IC:/Qt/6.8.1/msvc2022_64/include/QtSvg
+-IC:/Qt/6.8.1/msvc2022_64/include/QtGui
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlMeta/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlMeta/6.8.1/QtQmlMeta
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlMeta
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlModels/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlModels/6.8.1/QtQmlModels
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlModels
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlWorkerScript/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlWorkerScript/6.8.1/QtQmlWorkerScript
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlWorkerScript
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQml/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQml/6.8.1/QtQml
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQml
+-IC:/Qt/6.8.1/msvc2022_64/include/QtQmlIntegration
+-IC:/Qt/6.8.1/msvc2022_64/include/QtNetwork
+-IC:/Qt/6.8.1/msvc2022_64/include/QtCore/6.8.1
+-IC:/Qt/6.8.1/msvc2022_64/include/QtCore/6.8.1/QtCore
+-IC:/Qt/6.8.1/msvc2022_64/include/QtCore5Compat
+-IC:/Qt/6.8.1/msvc2022_64/include/QtCore
+-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.39.33519\include
+-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.39.33519\atlmfc\include
+-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\VS\include
+-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt
+-IC:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\VS\UnitTest\include
+-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um
+-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared
+-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\winrt
+-IC:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\cppwinrt
+-IC:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\Include\um

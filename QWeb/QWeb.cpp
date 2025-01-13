@@ -16,15 +16,6 @@ struct QWebMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_webMenu = new QMenu(m_app->translate("MainWindow", "Web"));
-
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        m_webMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_webMenu);
-        m_newInstance->setData(QVariant("QWeb"));
-        m_webMenu->addAction(m_newInstance);
     }
 
     QMenu* m_webMenu = nullptr;
@@ -40,38 +31,28 @@ static bool QWeb_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QWebMen
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("QWeb_register: application is non gui not registering");
+        log->message("QWeb_register(): application is non gui not registering");
         return false;
     }
 
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
-    if (windowMenu != nullptr) {
-        windowMenu->addMenu(ctx->m_webMenu);
-        //gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_badgesMenu);
-        log->message("QWeb_register: menu added");
-    } else {
-        log->message("QWeb_register: failed to find visualization menu");
+    auto visualMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
+
+    if (visualMenu == nullptr) {
+        log->message("QWeb_register(): visualizations menu not found");
+        return false;
     }
+
+    if ((ctx->m_webMenu = visualMenu->addMenu(ctx->m_app->translate("MainWindow", "Web"))) == nullptr) {
+        log->message("QWeb_register(): failed to create web menu");
+        return false;
+    }
+
+    windowAddInstanceSettings(ctx->m_webMenu, &ctx->m_settings, &ctx->m_newInstance, "QWeb", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QWeb") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_webMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QWeb*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QWeb*>(plugin), &QWeb::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QWeb*>(plugin)->objectName() + "/Settings"); // ctx->m_app->translate("MainWindow", dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings"));
-            });
-        });
+        windowAddPluginSettingsAction<QWeb, QWebMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QWeb"), gtx, ctx, log);
+    });
 
     return true;
 }
@@ -92,16 +73,18 @@ REGISTER_PLUGIN(
     QWebMenu,
     {},
     true,
-    100
+    100,
+    WebSettings
 )
 
-QWeb::QWeb(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath)
+QWeb::QWeb(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath, WebSettings* set, const QString& uuid)
     : Widget(
         ld,
         plugins,
         parent,
         sPath,
-        new WebSettings() // Settings::get(), sPath)
+        set,
+        uuid
     )
     , m_ui(new Ui::QWebUI) {
     m_ui->setupUi(this);
@@ -141,6 +124,7 @@ void QWeb::settingsChanged() {
     const auto set = settings<WebSettings>();
     *set = WebSettings(Settings::get(), settingsPath());
     m_ui->webView->setUrl(QUrl(set->url()));
+    emit settingsApplied();
 }
 
 SettingsMdi* QWeb::settingsWindow() const {

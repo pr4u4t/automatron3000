@@ -102,6 +102,7 @@ struct SessionData {
     Logger* m_logger = nullptr;
     MLoader* m_plugins = nullptr;
     MainWindow* m_win = nullptr;
+    bool m_changed = false;
     SessionSettings m_settings;
 };
 
@@ -119,6 +120,8 @@ public:
 
     inline MainWindow* window() const;
 
+    inline bool hasChanged() const;
+
 public slots:
 
     qint64 store();
@@ -134,6 +137,8 @@ public slots:
     void enabled(const Loader* loader);
 
     void disabled(const Loader* loader);
+
+    void settingsApplied();
 
 signals:
 

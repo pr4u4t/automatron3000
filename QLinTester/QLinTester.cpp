@@ -8,22 +8,16 @@
 struct QLinTesterMenu {
     QLinTesterMenu(QCoreApplication* app)
         : m_app(app) {
-
-        m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"));
-        m_actionConfigure->setData(QVariant("QLinTester/Settings"));
         if (app != nullptr && Settings::localeNeeded()) {
             m_translator = new QTranslator();
             if (m_translator->load(QLocale::system(), "QLinTester", "_", "translations")) { //set directory of ts
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_tester = new QAction(m_app->translate("MainWindow", "LinTester"), nullptr);
-        m_tester->setData(QVariant("QLinTester"));
     }
 
-    QAction* m_tester = nullptr;
-    QAction* m_actionConfigure = nullptr;
+    QAction* m_newInstance = nullptr;
+    QMenu* m_settings = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 };
@@ -33,27 +27,22 @@ static bool QLinTester_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, Q
     
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QLinTester_register(): application is non gui not registering");
         return false;
     }
 
-    QObject::connect(ctx->m_tester, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
-    QMenu* menu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
+    auto linbusMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 
-    menu->addSeparator();
-    menu->insertAction(nullptr, ctx->m_tester);
-    menu->insertAction(nullptr, ctx->m_actionConfigure);
+    if (linbusMenu == nullptr) {
+        log->message("QLinTester_register(): linbus menu not found");
+        return false;
+    }
 
-    QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
-        QSharedPointer<Plugin> tester = ld->instance("QLinTester", gtx->m_win);
+    windowAddInstanceSettings(linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLinTester", ctx->m_app, log);
 
-        if (gtx->m_win->toggleWindow(dynamic_cast<const QLinTester*>(tester.data())->objectName() + "/Settings")) {
-            return;
-        }
-
-        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, tester->settingsPath());
-        QObject::connect(dialog, &SettingsDialog::settingsUpdated, tester.dynamicCast<QLinTester>().data(), &QLinTester::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinTester*>(tester.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinTester/Settings"));
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        windowAddPluginSettingsAction<QLinTester, QLinTesterMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLinTester"), gtx, ctx, log);
     });
 
     return true;
@@ -74,12 +63,13 @@ REGISTER_PLUGIN(
     QLinTester_unregister,
     QLinTesterMenu,
     { "QLin" },
-    false,
-    1000
+    true,
+    1000,
+    LinTesterSettings
 )
 
-QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-	: Widget(ld, plugins, parent, settingsPath, new LinTesterSettings(Settings::get(), settingsPath))
+QLinTester::QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinTesterSettings* set, const QString& uuid)
+	: Widget(ld, plugins, parent, settingsPath, set, uuid)
     , m_data(new Ui::QLinTesterUI) {
     m_data.m_ui->setupUi(this);
     connect(m_data.m_ui->testButton, &QPushButton::clicked, this, &QLinTester::startTest);
@@ -130,7 +120,8 @@ bool QLinTester::deinitialize() {
 void QLinTester::settingsChanged() {
     emit message("QLinTester::settingsChanged()");
     const auto set = settings<LinTesterSettings>();
-    *(set) = LinTesterSettings(Settings::get(), settingsPath());
+    //*(set) = LinTesterSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<LinTesterSettings>(settingsPath()));
 
     disconnect(this, SLOT(dataReady(const QByteArray&)));
     disconnect(this, SLOT(linClosed));
@@ -158,6 +149,7 @@ void QLinTester::settingsChanged() {
     }
 
     QObject::connect(m_data.m_lin.data(), &IODevice::closed, this, &QLinTester::linClosed);
+    emit settingsApplied();
 }
 
 SettingsMdi* QLinTester::settingsWindow() const {

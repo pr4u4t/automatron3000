@@ -266,6 +266,28 @@ public:
         m_keepClear = keepClear; 
     }
 
+    bool operator==(const DataSettings& other) const {
+        return m_dbDriver == other.m_dbDriver &&
+            m_dbUri == other.m_dbUri &&
+            m_dbName == other.m_dbName &&
+            m_dbTable == other.m_dbTable &&
+            m_dbLock == other.m_dbLock &&
+            m_dbLockPass == other.m_dbLockPass &&
+            m_serialPrefix == other.m_serialPrefix &&
+            m_barcodeRegexp == other.m_barcodeRegexp &&
+            m_serialInterval == other.m_serialInterval &&
+            m_cipher == other.m_cipher &&
+            m_removeChars == other.m_removeChars &&
+            m_omitZeros == other.m_omitZeros &&
+            m_clearCode == other.m_clearCode &&
+            m_keepClear == other.m_keepClear;
+    }
+
+    // Inequality operator (optional)
+    bool operator!=(const DataSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     QString m_dbDriver;
     QString m_dbUri;
@@ -283,21 +305,21 @@ private:
     bool m_keepClear;
 };
 
+class QData;
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
 
 public:
 
-    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
+
+    SettingsDialog(QWidget* parent, const QData* data);
 
     ~SettingsDialog();
 
-    DataSettings dataSettings() const;
-
-    QString settingsPath() const {
-        return m_settingsPath;
-    }
+    operator DataSettings() const;
 
 private slots:
     void ok();
@@ -307,12 +329,11 @@ private slots:
 private:
     void updateSettings();
     void fillFromSettings();
+    void setup();
 
 private:
-    DataSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif // SETTINGSDIALOG_H

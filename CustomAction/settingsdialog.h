@@ -154,6 +154,19 @@ public:
         m_interval = interval;
     }
 
+    bool operator==(const CustomActionSettings& other) const {
+        return m_pluginsActions == other.m_pluginsActions &&
+            m_buttonText == other.m_buttonText &&
+            m_title == other.m_title &&
+            m_progress == other.m_progress &&
+            m_verbose == other.m_verbose &&
+            m_interval == other.m_interval;
+    }
+
+    bool operator!=(const CustomActionSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     QJsonArray m_pluginsActions;
     QString m_buttonText;
@@ -163,6 +176,8 @@ private:
     int m_interval;
 };
 
+class QCustomAction;
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
@@ -171,11 +186,11 @@ public:
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
 
+    SettingsDialog(QWidget* parent, const QCustomAction* action);
+
     ~SettingsDialog();
 
-    CustomActionSettings dataSettings() const;
-
-    QString settingsPath() const;
+    operator CustomActionSettings() const;
 
 private slots:
     void ok();
@@ -275,11 +290,11 @@ private:
 
     bool verifySettings() const;
 
+    void setup();
+
 private:
-    CustomActionSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     //QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
     QStandardItemModel* m_model = nullptr;
 };
 

@@ -75,6 +75,17 @@ public:
     QString linDevice() const { return m_linDevice; }
     void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
 
+    bool operator==(const KonsoleSettings& other) const {
+        return m_prompt == other.m_prompt &&
+            m_localEcho == other.m_localEcho &&
+            m_commandDelay == other.m_commandDelay &&
+            m_linDevice == other.m_linDevice;
+    }
+
+    bool operator!=(const KonsoleSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     QString m_prompt;
     bool m_localEcho;
@@ -82,20 +93,20 @@ private:
     QString m_linDevice;
 };
 
+class QLinKonsole;
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
 
 public:
-    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
+
+    SettingsDialog(QWidget* parent, const QLinKonsole* konsole);
 
     ~SettingsDialog();
 
-    KonsoleSettings konsoleSettings() const;
-
-    QString settingsPath() const {
-        return m_settingsPath;
-    }
+    operator KonsoleSettings() const;
 
 private slots:
     void ok();
@@ -105,12 +116,11 @@ private slots:
 private:
     void updateSettings();
     void fillFromSettings();
+    void setup();
 
 private:
-    KonsoleSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif // SETTINGSDIALOG_H

@@ -55,11 +55,12 @@ REGISTER_STATIC_PLUGIN(
 	PluginsMenu,
 	{},
 	false,
-	1500
+	1500,
+	PluginSettings
 )
 
-Plugins::Plugins(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-: Widget(ld, plugins, parent, settingsPath) {
+Plugins::Plugins(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, PluginSettings* sets, const QString& uuid)
+: Widget(ld, plugins, parent, settingsPath, sets, uuid) {
 }
 
 void Plugins::settingsChanged() {

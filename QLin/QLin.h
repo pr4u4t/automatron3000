@@ -6,12 +6,22 @@
 #include "settingsdialog.h"
 #include "CLin.h"
 
+struct QLinData {
+	QLinData(CLin* clin, bool open = false) 
+		: m_lin(clin)
+		, m_open(open){
+	}
+
+	CLin* m_lin = nullptr;
+	bool m_open = false;
+};
+
 class QLIN_EXPORT QLin : public IODevice {
 
     Q_OBJECT
 
 public:
-    QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString());
+    QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, LinSettings* set, const QString& uuid);
 
 	bool open(const QString& url = QString());
 
@@ -53,8 +63,8 @@ protected slots:
 
 private:
 
-	CLin* m_lin = nullptr;
-	bool m_open = false;
+	QLinData m_data;
+	
 };
 
 #endif

@@ -20,7 +20,7 @@ class QBADGE_EXPORT QBadge : public Widget {
     Q_OBJECT
 
 public:
-    QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, BadgeSettings* set, const QString& uuid);
 
     bool saveSettings();
 

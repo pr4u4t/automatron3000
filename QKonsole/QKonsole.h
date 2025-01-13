@@ -18,7 +18,7 @@ signals:
     void getData(const QByteArray& data);
 
 public:
-    QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, KonsoleSettings* set, const QString& uuid);
 
     SettingsMdi* settingsWindow() const override;
 

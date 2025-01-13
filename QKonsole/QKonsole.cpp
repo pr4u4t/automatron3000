@@ -8,54 +8,55 @@
 struct QKonsoleMenu {
     QKonsoleMenu(QCoreApplication* app) 
     : m_app(app){
-        m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"), m_serialMenu);
-        m_actionConfigure->setData(QVariant("QKonsole/Settings"));
         if (app != nullptr && Settings::localeNeeded()) {
             m_translator = new QTranslator();
             if (m_translator->load(QLocale::system(), "QKonsole", "_", "translations")) { //set directory of ts
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_console = new QAction(m_app->translate("MainWindow", "Konsole"), nullptr);
-        m_console->setData(QVariant("QKonsole"));
     }
 
-    QAction* m_console = nullptr;
-    QMenu* m_serialMenu = nullptr;
-    QAction* m_actionConfigure = nullptr;
+    QAction* m_newInstance = nullptr;
+    QMenu* m_settings = nullptr;
+    QMenu* m_konsoleMenu = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 };
 
 static bool QKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
-
-    log->message("PluginList_register");
+    log->message("QKonsole_register");
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QKonsole_register(): application is non gui not registering");
         return false;
     }
 
-	QObject::connect(ctx->m_console, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
-	QMenu* menu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Serial"));
-    
-    menu->addSeparator();
-    menu->insertAction(nullptr, ctx->m_console);
-    menu->insertAction(nullptr, ctx->m_actionConfigure);
-    
-    QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
-        QSharedPointer<Plugin> konsole = ld->instance("QKonsole", gtx->m_win);
-        if (gtx->m_win->toggleWindow(dynamic_cast<const QKonsole*>(konsole.data())->objectName() + "/Settings")) {
-            return;
-        }
-        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, konsole->settingsPath());
-        QObject::connect(dialog, &SettingsDialog::settingsUpdated, konsole.dynamicCast<QKonsole>().data(), &QKonsole::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QKonsole*>(konsole.data())->objectName() + "/Settings");//ctx->m_app->translate("MainWindow", "Konsole-Settings"));
+    if (gtx->m_win == nullptr) {
+        log->message("QKonsole_register(): window pointer == nullptr");
+        return false;
+    }
+
+    auto ioMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Serial"));
+
+    if (ioMenu == nullptr) {
+        log->message("QKonsole_register(): serial menu not found");
+        return false;
+    }
+
+    //if ((ctx->m_konsoleMenu = ioMenu->addMenu(ctx->m_app->translate("MainWindow", "&Konsole"))) == nullptr) {
+    //    log->message("QKonsole_register(): failed to create konsole menu");
+    //    return false;
+    //}
+
+    windowAddInstanceSettings(ioMenu, &ctx->m_settings, &ctx->m_newInstance, "QKonsole", ctx->m_app, log);
+
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        windowAddPluginSettingsAction<QKonsole, QKonsoleMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLin"), gtx, ctx, log);
     });
 
-	return true;
+    return true;
 }
 
 static bool QKonsole_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QKonsoleMenu* ctx, Logger* log) {
@@ -73,16 +74,18 @@ REGISTER_PLUGIN(
     QKonsoleMenu,
     {"QSerial"},
     true,
-    1200
+    1200,
+    KonsoleSettings
 )
 
-QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
+QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, KonsoleSettings* set, const QString& uuid)
     : Widget(
         ld, 
         plugins, 
         parent, 
         path, 
-        new KonsoleSettings() //Settings::get(), path)
+        set,
+        uuid
     )
     , m_terminal(new QTerminal(this, tr("<b>Welcome to serial (rs-232) terminal</b>"))) {
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
@@ -127,6 +130,9 @@ void QKonsole::enterPressed(const QString& command) {
 }
 
 void QKonsole::settingsChanged() {
-    *(settings<KonsoleSettings>()) = KonsoleSettings(Settings::get(), settingsPath());
-    m_terminal->setPrompt(settings<KonsoleSettings>()->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
+    const auto set = settings<KonsoleSettings>();
+    //*(settings<KonsoleSettings>()) = KonsoleSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<KonsoleSettings>(settingsPath()));
+    m_terminal->setPrompt(set->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
+    emit settingsApplied();
 }

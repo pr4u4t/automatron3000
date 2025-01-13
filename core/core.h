@@ -78,7 +78,11 @@ struct ModuleLoaderData {
 template<typename T>
 class ModuleLoader : public PluginsLoader {
 public:
-
+	enum LoaderState {
+		ENABLED = 1,
+		DISABLED = 2,
+		ALL = 3
+	};
 	ModuleLoader(Logger* log = nullptr) 
 		: m_data(log) {}
 
@@ -90,6 +94,11 @@ public:
 	virtual ~ModuleLoader() {
 
 		m_data.m_instances.clear();
+
+		//for (auto it = m_data.m_instances.begin(), end = m_data.m_instances.end(); it != end; it = m_data.m_instances.erase(it)) {
+		//	QCoreApplication::processEvents();
+		//}
+
 		m_data.m_loaders.clear();
 
 		//for (auto it = m_libraries.begin(), end = m_libraries.end(); it != end; ++it) {
@@ -112,19 +121,24 @@ public:
 	}
 
 	bool hasInstance(const QString& name, const QString& settingsPath = QString()) const {
+		logger()->message("ModuleLoader::hasInstance(const QString& name, const QString& settingsPath)");
 		return hasInstanceInternal(name, settingsPath) != nullptr;
 	}
 
 	auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType {
+		logger()->message("ModuleLoader::instance(const QString& name, QWidget* parent, const QString& settingsPath, const ModuleHint& hint)");
 		return (hasInstanceInternal(name, settingsPath) != nullptr) ? hasInstanceInternal(name, settingsPath) : newInstance(name, parent, settingsPath, hint);
 	}
 
 	auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType {
+		logger()->message("ModuleLoader::newInstance(const QString& name, QWidget* parent, const QString& settingsPath, const ModuleHint& hint");
 		if (m_data.m_loaders.contains(name) == false) {
 			return nullptr;
 		}
 
-		auto ret = m_data.m_loaders[name]->load(this, parent, settingsPath);
+		const QString path = (settingsPath.isEmpty()) ? QString("%1-{%2}").arg(name).arg(QUuid::createUuid().toString()) : settingsPath;
+
+		auto ret = m_data.m_loaders[name]->load(this, parent, path);
 		if (ret == nullptr) {
 			return nullptr;
 		}
@@ -133,7 +147,7 @@ public:
 		
 		QObject* o = dynamic_cast<QObject*>(ret.data());
 		connect(o, SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
-
+		//TODO: rewrite this condition by checking if settings path exist
 		if (o->objectName().isEmpty() == true) {
 			const int count = m_data.m_instances.count(name) - 1;
 			const QString objName = (count == 0) ? name : QString("%1 %2").arg(name).arg(count);
@@ -148,7 +162,39 @@ public:
 		return ret;
 	}
 
+	auto newSettings(const QString& name) const -> SettingsType {
+		logger()->message("ModuleLoader::newSettings(const QString& name)");
+		if (m_data.m_loaders.contains(name) == false) {
+			return nullptr;
+		}
+
+		return m_data.m_loaders[name]->settings();
+	}
+
+	auto fetchSettings(const QString& path) const -> SettingsType {
+		logger()->message("ModuleLoader::fetchSettings(const QString& path)");
+		auto optName = nameFromPath(path);
+		if (optName.has_value() == false) {
+			logger()->message("ModuleLoader::fetchSettings: failed to get plugin name");
+			return nullptr;
+		}
+		const auto name = optName.value();
+		if (m_data.m_loaders.contains(name) == false) {
+			logger()->message(QString("ModuleLoader::fetchSettings: failed to find loader for: %1").arg(name));
+			return nullptr;
+		}
+
+		auto ret = m_data.m_loaders[name]->settings(path);
+		if (ret == nullptr) {
+			logger()->message("ModuleLoader::fetchSettings: failed to load settings");
+			return nullptr;
+		}
+
+		return ret;
+	}
+
 	auto find(const QString& uuid) const -> PluginType {
+		logger()->message("ModuleLoader::find(const QString& uuid) const");
 		for (QMultiHash<QString, PluginType>::const_iterator i = m_data.m_instances.begin(); i != m_data.m_instances.end(); ++i) {
 			if (i->data()->uuid() == uuid) {
 				return i.value();
@@ -159,6 +205,7 @@ public:
 	}
 
 	auto findByObjectName(const QString& name) const -> PluginType {
+		logger()->message("ModuleLoader::findByObjectName(const QString& name) const");
 		for (QMultiHash<QString, PluginType>::const_iterator i = m_data.m_instances.begin(); i != m_data.m_instances.end(); ++i) {
 			if (dynamic_cast<QObject*>(i->data())->objectName() == name) {
 				return i.value();
@@ -168,11 +215,27 @@ public:
 		return nullptr;
 	}
 
-	const QList<const T*> loaders() const {
+	const QList<const T*> loaders(LoaderState state = LoaderState::ALL) const {
+		logger()->message("ModuleLoader::loaders()");
 		QList<const T*> ret;
 
 		for (auto i = m_data.m_loaders.cbegin(), end = m_data.m_loaders.cend(); i != end; ++i) {
-			ret << i.value();
+			switch (state) {
+			case LoaderState::ENABLED:
+				if (i.value()->enabled() == true) {
+					ret << i.value();
+				}
+				break;
+			case LoaderState::DISABLED:
+				if (i.value()->enabled() == false) {
+					ret << i.value();
+				}
+
+			default:
+				ret << i.value();
+			}
+			
+			
 		}
 
 		return ret;
@@ -248,6 +311,7 @@ public:
 			auto deps = it->depends();
 			for (auto begin = deps.begin(), end = deps.end(); begin != end; ++begin) {
 				if (hasLoader(*begin) == false) {
+					logger()->message("ModuleLoader::loadPlugins(): disabling plugin: "+it->name()+" since following dependency is not met: "+*begin);
 					m_data.m_loaders[it->name()]->setEnabled(false);
 					break;
 				}
@@ -289,7 +353,9 @@ public:
 		});
 
 		for (auto item : lds) {
-			item->registerPlugin(context(), this, logger());
+			if (item->enabled()) {
+				item->registerPlugin(context(), this, logger());
+			}
 		}
 
 		return ret;
@@ -303,6 +369,50 @@ public:
 
 			return false;
 		});
+	}
+
+	auto copy(const QString& uuid) -> PluginType {
+		logger()->message("ModuleLoader::copy(const QString& uuid) -> PluginType");
+
+		auto src = find(uuid);
+		if (src == nullptr) {
+			logger()->message("ModuleLoader::copy: failed to find src by uuid: "+uuid);
+			return nullptr;
+		}
+		const auto srcName = src->name();
+
+		if (m_data.m_loaders.contains(srcName) == false) {
+			logger()->message("ModuleLoader::copy: failed to find loader by name uuid: " + src->name());
+			return nullptr;
+		}
+
+		if (m_data.m_loaders[srcName]->multipleInstances() == false) {
+			logger()->message(QString("ModuleLoader::copy: module %1 doesn't allow multiple instances").arg(srcName));
+			return nullptr;
+		}
+
+		const QString path = QString("%1-%2").arg(srcName).arg(QUuid::createUuid().toString());
+		PluginSettings* sets = fetchSettings(src->settingsPath());
+		Settings::store(path, sets);
+
+		auto ret = m_data.m_loaders[srcName]->load(this, nullptr, path);
+		if (ret == nullptr) {
+			logger()->message(QString("ModuleLoader::copy: failed to load: %1").arg(srcName));
+			return nullptr;
+		}
+
+		m_data.m_instances.insert(src->name(), ret);
+
+		QObject* o = dynamic_cast<QObject*>(ret.data());
+		connect(o, SIGNAL(message(const QString&, LoggerSeverity)), logger(), SLOT(message(const QString&, LoggerSeverity)));
+		const int count = m_data.m_instances.count(srcName) - 1;
+		const QString objName = (count == 0) ? srcName : QString("%1 %2").arg(srcName).arg(count);
+		o->setObjectName(objName);
+
+		ret->initialize();
+
+		emit loaded(ret.data());
+		return ret;
 	}
 
 	QList<PluginType> instances() const {
@@ -333,6 +443,18 @@ public:
 
 protected:
 
+	inline std::optional<QString> nameFromPath(const QString& path) const {
+		QRegExp rx("^([^-]+)");
+		int idx;
+
+		if ((idx = rx.indexIn(path)) != -1) {
+			return rx.cap(1);
+		}
+
+		return std::nullopt;
+	}
+
+	//TODO: remove
 	QString findUnusedPath() const {
 		return QString();
 	}
@@ -364,8 +486,8 @@ typedef ModuleLoader<Loader> MLoader;
 template<typename T>
 QHash<QString, T*> ModuleLoaderData<T>::m_loaders = QHash<QString, T*>();
 
-#define REGISTER_STATIC_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight) \
-	PluginLoader<name, data> name##_##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); \
+#define REGISTER_STATIC_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight, set) \
+	PluginLoader<name, data, set> name##_##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); \
 	RegisterStaticPlugin name##RegisterLoader(&name##_##Loader);
 
 class RegisterStaticPlugin {

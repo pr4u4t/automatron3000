@@ -9,10 +9,9 @@
 
 #include "MainWindow.h"
 
-LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath)
+LogViewer::LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, PluginSettings* set, const QString& uuid)
+    : Widget(ld, plugins, parent, settingsPath, set, uuid)
     , m_text(new QTextEdit()){
-
 }
 
 bool LogViewer::initialize() {
@@ -130,5 +129,6 @@ REGISTER_STATIC_PLUGIN(
     LogViewerMenu,
     {},
     false,
-    1400
+    1400,
+    PluginSettings
 )

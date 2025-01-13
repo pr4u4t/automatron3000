@@ -129,6 +129,21 @@ public:
     bool autoConnect() const { return m_autoConnect; }
     void setAutoConnect(bool autoConnect) { m_autoConnect = autoConnect; }
 
+    bool operator==(const SerialSettings& other) const {
+        return m_name == other.m_name &&
+            m_baudRate == other.m_baudRate &&
+            m_dataBits == other.m_dataBits &&
+            m_parity == other.m_parity &&
+            m_stopBits == other.m_stopBits &&
+            m_flowControl == other.m_flowControl &&
+            m_localEchoEnabled == other.m_localEchoEnabled &&
+            m_autoConnect == other.m_autoConnect;
+    }
+
+    bool operator!=(const SerialSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     QString m_name;
     qint32 m_baudRate;
@@ -140,25 +155,21 @@ private:
     bool m_autoConnect;
 };
 
+class QSerial;
+
 class SettingsDialog : public SettingsMdi{
 
     Q_OBJECT
 
 public:
         
-    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
     
+    SettingsDialog(QWidget* parent, const QSerial* serial);
+
     ~SettingsDialog();
 
-    SerialSettings serialSettings() const;
-
-    bool saveSettings() {
-        return true;
-    }
-
-    QString settingsPath() const {
-        return m_settingsPath;
-    }
+    operator SerialSettings() const;
 
 private slots:
     void showPortInfo(int idx);
@@ -175,12 +186,11 @@ private:
     void fillPortsInfo();
     void updateSettings();
     void fillFromSettings();
-    
+    void setup();
+
 private:
-    SerialSettings m_currentSettings;
     Ui::SettingsDialog *m_ui = nullptr;
     QIntValidator *m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif // SETTINGSDIALOG_H

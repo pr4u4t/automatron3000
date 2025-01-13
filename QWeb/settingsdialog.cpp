@@ -1,14 +1,30 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QWeb.h"
 
 #include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new WebSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QWeb* web)
+    : SettingsMdi(parent, new WebSettings(*(web->settings<WebSettings>())), web->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -22,31 +38,40 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {}
-
-WebSettings SettingsDialog::dataSettings() const {
-    return m_currentSettings;
-}
-
-QString SettingsDialog::settingsPath() const {
-    return m_settingsPath;
-}
-
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    const WebSettings* setts = settings<WebSettings>();
+    m_ui->urlEdit->setText(setts->url());
+    m_ui->refreshEdit->setValue(setts->refresh());
+}
 
-    m_ui->urlEdit->setText(m_currentSettings.url());
-    m_ui->refreshEdit->setValue(m_currentSettings.refresh());
+SettingsDialog::operator WebSettings() const {
+    WebSettings ret;
+
+    ret.setUrl(m_ui->urlEdit->text());
+    ret.setRefresh(m_ui->refreshEdit->value());
+
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.setUrl(m_ui->urlEdit->text());
-    m_currentSettings.setRefresh(m_ui->refreshEdit->value());
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    WebSettings newSettings = *this;
+    WebSettings* setts = settings<WebSettings>();
+
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+
+    *setts = newSettings;
+    Settings::store<WebSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

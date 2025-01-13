@@ -26,7 +26,9 @@ Session::Session(MLoader* plugins, Logger* log, const QString& path, MainWindow*
 }
 
 QStringList Session::orderOfModules() const {
-    auto exts = plugins()->loaders();
+    emit message("Session::orderOfModules()");
+
+    auto exts = plugins()->loaders(MLoader::LoaderState::ENABLED);
     QStringList order;
 
     while (exts.size() > 0) {
@@ -159,17 +161,43 @@ MainWindow* Session::window() const {
 }
 
 void Session::loaded(const Plugin* plugin) {
-    m_data.m_settings.instances << SessionModuleInstance(plugin);
+    emit message("Session::loaded(const Plugin* plugin)");
+    //m_data.m_settings.instances << SessionModuleInstance(plugin);
+    emit message(QString("Session::loaded: loaded: %1, version: %2").arg(plugin->name()).arg(plugin->version()));
+    m_data.m_changed = true;
+    const QObject* object = dynamic_cast<const QObject*>(plugin);
+    QObject::connect(object, SIGNAL(settingsApplied()), this, SLOT(settingsApplied()));
 }
 
 void Session::aboutToDelete(const Plugin* plugin) {
-
+    emit message("Session::aboutToDelete(const Plugin* plugin)");
+    emit message(QString("Session::aboutToDelete: is about to be deleted name: %1, uuid: %2").arg(plugin->name()).arg(plugin->uuid()));
+    m_data.m_changed = true;
 }
 
 void Session::enabled(const Loader* loader) {
-
+    emit message("Session::enabled(const Loader * loader)");
+    emit message(QString("Session::enabled: plugin enabled name: %1").arg(loader->name()));
+    m_data.m_changed = true;
 }
 
 void Session::disabled(const Loader* loader) {
+    emit message("Session::disabled(const Loader* loader)");
+    m_data.m_changed = true;
+}
 
+bool Session::hasChanged() const {
+    return m_data.m_changed;
+}
+
+void Session::settingsApplied() { 
+    emit message("Session::settingsApplied()");
+    const QObject* source = sender();
+    const Plugin* plugin = dynamic_cast<const Plugin*>(source);
+    if (plugin == nullptr) {
+        emit message("Session::settingsApplied: signal source is not a plugin");
+        return;
+    }
+    emit message(QString("Session::settingsApplied: settings applied to plugin name: %1, uuid: %2").arg(plugin->name()).arg(plugin->uuid()));
+    m_data.m_changed = true;
 }

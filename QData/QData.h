@@ -40,7 +40,7 @@ class QDATA_EXPORT QData : public Widget{
     Q_OBJECT
 
 public:
-    QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, DataSettings* set, const QString& uuid);
 
     bool saveSettings() {
         return true;

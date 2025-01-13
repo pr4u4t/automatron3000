@@ -20,7 +20,7 @@ class QCUSTOMACTION_EXPORT QCustomAction : public Widget {
     Q_OBJECT
 
 public:
-    QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, CustomActionSettings* set, const QString& uuid);
 
     bool saveSettings();
 

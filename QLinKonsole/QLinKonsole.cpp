@@ -11,22 +11,16 @@
 struct QLinKonsoleMenu {
     QLinKonsoleMenu(QCoreApplication* app) 
     : m_app(app){
-
-        m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"));
-        m_actionConfigure->setData(QVariant("QLinKonsole/Settings"));
         if (app != nullptr && Settings::localeNeeded()) {
             m_translator = new QTranslator();
             if (m_translator->load(QLocale::system(), "QLinKonsole", "_", "translations")) { //set directory of ts
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_console = new QAction(m_app->translate("MainWindow", "LinKonsole"), nullptr);
-        m_console->setData(QVariant("QLinKonsole"));
     }
 
-    QAction* m_console = nullptr;
-    QAction* m_actionConfigure = nullptr;
+    QAction* m_newInstance = nullptr;
+    QMenu* m_settings = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 };
@@ -40,24 +34,21 @@ static bool QLinKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, 
         return false;
     }
 
-	QObject::connect(ctx->m_console, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
-	QMenu* menu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
-    
-    menu->addSeparator();
-    menu->insertAction(nullptr, ctx->m_console);
-    menu->insertAction(nullptr, ctx->m_actionConfigure);
-    
-    QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
-        QSharedPointer<Plugin> konsole = ld->instance("QLinKonsole", gtx->m_win);
-        if (gtx->m_win->toggleWindow(dynamic_cast<const QLinKonsole*>(konsole.data())->objectName() + "/Settings")) {
-            return;
-        }
-        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, konsole->settingsPath());
-        QObject::connect(dialog, &SettingsDialog::settingsUpdated, konsole.dynamicCast<QLinKonsole>().data(), &QLinKonsole::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinKonsole*>(konsole.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinKonsole/Settings"));
+    auto linbusMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
+
+    if (linbusMenu == nullptr) {
+        log->message("QLinKonsole_register(): linbus menu not found");
+        return false;
+    }
+
+    windowAddInstanceSettings(linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLinKonsole", ctx->m_app, log);
+
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        windowAddPluginSettingsAction<QLinKonsole, QLinKonsoleMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLinKonsole"), gtx, ctx, log);
     });
 
-	return true;
+    return true;
 }
 
 static bool QLinKonsole_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinKonsoleMenu* ctx, Logger* log) {
@@ -76,11 +67,12 @@ REGISTER_PLUGIN(
     QLinKonsoleMenu,
     {"QLin"},
     false,
-    800
+    800,
+    KonsoleSettings
 )
 
-QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-    : Widget(ld, plugins, parent, path, new KonsoleSettings(Settings::get(), path))
+QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, KonsoleSettings* set, const QString& uuid)
+    : Widget(ld, plugins, parent, path, set, uuid)
     , m_data(new QTerminal(this, tr("<b>Welcome to LIN terminal</b>"))) {
     //settingsChanged();
     //m_settings = SettingsDialog::KonsoleSettings(Settings::get(), settingsPath());
@@ -137,7 +129,8 @@ bool QLinKonsole::deinitialize() {
 void QLinKonsole::settingsChanged() {
     emit message("QLinKonsole::settingsChanged()");
     const auto set = settings<KonsoleSettings>();
-    *(set) = KonsoleSettings(Settings::get(), settingsPath());
+    //*(set) = KonsoleSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<KonsoleSettings>(settingsPath()));
     m_data.m_terminal->setPrompt(set->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
     disconnect(this, SLOT(putData(const QByteArray&)));
     disconnect(this, SLOT(putData(const QString&, LoggerSeverity)));
@@ -158,6 +151,8 @@ void QLinKonsole::settingsChanged() {
     connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
     connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
     m_data.m_lin = io.dynamicCast<IODevice>();
+
+    emit settingsApplied();
 
     if (m_data.m_lin->isOpen() == false) {
         if (m_data.m_lin->open() == false) {

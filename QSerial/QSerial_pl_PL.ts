@@ -4,19 +4,18 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="QSerial.cpp" line="52"/>
+        <location filename="QSerial.cpp" line="41"/>
+        <source>Input/Output</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QSerial.cpp" line="48"/>
         <source>&amp;Serial</source>
         <translation>&amp;Port szeregowy</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="20"/>
         <source>Settings</source>
-        <translation>Ustawienia</translation>
-    </message>
-    <message>
-        <location filename="QSerial.cpp" line="57"/>
-        <source>&amp;Settings</source>
-        <translation type="unfinished"></translation>
+        <translation type="vanished">Ustawienia</translation>
     </message>
     <message>
         <source>QSerial/Settings</source>
@@ -24,14 +23,12 @@
         <translation type="obsolete">Port szeregowy - Ustawienia</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="24"/>
         <source>Connect</source>
-        <translation>Połącz</translation>
+        <translation type="vanished">Połącz</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="27"/>
         <source>Disconnect</source>
-        <translation>Rozłącz</translation>
+        <translation type="vanished">Rozłącz</translation>
     </message>
 </context>
 <context>
@@ -41,12 +38,12 @@
         <translation type="vanished">Błąd otwarcia portu szeregowego</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="154"/>
+        <location filename="QSerial.cpp" line="106"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="154"/>
+        <location filename="QSerial.cpp" line="106"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>
@@ -154,84 +151,84 @@
         <translation>Lokalne echo</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="12"/>
+        <location filename="settingsdialog.cpp" line="13"/>
         <source>N/A</source>
         <translation>N/N</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="61"/>
+        <location filename="settingsdialog.cpp" line="68"/>
         <source>Description: %1</source>
         <translation>Opis: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="62"/>
+        <location filename="settingsdialog.cpp" line="69"/>
         <source>Manufacturer: %1</source>
         <translation>Producent: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="63"/>
+        <location filename="settingsdialog.cpp" line="70"/>
         <source>Serial number: %1</source>
         <translation>Numer seryjny: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="64"/>
+        <location filename="settingsdialog.cpp" line="71"/>
         <source>Location: %1</source>
         <translation>Lokalizacja: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="65"/>
+        <location filename="settingsdialog.cpp" line="72"/>
         <source>Vendor Identifier: %1</source>
         <translation>Kod producenta: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="66"/>
+        <location filename="settingsdialog.cpp" line="73"/>
         <source>Product Identifier: %1</source>
         <translation>Kod produktu: %1</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="111"/>
-        <location filename="settingsdialog.cpp" line="160"/>
+        <location filename="settingsdialog.cpp" line="118"/>
+        <location filename="settingsdialog.cpp" line="167"/>
         <source>Custom</source>
         <translation>Własna</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="119"/>
-        <location filename="settingsdialog.cpp" line="131"/>
+        <location filename="settingsdialog.cpp" line="126"/>
+        <location filename="settingsdialog.cpp" line="138"/>
         <source>None</source>
         <translation>Brak</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="120"/>
+        <location filename="settingsdialog.cpp" line="127"/>
         <source>Even</source>
         <translation>Parzysta</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="121"/>
+        <location filename="settingsdialog.cpp" line="128"/>
         <source>Odd</source>
         <translation>Nieparzysta</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="122"/>
+        <location filename="settingsdialog.cpp" line="129"/>
         <source>Mark</source>
         <translation>Wysoka (Mark)</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="123"/>
+        <location filename="settingsdialog.cpp" line="130"/>
         <source>Space</source>
         <translation>Niska (Space)</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="127"/>
+        <location filename="settingsdialog.cpp" line="134"/>
         <source>1.5</source>
         <translation>1.5</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="132"/>
+        <location filename="settingsdialog.cpp" line="139"/>
         <source>RTS/CTS</source>
         <translation>RTS/CTS</translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="133"/>
+        <location filename="settingsdialog.cpp" line="140"/>
         <source>XON/XOFF</source>
         <translation>XON/XOFF</translation>
     </message>

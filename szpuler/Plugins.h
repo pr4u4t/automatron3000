@@ -14,15 +14,14 @@ class Plugins : public Widget {
 
 public:
 
-	Plugins(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
+	Plugins(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, PluginSettings* sets, const QString& uuid);
 
 	~Plugins() {
-	
 	}
 
-	bool saveSettings() {
-		return true;
-	}
+	//bool saveSettings() {
+	//	return true;
+	//}
 
 	SettingsMdi* settingsWindow() const override;
 

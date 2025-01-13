@@ -1,0 +1,16 @@
+#ifndef QEXTERNALACTON_GLOBAL_H
+#define QEXTERNALACTON_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#ifndef BUILD_STATIC
+# if defined(QEXTERNALACTION_LIB)
+#  define QEXTERNALACTION_EXPORT Q_DECL_EXPORT
+# else
+#  define QEXTERNALACTION_EXPORT Q_DECL_IMPORT
+# endif
+#else
+# define QEXTERNALACTION_EXPORT
+#endif
+
+#endif

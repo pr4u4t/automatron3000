@@ -9,6 +9,7 @@
 
 #include "../api/api.h"
 
+class QBadge;
 
 QT_BEGIN_NAMESPACE
 
@@ -20,11 +21,11 @@ QT_END_NAMESPACE
 
 struct BadgeSettings : public PluginSettings {
     Q_GADGET
-        Q_PROPERTY(QString imagePath READ imagePath WRITE setImagePath)
-        Q_PROPERTY(QString text READ text WRITE setText)
-        Q_PROPERTY(QString title READ title WRITE setTitle)
+    Q_PROPERTY(QString imagePath READ imagePath WRITE setImagePath)
+    Q_PROPERTY(QString text READ text WRITE setText)
+    Q_PROPERTY(QString title READ title WRITE setTitle)
 
-        static constexpr const char* imagePathKey = "imagePath";
+    static constexpr const char* imagePathKey = "imagePath";
     static constexpr const char* imagePathValue = nullptr;
     static constexpr const char* textKey = "text";
     static constexpr const char* textValue = nullptr;
@@ -81,6 +82,16 @@ public:
         m_title = title;
     }
 
+    bool operator==(const BadgeSettings& other) const {
+        return m_imagePath == other.m_imagePath
+            && m_text == other.m_text
+            && m_title == other.m_title;
+    }
+
+    bool operator!=(const BadgeSettings& other) const {
+        return !(*this == other);
+    }
+
     QString m_imagePath;
     QString m_text;
     QString m_title;
@@ -94,11 +105,11 @@ public:
    
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
 
+    SettingsDialog(QWidget* parent, const QBadge* badge);
+
     ~SettingsDialog();
 
-    BadgeSettings dataSettings() const;
-
-    QString settingsPath() const;
+    operator BadgeSettings() const;
 
 private slots:
     void ok();
@@ -116,11 +127,12 @@ private:
 
     bool verifySettings() const;
 
+    void setup();
+
 private:
-    BadgeSettings m_currentSettings;
+
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif

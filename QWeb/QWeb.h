@@ -19,7 +19,7 @@ class QWEB_EXPORT QWeb : public Widget {
     Q_OBJECT
 
 public:
-    QWeb(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QWeb(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, WebSettings* set, const QString& uuid);
 
     bool saveSettings();
 

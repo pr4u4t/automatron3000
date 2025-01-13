@@ -2,44 +2,75 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="pl_PL">
 <context>
+    <name>ChooseWidgetsDialog</name>
+    <message>
+        <location filename="MainWindow.h" line="111"/>
+        <source>Choose widgets to copy</source>
+        <translation>Wybierz widżety do skopiowania</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.h" line="127"/>
+        <source>Submit</source>
+        <translation>Potwierdź</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.h" line="133"/>
+        <source>Cancel</source>
+        <translation>Anuluj</translation>
+    </message>
+</context>
+<context>
     <name>CustomDockWidgetTab</name>
     <message>
-        <location filename="MainWindow.h" line="322"/>
+        <location filename="MainWindow.h" line="493"/>
         <source>Settings</source>
-        <translation type="unfinished">Ustawienia</translation>
+        <translation>Ustawienia</translation>
     </message>
 </context>
 <context>
     <name>Instances</name>
     <message>
-        <location filename="Instances.cpp" line="83"/>
+        <location filename="Instances.cpp" line="85"/>
         <source>name</source>
         <translation>nazwa</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="84"/>
+        <location filename="Instances.cpp" line="86"/>
         <source>object</source>
-        <translation type="unfinished"></translation>
+        <translation>obiekt</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="85"/>
+        <location filename="Instances.cpp" line="87"/>
         <source>version</source>
         <translation>wersja</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="86"/>
+        <location filename="Instances.cpp" line="88"/>
         <source>uuid</source>
-        <translation type="unfinished"></translation>
+        <translation>uuid</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="160"/>
+        <location filename="Instances.cpp" line="174"/>
+        <source>Copy</source>
+        <translation>Kopiuj</translation>
+    </message>
+    <message>
+        <location filename="Instances.cpp" line="175"/>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Zamknij</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="162"/>
+        <location filename="Instances.cpp" line="177"/>
         <source>Settings</source>
-        <translation type="unfinished">Ustawienia</translation>
+        <translation>Ustawienia</translation>
+    </message>
+</context>
+<context>
+    <name>LoadingDialog</name>
+    <message>
+        <location filename="LoadingDialog.h" line="34"/>
+        <source>Please wait</source>
+        <translation>Proszę czekać</translation>
     </message>
 </context>
 <context>
@@ -51,33 +82,32 @@
 </translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="164"/>
+        <location filename="MainWindow.cpp" line="172"/>
         <source>About</source>
         <translation>O programie</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="386"/>
-        <location filename="MainWindow.cpp" line="388"/>
+        <location filename="MainWindow.cpp" line="394"/>
         <source>&amp;File</source>
         <translation>&amp;Plik</translation>
     </message>
     <message>
-        <location filename="LogViewer.cpp" line="105"/>
+        <location filename="LogViewer.cpp" line="104"/>
         <source>Log Viewer</source>
         <translation>Dziennik</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="394"/>
+        <location filename="MainWindow.cpp" line="399"/>
         <source>Switch layout direction</source>
         <translation>Zmień kierunek układu</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="398"/>
+        <location filename="MainWindow.cpp" line="403"/>
         <source>E&amp;xit</source>
         <translation>&amp;Wyjście</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="400"/>
+        <location filename="MainWindow.cpp" line="405"/>
         <source>Exit the application</source>
         <translation>Wyjdź z proramu</translation>
     </message>
@@ -98,7 +128,7 @@
         <translation type="vanished">Rozłącz</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="409"/>
+        <location filename="MainWindow.cpp" line="414"/>
         <source>&amp;Window</source>
         <translation>&amp;Okna</translation>
     </message>
@@ -152,15 +182,15 @@
     </message>
     <message>
         <location filename="Instances.cpp" line="32"/>
-        <location filename="LogViewer.cpp" line="107"/>
-        <location filename="MainWindow.cpp" line="411"/>
-        <location filename="PluginList.cpp" line="32"/>
+        <location filename="LogViewer.cpp" line="106"/>
+        <location filename="MainWindow.cpp" line="425"/>
+        <location filename="Plugins.cpp" line="32"/>
         <source>&amp;Settings</source>
         <translation>&amp;Ustawienia</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="28"/>
-        <location filename="PluginList.cpp" line="30"/>
+        <location filename="Plugins.cpp" line="28"/>
+        <location filename="Plugins.cpp" line="30"/>
         <source>Plugins</source>
         <translation>Wtyczki</translation>
     </message>
@@ -171,71 +201,92 @@
         <translation>Instancje</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="138"/>
+        <location filename="MainWindow.cpp" line="143"/>
         <source>Save current session?
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Czy zapisać bieżącą sesje?
+</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="392"/>
+        <location filename="MainWindow.cpp" line="397"/>
         <source>Save session</source>
-        <translation type="unfinished"></translation>
+        <translation>Zapisz sesje</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="404"/>
+        <location filename="MainWindow.cpp" line="409"/>
         <source>&amp;View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Widok</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="405"/>
-        <source>Togggle toolbar</source>
-        <translation type="unfinished"></translation>
+        <location filename="MainWindow.cpp" line="410"/>
+        <source>Toggle toolbar</source>
+        <translation>Przełącz pasek narzędzi</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="416"/>
+        <source>V&amp;isualization</source>
+        <translation>W&amp;izualizacje</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="419"/>
-        <location filename="MainWindow.cpp" line="471"/>
-        <source>Preferences</source>
-        <translation type="unfinished"></translation>
+        <source>Input/Output</source>
+        <translation>Wejscie/Wyjście</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="426"/>
+        <location filename="MainWindow.cpp" line="421"/>
+        <source>Actions</source>
+        <translation>Akcje</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="423"/>
+        <source>Data</source>
+        <translation>Dane</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="433"/>
+        <location filename="MainWindow.cpp" line="485"/>
+        <source>Preferences</source>
+        <translation>Preferencje</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="440"/>
         <source>&amp;Help</source>
         <translation>Po&amp;moc</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="428"/>
+        <location filename="MainWindow.cpp" line="442"/>
         <source>&amp;About</source>
         <translation>&amp;O programie</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="429"/>
+        <location filename="MainWindow.cpp" line="443"/>
         <source>Show the application&apos;s About box</source>
         <translation>Informacje o programie</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="431"/>
+        <location filename="MainWindow.cpp" line="445"/>
         <source>About &amp;Qt</source>
         <translation>O &amp;Qt</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="432"/>
+        <location filename="MainWindow.cpp" line="446"/>
         <source>Show the Qt library&apos;s About box</source>
         <translation>Informacje o Qt</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="434"/>
+        <location filename="MainWindow.cpp" line="448"/>
         <source>Documentation</source>
-        <translation type="unfinished"></translation>
+        <translation>Dokumentacja</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="501"/>
+        <location filename="MainWindow.cpp" line="517"/>
         <source>Ready</source>
         <translation>Gotowy</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="510"/>
-        <source>Save perspective</source>
-        <translation type="unfinished"></translation>
+        <location filename="MainWindow.cpp" line="528"/>
+        <source>Save workspace</source>
+        <translation>Zapisz obszar roboczy</translation>
     </message>
     <message>
         <source>Connected to %1 : %2, %3, %4, %5, %6</source>
@@ -258,64 +309,101 @@
         <translation type="vanished">Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="190"/>
-        <location filename="MainWindow.h" line="211"/>
+        <location filename="MainWindow.h" line="377"/>
         <source>Save Perspective</source>
-        <translation type="unfinished"></translation>
+        <translation>Zapisz obszar roboczy</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="190"/>
-        <location filename="MainWindow.h" line="211"/>
+        <location filename="MainWindow.h" line="220"/>
+        <location filename="MainWindow.h" line="349"/>
+        <location filename="MainWindow.h" line="377"/>
         <source>Enter unique name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Wprowadź unikalną nazwę:</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="197"/>
-        <location filename="MainWindow.h" line="217"/>
+        <location filename="MainWindow.h" line="220"/>
+        <location filename="MainWindow.h" line="349"/>
+        <source>Create perspective</source>
+        <translation>Stwórz obszar roboczy</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.h" line="228"/>
+        <location filename="MainWindow.h" line="356"/>
+        <location filename="MainWindow.h" line="383"/>
         <source>Error perspective already exists</source>
-        <translation type="unfinished"></translation>
+        <translation>Błąd obszar roboczy o tej nawie istnieje</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="197"/>
-        <location filename="MainWindow.h" line="217"/>
+        <location filename="MainWindow.h" line="228"/>
+        <location filename="MainWindow.h" line="356"/>
+        <location filename="MainWindow.h" line="383"/>
         <source>Perspective %1 already exists</source>
-        <translation type="unfinished"></translation>
+        <translation>Obszar roboczy %1 już istnieje</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.h" line="289"/>
+        <source>store current perspective</source>
+        <translation>zapisz bieżący obszar roboczy</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.h" line="290"/>
+        <source>Your current workspace contains changes would you like to save them?</source>
+        <translation>Twoja bieżąca przestrzeń robocza zawiera zmiany. Czy chcesz je zapisać?</translation>
     </message>
 </context>
 <context>
     <name>PluginList</name>
     <message>
-        <location filename="PluginList.cpp" line="76"/>
+        <source>name</source>
+        <translation type="vanished">nazwa</translation>
+    </message>
+    <message>
+        <source>version</source>
+        <translation type="vanished">wersja</translation>
+    </message>
+    <message>
+        <source>description</source>
+        <translation type="vanished">opis</translation>
+    </message>
+    <message>
+        <source>author</source>
+        <translation type="vanished">autor</translation>
+    </message>
+</context>
+<context>
+    <name>Plugins</name>
+    <message>
+        <location filename="Plugins.cpp" line="77"/>
         <source>true</source>
-        <translation type="unfinished"></translation>
+        <translation>prawda</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="76"/>
+        <location filename="Plugins.cpp" line="77"/>
         <source>false</source>
-        <translation type="unfinished"></translation>
+        <translation>fałsz</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="85"/>
+        <location filename="Plugins.cpp" line="86"/>
         <source>enabled</source>
-        <translation type="unfinished"></translation>
+        <translation>włączony</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="86"/>
+        <location filename="Plugins.cpp" line="87"/>
         <source>name</source>
         <translation>nazwa</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="87"/>
+        <location filename="Plugins.cpp" line="88"/>
         <source>version</source>
         <translation>wersja</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="88"/>
+        <location filename="Plugins.cpp" line="89"/>
         <source>description</source>
         <translation>opis</translation>
     </message>
     <message>
-        <location filename="PluginList.cpp" line="89"/>
+        <location filename="Plugins.cpp" line="90"/>
         <source>author</source>
         <translation>autor</translation>
     </message>
@@ -325,22 +413,22 @@
     <message>
         <location filename="preferences.ui" line="14"/>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>Formularz</translation>
     </message>
     <message>
         <location filename="preferences.ui" line="83"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="preferences.ui" line="90"/>
         <source>Apply</source>
-        <translation type="unfinished">Zastosuj</translation>
+        <translation>Zastosuj</translation>
     </message>
     <message>
         <location filename="preferences.ui" line="97"/>
         <source>Cancel</source>
-        <translation type="unfinished">Anuluj</translation>
+        <translation>Anuluj</translation>
     </message>
 </context>
 <context>

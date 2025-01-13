@@ -6,6 +6,7 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QLinCommand.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
@@ -18,11 +19,20 @@
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new LinCommandSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QLinCommand* command) 
+    : SettingsMdi(parent, new LinCommandSettings(*(command->settings<LinCommandSettings>())), command->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -37,39 +47,54 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 }
 
 SettingsDialog::~SettingsDialog() {
-    delete m_ui;
-}
-
-LinCommandSettings SettingsDialog::lincommandSettings() const {
-    emit message("SettingsDialog::settings");
-    return m_currentSettings;
+    if (m_ui) {
+        delete m_ui;
+    }
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    const LinCommandSettings* setts = settings<LinCommandSettings>();
 
-    m_ui->frameData->setText(m_currentSettings.frameData());
-    m_ui->interval->setValue(m_currentSettings.interval());
-    m_ui->tries->setValue(m_currentSettings.tries());
-    m_ui->title->setText(m_currentSettings.title());
-    m_ui->buttonTextEdit->setText(m_currentSettings.buttonText());
-    m_ui->previousEdit->setText(m_currentSettings.previous());
-    m_ui->linEdit->setText(m_currentSettings.linDevice());
+    m_ui->frameData->setText(setts->frameData());
+    m_ui->interval->setValue(setts->interval());
+    m_ui->tries->setValue(setts->tries());
+    m_ui->title->setText(setts->title());
+    m_ui->buttonTextEdit->setText(setts->buttonText());
+    m_ui->previousEdit->setText(setts->previous());
+    m_ui->linEdit->setText(setts->linDevice());
+}
+
+SettingsDialog::operator LinCommandSettings() const {
+    LinCommandSettings ret;
+
+    ret.setFrameData(m_ui->frameData->text().toLocal8Bit());
+    ret.setInterval(m_ui->interval->value());
+    ret.setTries(m_ui->tries->value());
+    ret.setTitle(m_ui->title->text());
+    ret.setButtonText(m_ui->buttonTextEdit->text());
+    ret.setPrevious(m_ui->previousEdit->text());
+    ret.setLinDevice(m_ui->linEdit->text());
+
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
-    emit message("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
+    LinCommandSettings* setts = settings<LinCommandSettings>();
 
-    m_currentSettings.setFrameData(m_ui->frameData->text().toLocal8Bit());
-    m_currentSettings.setInterval(m_ui->interval->value());
-    m_currentSettings.setTries(m_ui->tries->value());
-    m_currentSettings.setTitle(m_ui->title->text());
-    m_currentSettings.setButtonText(m_ui->buttonTextEdit->text());
-    m_currentSettings.setPrevious(m_ui->previousEdit->text());
-    m_currentSettings.setLinDevice(m_ui->linEdit->text());
+    LinCommandSettings newSettings = *this;
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+
+    *setts = newSettings;
+    Settings::store<LinCommandSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

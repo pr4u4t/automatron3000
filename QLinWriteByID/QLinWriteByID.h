@@ -158,7 +158,7 @@ class QLINWRITEBYID_EXPORT QLinWriteByID : public Widget {
     Q_OBJECT
 
 public:
-    QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinWriteByIDSettings* set, const QString& uuid);
 
     ~QLinWriteByID();
 

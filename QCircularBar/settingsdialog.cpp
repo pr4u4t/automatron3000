@@ -1,12 +1,22 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QCircularBar.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new CircularBarSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QCircularBar* bar)
+    : SettingsMdi(parent, new CircularBarSettings(*(bar->settings<CircularBarSettings>())), bar->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -20,41 +30,52 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {}
-
-CircularBarSettings SettingsDialog::circularbarSettings() const {
-    return m_currentSettings;
-}
-
-QString SettingsDialog::settingsPath() const {
-    return m_settingsPath;
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    CircularBarSettings* setts = settings<CircularBarSettings>();
 
-    m_ui->minValueEdit->setValue(m_currentSettings.minValue());
-    m_ui->maxValueEdit->setValue(m_currentSettings.maxValue());
-    m_ui->tresholdEdit->setValue(m_currentSettings.threshold());
-    m_ui->precisionEdit->setValue(m_currentSettings.precision());
-    m_ui->labelEdit->setText(m_currentSettings.label());
-    m_ui->unitsEdit->setText(m_currentSettings.units());
-    m_ui->stepsEdit->setValue(m_currentSettings.steps());
+    m_ui->minValueEdit->setValue(setts->minValue());
+    m_ui->maxValueEdit->setValue(setts->maxValue());
+    m_ui->tresholdEdit->setValue(setts->threshold());
+    m_ui->precisionEdit->setValue(setts->precision());
+    m_ui->labelEdit->setText(setts->label());
+    m_ui->unitsEdit->setText(setts->units());
+    m_ui->stepsEdit->setValue(setts->steps());
+}
+
+SettingsDialog::operator CircularBarSettings() const {
+    CircularBarSettings ret;
+    ret.setMinValue(m_ui->minValueEdit->value());
+    ret.setMaxValue(m_ui->maxValueEdit->value());
+    ret.setThreshold(m_ui->tresholdEdit->value());
+    ret.setPrecision(m_ui->precisionEdit->value());
+    ret.setLabel(m_ui->labelEdit->text());
+    ret.setUnits(m_ui->unitsEdit->text());
+    ret.setSteps(m_ui->stepsEdit->value());
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.setMinValue(m_ui->minValueEdit->value());
-    m_currentSettings.setMaxValue(m_ui->maxValueEdit->value());
-    m_currentSettings.setThreshold(m_ui->tresholdEdit->value());
-    m_currentSettings.setPrecision(m_ui->precisionEdit->value());
-    m_currentSettings.setLabel(m_ui->labelEdit->text());
-    m_currentSettings.setUnits(m_ui->unitsEdit->text());
-    m_currentSettings.setSteps(m_ui->stepsEdit->value());
+    CircularBarSettings newSettings = *this;
+    CircularBarSettings* setts = settings<CircularBarSettings>();
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+    *setts = newSettings;
+    Settings::store<CircularBarSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

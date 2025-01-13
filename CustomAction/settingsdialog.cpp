@@ -1,13 +1,24 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QCustomAction.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new CustomActionSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
     //, m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath)
     , m_model(new QStandardItemModel(0, 3)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QCustomAction* action)
+    : SettingsMdi(parent, new CustomActionSettings(*(action->settings<CustomActionSettings>())), action->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    //, m_intValidator(new QIntValidator(0, 4000000, this))
+    , m_model(new QStandardItemModel(0, 3)) {
+    setup();
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -37,26 +48,23 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {}
-
-CustomActionSettings SettingsDialog::dataSettings() const {
-    return m_currentSettings;
-}
-
-QString SettingsDialog::settingsPath() const {
-    return m_settingsPath;
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    CustomActionSettings* setts = settings<CustomActionSettings>();
 
-    m_ui->buttonEdit->setText(m_currentSettings.buttonText());
-    m_ui->titleEdit->setText(m_currentSettings.title());
-    m_ui->verboseCheckbox->setChecked(m_currentSettings.verbose());
-    m_ui->progressCheckbox->setChecked(m_currentSettings.progress());
-    m_ui->intervalSpin->setValue(m_currentSettings.interval());
+    m_ui->buttonEdit->setText(setts->buttonText());
+    m_ui->titleEdit->setText(setts->title());
+    m_ui->verboseCheckbox->setChecked(setts->verbose());
+    m_ui->progressCheckbox->setChecked(setts->progress());
+    m_ui->intervalSpin->setValue(setts->interval());
 
-    fillModel(m_currentSettings.pluginsActions());
+    fillModel(setts->pluginsActions());
 }
 
 void SettingsDialog::customMenuRequested(QPoint point) {
@@ -140,18 +148,31 @@ void SettingsDialog::removeArgument() {
     m_model->removeRow(list[0].row());
 }
 
+SettingsDialog::operator CustomActionSettings() const {
+    CustomActionSettings ret;
+    ret.setButtonText(m_ui->buttonEdit->text());
+    ret.setTitle(m_ui->titleEdit->text());
+    ret.setPluginsActions(actions<QJsonArray>(m_model));
+    ret.setVerbose(m_ui->verboseCheckbox->isChecked());
+    ret.setProgress(m_ui->progressCheckbox->isChecked());
+    ret.setInterval(m_ui->intervalSpin->value());
+    return ret;
+}
+
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
+    CustomActionSettings* setts = settings<CustomActionSettings>();
 
-    m_currentSettings.setButtonText(m_ui->buttonEdit->text());
-    m_currentSettings.setTitle(m_ui->titleEdit->text());
-    m_currentSettings.setPluginsActions(actions<QJsonArray>(m_model));
-    m_currentSettings.setVerbose(m_ui->verboseCheckbox->isChecked());
-    m_currentSettings.setProgress(m_ui->progressCheckbox->isChecked());
-    m_currentSettings.setInterval(m_ui->intervalSpin->value());
+    CustomActionSettings newSettings = *this;
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+    *setts = newSettings;
+    Settings::store<CustomActionSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

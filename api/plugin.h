@@ -70,11 +70,11 @@ private:
 
 struct PluginPrivate {
 
-	PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path = QString(), PluginSettings* set = nullptr);
+	PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path = QString(), PluginSettings* set = nullptr, const QString& uuid = QString());
 
 	Loader* m_loader = nullptr;
 	PluginsLoader* m_plugins = nullptr;
-	QString m_uuid = 0;
+	QString m_uuid;
 	QString m_settingsPath;
 	PluginSettings* m_settings = nullptr;
 };
@@ -97,9 +97,8 @@ public:
 	};
 
 	static constexpr qint64 InvalidUUID = -1;
-	static constexpr const char* const settings_path = "plugins/";
 
-	Plugin(Loader* ld, PluginsLoader* plugins, const QString& path = QString(), PluginSettings* set = nullptr);
+	Plugin(Loader* ld, PluginsLoader* plugins, const QString& path = QString(), PluginSettings* set = nullptr, const QString &uuid = QString());
 
 	virtual ~Plugin() = default;
 
@@ -156,11 +155,13 @@ class API_EXPORT Extension	: public QObject
 	Q_OBJECT
 
 public:
-	Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString(), PluginSettings* set = nullptr);
+	Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString(), PluginSettings* set = nullptr, const QString& uuid = QString());
 
 	virtual ~Extension() = default;
 
 signals:
+
+	void settingsApplied();
 
 	void message(const QString& msg, LoggerSeverity severity = LoggerSeverity::LOG_NOTICE) const;
 
@@ -181,11 +182,13 @@ class API_EXPORT Widget : public MdiChild
 
 public:
 
-	Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString(), PluginSettings* set = nullptr);
+	Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path = QString(), PluginSettings* set = nullptr, const QString& uuid = QString());
 
 	virtual ~Widget() = default;
 
 signals:
+
+	void settingsApplied();
 
 	void status(const QString& msg) const;
 
@@ -258,6 +261,10 @@ public:
 
 	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
 
+	virtual PluginSettings* settings(const QString& path) const = 0;
+
+	virtual PluginSettings* settings() const = 0;
+
 	virtual bool registerPlugin(ModuleLoaderContext* ctx, PluginsLoader* ld, Logger* log) = 0;
 
 	virtual bool unregisterPlugin(ModuleLoaderContext* ctx, PluginsLoader* ld, Logger* log) = 0;
@@ -273,104 +280,10 @@ private:
 	LoaderPrivate m_d;
 };
 
-template<typename D>
-struct PluginLoaderPrivate {
-	using RegHandler = std::function<bool(ModuleLoaderContext* ldctx, PluginsLoader* ld, D* ctx, Logger* log)>;
-
-	PluginLoaderPrivate(RegHandler reg, RegHandler unreg, const D& ctx)
-		: m_register(reg)
-		, m_unregister(unreg)
-		, m_data(ctx) {
-	}
-
-	RegHandler m_register;
-	RegHandler m_unregister;
-	D m_data;
-};
-
-template<typename T, typename D>
-class PluginLoader : public Loader {
-	
-	using RegHandler = decltype(static_cast<PluginLoaderPrivate<D>*>(nullptr)->m_register);
-
-public:
-	PluginLoader(const QString& name, Plugin::Type type, const QString& version, const QString& author, const QString& description,
-		RegHandler reg, RegHandler unreg, const QStringList& depends, bool multiple, qint32 weight)
-		: Loader(name, type, version, author, description, depends, multiple, weight)
-		, m_d(reg, unreg, D(QCoreApplication::instance())) {
-	}
-
-	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath) const {
-		return QSharedPointer<T>(new T(
-			const_cast<PluginLoader<T, D>*>(this),
-			plugins,
-			qobject_cast<std::conditional<std::is_base_of<Widget, T>::value, QWidget*, QObject*>::type>(parent),
-			settingsPath
-		), &QObject::deleteLater).staticCast<Plugin>();
-	}
-
-	bool registerPlugin(ModuleLoaderContext* ldctx, PluginsLoader* ld, Logger* log) {
-		return (m_d.m_register) ? m_d.m_register(ldctx, ld, &m_d.m_data, log) : false;
-	}
-
-	bool unregisterPlugin(ModuleLoaderContext* ldctx, PluginsLoader* ld, Logger* log) {
-		return (m_d.m_unregister) ? m_d.m_unregister(ldctx, ld, &m_d.m_data, log) : false;
-	}
-
-	D* context() {
-		return &m_d.m_data;
-	}
-
-private:
-	
-	PluginLoaderPrivate<D> m_d;
-};
-
-class API_EXPORT PluginsLoader : public QObject {
-
-	Q_OBJECT
-
-public:
-
-	using PluginType = decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr));
-
-	PluginsLoader() = default;
-
-	virtual bool hasInstance(const QString& name, const QString& settingsPath = QString()) const = 0;
-
-	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType = 0;
-
-	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType = 0;
-
-	virtual auto find(const QString& uuid) const -> PluginType = 0;
-
-	virtual auto findByObjectName(const QString& name) const->PluginType = 0;
-
-	virtual void deleteInstance(const QString& uuid) = 0;
-
-	virtual ~PluginsLoader() = default;
-
-signals:
-	void loaded(const Plugin* plugin);
-
-	void aboutToDelete(const Plugin* plugin);
-
-	void enabled(const Loader* loader);
-
-	void disabled(const Loader* loader);
-};
-
-#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight) \
-extern "C" { __declspec(dllexport) PluginLoader<name, data> name##_##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); }
-
-//#define STRINGIFY(x) #x
-#define LOADER_NAME(x) #x "_Loader"
-//STRINGIFY(x ## _Loader)
-
 class API_EXPORT Settings {
 
 public:
-	static QSettings get() {
+	static auto get() -> QSettings {
 		return QSettings((m_confPath.isEmpty()) ? "configuration.ini" : m_confPath + "/" + "configuration.ini", QSettings::Format::IniFormat);
 	}
 
@@ -390,17 +303,187 @@ public:
 		return Settings::get().value("locked").toBool();
 	}
 
-	static void setConfigurationPath(const QString& path){
+	static void setConfigurationPath(const QString& path) {
 		m_confPath = path;
 	}
 
 	static QString settingsPath() {
 		return m_confPath;
 	}
+	//TODO: make implicit sharing of configuration
+	template<typename S>
+	static const S* fetch(const QString& path) {
+		if (m_psettings.contains(path) == false) {
+			auto set = get();
+			S* ret = new S(get(), path);
+			m_psettings[path] = ret;
+			return ret;
+		}
+		PluginSettings* p = m_psettings[path];
+		S* ret = dynamic_cast<S*>(p);
+		return ret;
+	}
+
+	template<typename S>
+	static bool store(const QString& path, S* settings) {
+		
+		if (m_psettings.contains(path) == true) {
+			const auto old = m_psettings.take(path);
+			delete old;
+		}
+
+		m_psettings[path] = settings;
+		return true;
+	}
 
 private:
 
 	static QString m_confPath;
+	static QHash<QString, PluginSettings*> m_psettings;
+
 };
+
+template<typename D>
+struct PluginLoaderPrivate {
+	using RegHandler = std::function<bool(ModuleLoaderContext* ldctx, PluginsLoader* ld, D* ctx, Logger* log)>;
+
+	PluginLoaderPrivate(RegHandler reg, RegHandler unreg, const D& ctx)
+		: m_register(reg)
+		, m_unregister(unreg)
+		, m_data(ctx) {
+	}
+
+	RegHandler m_register;
+	RegHandler m_unregister;
+	D m_data;
+};
+
+template<typename T, typename D, typename S>
+class PluginLoader : public Loader {
+	
+	using RegHandler = decltype(static_cast<PluginLoaderPrivate<D>*>(nullptr)->m_register);
+
+public:
+	PluginLoader(const QString& name, Plugin::Type type, const QString& version, const QString& author, const QString& description,
+		RegHandler reg, RegHandler unreg, const QStringList& depends, bool multiple, qint32 weight)
+		: Loader(name, type, version, author, description, depends, multiple, weight)
+		, m_d(reg, unreg, D(QCoreApplication::instance())) {
+	}
+
+	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const {
+		QString path;
+		QString uuid;
+		
+		auto opt = uuidFromPath(settingsPath);
+		if (opt.has_value() == false) {
+			return nullptr;
+		}
+			
+		uuid = opt.value();
+		path = settingsPath;
+		const S* srcset = Settings::fetch<S>(path);
+		if (srcset == nullptr) {
+			return nullptr;
+		}
+		S* setts = new S(*srcset);
+
+		if (setts == nullptr) {
+			return nullptr;
+		}
+
+		return QSharedPointer<T>(new T(
+			const_cast<PluginLoader<T, D, S>*>(this),
+			plugins,
+			qobject_cast<std::conditional<std::is_base_of<Widget, T>::value, QWidget*, QObject*>::type>(parent),
+			path,
+			setts,
+			uuid
+		), &QObject::deleteLater).staticCast<Plugin>();
+	}
+
+	PluginSettings* settings(const QString& path) const {
+		return new S(*Settings::fetch<S>(path));
+	}
+
+	PluginSettings* settings() const {
+		return new S;
+	}
+
+	bool registerPlugin(ModuleLoaderContext* ldctx, PluginsLoader* ld, Logger* log) {
+		return (m_d.m_register) ? m_d.m_register(ldctx, ld, &m_d.m_data, log) : false;
+	}
+
+	bool unregisterPlugin(ModuleLoaderContext* ldctx, PluginsLoader* ld, Logger* log) {
+		return (m_d.m_unregister) ? m_d.m_unregister(ldctx, ld, &m_d.m_data, log) : false;
+	}
+
+	D* context() {
+		return &m_d.m_data;
+	}
+
+protected:
+
+	inline std::optional<QString> uuidFromPath(const QString& settingsPath) const {
+		QRegExp rx("([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})");
+		int idx;
+
+		if ((idx = rx.indexIn(settingsPath)) != -1) {
+			return "{" + rx.cap(1) + "}";
+		}
+
+		return std::nullopt;
+	}
+
+private:
+	
+	PluginLoaderPrivate<D> m_d;
+};
+
+class API_EXPORT PluginsLoader : public QObject {
+
+	Q_OBJECT
+
+public:
+
+	using PluginType = decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr));
+	using SettingsType = decltype((static_cast<Loader*>(nullptr))->settings());
+	using PluginRawType = decltype((static_cast<Loader*>(nullptr))->load(nullptr, nullptr).data());
+
+	PluginsLoader() = default;
+
+	virtual bool hasInstance(const QString& name, const QString& settingsPath = QString()) const = 0;
+
+	virtual auto instance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType = 0;
+
+	virtual auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType = 0;
+
+	virtual auto copy(const QString& uuid) -> PluginType = 0;
+
+	virtual auto find(const QString& uuid) const -> PluginType = 0;
+
+	virtual auto findByObjectName(const QString& name) const -> PluginType = 0;
+
+	virtual void deleteInstance(const QString& uuid) = 0;
+
+	virtual ~PluginsLoader() = default;
+
+	virtual auto newSettings(const QString& name) const -> SettingsType = 0;
+
+	virtual auto fetchSettings(const QString& path) const -> SettingsType = 0;
+
+signals:
+	void loaded(const Plugin* plugin);
+
+	void aboutToDelete(const Plugin* plugin);
+
+	void enabled(const Loader* loader);
+
+	void disabled(const Loader* loader);
+};
+
+#define REGISTER_PLUGIN(name, type, version, author, description, reg, unreg, data, depends, multiple, weight, settings) \
+extern "C" { __declspec(dllexport) PluginLoader<name, data, settings> name##_##Loader(#name, type, version, author, description, reg, unreg, depends, multiple, weight); }
+
+#define LOADER_NAME(x) #x "_Loader"
 
 #endif

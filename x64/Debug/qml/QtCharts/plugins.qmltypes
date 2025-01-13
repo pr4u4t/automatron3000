@@ -700,6 +700,17 @@ Module {
     }
     Component {
         file: "private/declarativeforeigntypes_p.h"
+        name: "QBrush"
+        accessSemantics: "value"
+        extension: "CppQBrush"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "CppQBrush"
+        accessSemantics: "value"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
         name: "QCandlestickModelMapper"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -1139,6 +1150,17 @@ Module {
     }
     Component {
         file: "private/declarativeforeigntypes_p.h"
+        name: "QXYSeries::PointsConfigurationHash"
+        accessSemantics: "value"
+        extension: "CppQHashPointConfiguration"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "CppQHashPointConfiguration"
+        accessSemantics: "value"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
         name: "QLegend"
         accessSemantics: "reference"
         prototype: "QGraphicsWidget"
@@ -1277,6 +1299,30 @@ Module {
     }
     Component {
         file: "private/declarativeforeigntypes_p.h"
+        name: "QList<QBarSet*>"
+        accessSemantics: "sequence"
+        valueType: "QBarSet"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "QList<QBoxSet*>"
+        accessSemantics: "sequence"
+        valueType: "QBoxSet"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "QList<QCandlestickSet*>"
+        accessSemantics: "sequence"
+        valueType: "QCandlestickSet"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "QList<QPieSlice*>"
+        accessSemantics: "sequence"
+        valueType: "QPieSlice"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
         name: "QLogValueAxis"
         accessSemantics: "reference"
         prototype: "QAbstractAxis"
@@ -1349,6 +1395,17 @@ Module {
             name: "minorTickCountChanged"
             Parameter { name: "minorTickCount"; type: "int" }
         }
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "QPen"
+        accessSemantics: "value"
+        extension: "CppQPen"
+    }
+    Component {
+        file: "private/declarativeforeigntypes_p.h"
+        name: "CppQPen"
+        accessSemantics: "value"
     }
     Component {
         file: "private/declarativeforeigntypes_p.h"
@@ -1727,6 +1784,7 @@ Module {
         exportMetaObjectRevisions: [256, 1536, 1538]
         Enum {
             name: "PointConfiguration"
+            isScoped: true
             values: [
                 "Color",
                 "Size",
@@ -1918,7 +1976,7 @@ Module {
         Signal {
             name: "pointsConfigurationChanged"
             revision: 1538
-            Parameter { name: "configuration"; type: "QHash<int,QHash<PointConfiguration,QVariant>>" }
+            Parameter { name: "configuration"; type: "QXYSeries::PointsConfigurationHash" }
         }
         Signal {
             name: "markerSizeChanged"
@@ -2232,11 +2290,6 @@ Module {
             Parameter { name: "axis"; type: "QAbstractAxis"; isPointer: true }
         }
         Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "at"
             type: "DeclarativeBarSet"
             isPointer: true
@@ -2459,11 +2512,6 @@ Module {
             Parameter { name: "brushFilename"; type: "QString" }
         }
         Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "onHovered"
             Parameter { name: "status"; type: "bool" }
             Parameter { name: "boxset"; type: "QBoxSet"; isPointer: true }
@@ -2683,11 +2731,6 @@ Module {
             Parameter { name: "brushFilename"; type: "QString" }
         }
         Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "onClicked"
             Parameter { name: "set"; type: "QCandlestickSet"; isPointer: true }
         }
@@ -2826,11 +2869,6 @@ Module {
             Parameter { name: "oldLabel"; type: "QString" }
             Parameter { name: "newLabel"; type: "QString" }
         }
-        Method {
-            name: "appendAxisChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
     }
     Component {
         file: "private/declarativecategoryaxis_p.h"
@@ -2860,7 +2898,8 @@ Module {
             "QtCharts/ChartView 2.7",
             "QtCharts/ChartView 2.11",
             "QtCharts/ChartView 6.0",
-            "QtCharts/ChartView 6.3"
+            "QtCharts/ChartView 6.3",
+            "QtCharts/ChartView 6.7"
         ]
         exportMetaObjectRevisions: [
             256,
@@ -2873,7 +2912,8 @@ Module {
             519,
             523,
             1536,
-            1539
+            1539,
+            1543
         ]
         Enum {
             name: "Theme"
@@ -3346,11 +3386,6 @@ Module {
             Parameter { name: "axis"; type: "QAbstractAxis"; isPointer: true }
         }
         Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "at"
             type: "DeclarativeBarSet"
             isPointer: true
@@ -3461,11 +3496,6 @@ Module {
             Parameter { name: "axis"; type: "QAbstractAxis"; isPointer: true }
         }
         Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "at"
             type: "DeclarativeBarSet"
             isPointer: true
@@ -3574,11 +3604,6 @@ Module {
             name: "axisYRightChanged"
             revision: 258
             Parameter { name: "axis"; type: "QAbstractAxis"; isPointer: true }
-        }
-        Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
         }
         Method {
             name: "at"
@@ -3778,11 +3803,6 @@ Module {
             Parameter { name: "capStyle"; type: "Qt::PenCapStyle" }
         }
         Method {
-            name: "appendDeclarativeChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "handleCountChanged"
             Parameter { name: "index"; type: "int" }
         }
@@ -3979,11 +3999,6 @@ Module {
             Parameter { name: "axis"; type: "QAbstractAxis"; isPointer: true }
         }
         Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "at"
             type: "DeclarativeBarSet"
             isPointer: true
@@ -4035,11 +4050,6 @@ Module {
         Signal {
             name: "sliceRemoved"
             Parameter { name: "slice"; type: "QPieSlice"; isPointer: true }
-        }
-        Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
         }
         Method {
             name: "handleAdded"
@@ -4109,9 +4119,20 @@ Module {
             "QtCharts/PolarChartView 2.7",
             "QtCharts/PolarChartView 2.11",
             "QtCharts/PolarChartView 6.0",
-            "QtCharts/PolarChartView 6.3"
+            "QtCharts/PolarChartView 6.3",
+            "QtCharts/PolarChartView 6.7"
         ]
-        exportMetaObjectRevisions: [259, 512, 513, 516, 519, 523, 1536, 1539]
+        exportMetaObjectRevisions: [
+            259,
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543
+        ]
     }
     Component {
         file: "private/declarativescatterseries_p.h"
@@ -4279,11 +4300,6 @@ Module {
             Parameter { name: "brushFilename"; type: "QString" }
         }
         Signal { name: "brushChanged"; revision: 260 }
-        Method {
-            name: "appendDeclarativeChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
         Method {
             name: "handleCountChanged"
             Parameter { name: "index"; type: "int" }
@@ -4507,11 +4523,6 @@ Module {
             Parameter { name: "capStyle"; type: "Qt::PenCapStyle" }
         }
         Method {
-            name: "appendDeclarativeChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
-        }
-        Method {
             name: "handleCountChanged"
             Parameter { name: "index"; type: "int" }
         }
@@ -4644,11 +4655,6 @@ Module {
             name: "axisYRightChanged"
             revision: 258
             Parameter { name: "axis"; type: "QAbstractAxis"; isPointer: true }
-        }
-        Method {
-            name: "appendSeriesChildren"
-            Parameter { name: "list"; type: "QQmlListProperty<QObject>"; isPointer: true }
-            Parameter { name: "element"; type: "QObject"; isPointer: true }
         }
         Method {
             name: "at"
@@ -5506,7 +5512,7 @@ Module {
         }
         Property {
             name: "layout"
-            type: "QGraphicsLayout"
+            type: "void"
             isPointer: true
             read: "layout"
             write: "setLayout"

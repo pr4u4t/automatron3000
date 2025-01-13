@@ -87,6 +87,18 @@ public:
     QString linDevice() const { return m_linDevice; }
     void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
 
+    bool operator==(const LinTesterSettings& other) const {
+        return m_testStartID == other.m_testStartID &&
+            m_testStopID == other.m_testStopID &&
+            m_testInterval == other.m_testInterval &&
+            m_tries == other.m_tries &&
+            m_linDevice == other.m_linDevice;
+    }
+
+    bool operator!=(const LinTesterSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     uint8_t m_testStartID = 0;
     uint8_t m_testStopID = 0;
@@ -95,21 +107,21 @@ private:
     QString m_linDevice;
 };
 
+class QLinTester;
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
 
 public:
 
-    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
+
+    SettingsDialog(QWidget* parent, const QLinTester* tester);
 
     ~SettingsDialog();
 
-    LinTesterSettings lintesterSettings() const;
-
-    QString settingsPath() const {
-        return m_settingsPath;
-    }
+    operator LinTesterSettings() const;
 
 private slots:
     void ok();
@@ -119,12 +131,11 @@ private slots:
 private:
     void updateSettings();
     void fillFromSettings();
+    void setup();
 
 private:
-    LinTesterSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif

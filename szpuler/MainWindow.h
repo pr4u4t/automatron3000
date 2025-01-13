@@ -20,6 +20,7 @@
 #include <QWidgetAction>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QCheckBox>
 
 #include "../api/api.h"
 #include "../core/core.h"
@@ -102,6 +103,52 @@ struct MainWindowSettings {
 
 class Session;
 
+class ChooseWidgetsDialog : public QDialog {
+    Q_OBJECT
+
+public:
+    explicit ChooseWidgetsDialog(QWidget* parent = nullptr, const QStringList& widgets = QStringList()) : QDialog(parent) {
+        setWindowTitle(tr("Choose widgets to copy"));
+        resize(300, 200);
+
+        // Create the main layout
+        QVBoxLayout* layout = new QVBoxLayout(this);
+        setLayout(layout);
+
+        for (const auto& widget : widgets) {
+            QCheckBox* box = new QCheckBox(widget);
+            layout->addWidget(box);
+        }
+        
+        QHBoxLayout* buttons = new QHBoxLayout();
+        layout->addItem(buttons);
+        buttons->addStretch();
+        // Add a "Submit" button
+        QPushButton* submitButton = new QPushButton(tr("Submit"), this);
+        buttons->addWidget(submitButton);
+
+        // Connect the submit button to accept the dialog
+        connect(submitButton, &QPushButton::clicked, this, &ChooseWidgetsDialog::accept);
+
+        QPushButton* cancelButton = new QPushButton(tr("Cancel"), this);
+        buttons->addWidget(cancelButton);
+
+        // Connect the submit button to accept the dialog
+        connect(cancelButton, &QPushButton::clicked, this, &ChooseWidgetsDialog::reject);
+    }
+
+    QStringList selectedOptions() const {
+        QStringList ret;
+        const auto list = findChildren<QCheckBox*>();
+        for (const auto item : list) {
+            if (item->isChecked()) {
+                ret << item->text();
+            }
+        }
+        return ret;
+    }
+};
+
 class MainWindow : public Window {
     Q_OBJECT
 
@@ -116,7 +163,7 @@ public:
 
     ~MainWindow(); 
     
-    MainWindow& operator<< (const QString& msg);
+    MainWindow& operator<<(const QString& msg);
     
     MLoader* plugins();
 
@@ -164,12 +211,98 @@ public slots:
 
 private slots:
 
+    void copyPerspective(const QString& src) {
+        emit message("MainWindow::copyPerspective(const QString& src)");
+
+        auto state = m_dockManager->saveState();
+        QString s(state);
+
+        const QString perspectiveName = QInputDialog::getText(this, tr("Create perspective"), tr("Enter unique name:"));
+        if (perspectiveName.isEmpty()) {
+            emit message("MainWindow::copyPerspective: perspective name is empty");
+            return;
+        }
+
+        if (m_dockManager->perspectiveNames().contains(perspectiveName) == true) {
+            emit message(QString("MainWindow::copyPerspective: Perspective %1 already exists").arg(perspectiveName));
+            QMessageBox::critical(this, tr("Error perspective already exists"), tr("Perspective %1 already exists").arg(perspectiveName));
+            return;
+        }
+    
+        auto winMap = m_dockManager->dockWidgetsMap();
+        auto widgets = m_dockManager->dockWidgetsMap().keys();
+
+        ChooseWidgetsDialog dialog(nullptr, widgets);
+        if (dialog.exec() != QDialog::Accepted){
+            emit message("MainWindow::copyPerspective: operation rejected");
+            return;
+        }
+
+        auto result = dialog.selectedOptions();
+
+        newPerspective(perspectiveName);
+        updatePerspectiveSwitcher(perspectiveName);
+        m_dockManager->openPerspective(perspectiveName);
+
+        auto wins = m_dockManager->dockWidgetsMap();
+        for (auto it = wins.cbegin(), end = wins.cend(); it != end; ++it) {
+            it.value()->toggleView(false);
+        }
+
+        for (const auto widget : result) {
+            auto src = plugins()->findByObjectName(widget);
+            if (src == nullptr) {
+                emit message(QString("MainWindow::copyPerspective: Unable to find widget by name: %1").arg(widget));
+                continue;
+            }
+            
+            PluginsLoader::PluginType dst;
+
+            if (src->multipleInstances()) {
+                auto dst = plugins()->copy(src->uuid());
+                if (dst == nullptr) {
+                    emit message(QString("MainWindow::copyPerspective: failed to copy plugin: %1").arg(src->uuid()));
+                    continue;
+                }
+
+                auto sWin = src.dynamicCast<Widget>();
+                auto dWin = dst.dynamicCast<Widget>();
+
+                s.replace(sWin->objectName(), dWin->objectName());
+                addSubWindow(dWin.data());
+            }
+        }
+
+        m_dockManager->restoreState(s.toLocal8Bit());
+    }
+
+    void changePerspective(const QString& name) {
+        emit message("MainWindow::changePerspective(const QString& name)");
+        if (name == m_currentPerspective) {
+            return;
+        }
+
+        QByteArray current = m_dockManager->saveState();
+        QByteArray stored = m_dockManager->getPerspective(m_currentPerspective);
+
+
+        if (current != stored && QMessageBox::question(this, tr("store current perspective"),
+            tr("Your current workspace contains changes would you like to save them?")) == QMessageBox::Yes) {
+            m_dockManager->addPerspective(m_currentPerspective);
+        }
+
+        m_dockManager->openPerspective(name);
+    }
+
     void startPerspectiveChange(const QString& perspective) {
+        m_dockManager->setEnabled(false);
         m_loading.show();
     }
 
     void endPerspectiveChange(const QString& perspective) {
         m_loading.hide();
+        m_dockManager->setEnabled(true);
+        m_currentPerspective = perspective;
     }
 
     void about();
@@ -189,7 +322,8 @@ private slots:
         QSettings set = Settings::get();
         m_dockManager->loadPerspectives(set);
         m_perspectiveComboBox->clear();
-        m_perspectiveComboBox->addItems(m_dockManager->perspectiveNames());
+        const QStringList perspectives = m_dockManager->perspectiveNames();
+        m_perspectiveComboBox->addItems(perspectives);
     }
 
     void toggleToolbar() {
@@ -212,7 +346,7 @@ private slots:
         QString perspectiveName = name;
 
         if (perspectiveName.isEmpty()) {
-            perspectiveName = QInputDialog::getText(this, tr("Save Perspective"), tr("Enter unique name:"));
+            perspectiveName = QInputDialog::getText(this, tr("Create perspective"), tr("Enter unique name:"));
             if (perspectiveName.isEmpty()) {
                 return;
             }
@@ -224,12 +358,19 @@ private slots:
         }
 
         m_dockManager->addPerspective(perspectiveName);
+        updatePerspectiveSwitcher(perspectiveName);
+
+        //savePerspectives();
+    }
+
+    void updatePerspectiveSwitcher(const QString& perspectiveName){
         QSignalBlocker Blocker(m_perspectiveComboBox);
         m_perspectiveComboBox->clear();
-        m_perspectiveComboBox->addItems(m_dockManager->perspectiveNames());
+        QStringList perspectives = m_dockManager->perspectiveNames();
+        if (perspectives.size() > 0) {
+            m_perspectiveComboBox->addItems(perspectives);
+        }
         m_perspectiveComboBox->setCurrentText(perspectiveName);
-
-        savePerspectives();
     }
 
     void newPerspective(bool checked = false) {
@@ -255,7 +396,7 @@ private slots:
     void savePerspective(bool checked = false) {
         QString perspectiveName = m_perspectiveComboBox->currentText();
         m_dockManager->addPerspective(perspectiveName);
-        savePerspectives();
+        //savePerspectives();
     }
 
     void restoringState() {
@@ -266,13 +407,14 @@ private slots:
         m_dockManager->setEnabled(true);
     }
 
-    void openingPerspective(const QString& PerspectiveName) {
-        m_dockManager->setEnabled(false);
-    }
+    //void openingPerspective(const QString& PerspectiveName) {
+    //    m_dockManager->setEnabled(false);
+    //}
 
-    void perspectiveOpened(const QString& PerspectiveName) {
-        m_dockManager->setEnabled(true);
-    }
+    //void perspectiveOpened(const QString& PerspectiveName) {
+    //    m_dockManager->setEnabled(true);
+    //    m_currentPerspective = PerspectiveName;
+    //}
 
 private:
 
@@ -326,7 +468,9 @@ private:
     QAction* m_saveState = nullptr;
     QAction* m_restoreState = nullptr;
     QAction* m_newPerspective = nullptr;
+    QAction* m_copyPerspective = nullptr;
     LoadingDialog m_loading;
+    QString m_currentPerspective;
 };
 
 class CustomDockWidgetTab : public ads::CDockWidgetTab {

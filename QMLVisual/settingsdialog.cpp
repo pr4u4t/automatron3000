@@ -1,14 +1,24 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QMLVisual.h"
 
 #include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new MLVisualSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QMLVisual* visual)
+    : SettingsMdi(parent, new MLVisualSettings(*(visual->settings<MLVisualSettings>())), visual->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)){
+    setup();
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -25,31 +35,42 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {}
-
-MLVisualSettings SettingsDialog::visualSettings() const {
-    return m_currentSettings;
-}
-
-QString SettingsDialog::settingsPath() const {
-    return m_settingsPath;
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    const MLVisualSettings* setts = settings<MLVisualSettings>();
+    m_ui->viewPathEdit->setText(setts->viewerPath());
+    m_ui->searchPathEdit->setText(setts->searchPath());
+}
 
-    m_ui->viewPathEdit->setText(m_currentSettings.viewerPath());
-    m_ui->searchPathEdit->setText(m_currentSettings.searchPath());
+SettingsDialog::operator MLVisualSettings() const {
+    MLVisualSettings ret;
+    ret.setViewerPath(m_ui->viewPathEdit->text());
+    ret.setSearchPath(m_ui->searchPathEdit->text());
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
-    emit message("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
 
-    m_currentSettings.setViewerPath(m_ui->viewPathEdit->text());
-    m_currentSettings.setSearchPath(m_ui->searchPathEdit->text());
+    MLVisualSettings newSettings = *this;
+    MLVisualSettings* setts = settings<MLVisualSettings>();
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+
+    *setts = newSettings;
+    Settings::store<MLVisualSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::selectViewPath() {

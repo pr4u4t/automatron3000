@@ -77,7 +77,7 @@ class QLINCOMMAND_EXPORT QLinCommand : public Widget {
     Q_OBJECT
 
 public:
-    QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinCommandSettings* set, const QString& uuid);
 
     ~QLinCommand();
 

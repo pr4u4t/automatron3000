@@ -30,7 +30,7 @@ class QLINBUS_EXPORT QLinBus : public Widget {
     Q_OBJECT
 
 public:
-    QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinBusSettings* set, const QString& uuid);
 
     SettingsMdi* settingsWindow() const override;
 
@@ -79,7 +79,7 @@ private:
 
     Ui::QLinBusUI* m_ui = nullptr;
     uint16_t m_scan = 0;
-    QSharedPointer<IODevice> m_lin;
+    QSharedPointer<IODevice> m_lin = nullptr;
     QStandardItemModel* m_model = nullptr;
     QTimer m_timer;
     QLinBusState m_state;

@@ -14,7 +14,7 @@ class QSERIAL_EXPORT QSerial : public IODevice {
 	Q_OBJECT
 
 public:
-	QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path = QString());
+	QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, SerialSettings * set, const QString& uuid);
 
 	bool open(const QString& url = QString());
 

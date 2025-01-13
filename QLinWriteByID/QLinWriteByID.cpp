@@ -17,16 +17,6 @@ struct QLinWriteByIDMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-
-        m_QLinWriteByIDMenu = new QMenu(m_app->translate("MainWindow", "WriteByID"));
-
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        //m_QLinReadByIDMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_QLinWriteByIDMenu);
-        m_newInstance->setData(QVariant("QLinWriteByID"));
-        //m_QLinReadByIDMenu->addAction(m_newInstance);
     }
 
     QMenu* m_QLinWriteByIDMenu = nullptr;
@@ -42,45 +32,23 @@ static bool QLinWriteByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QLinWritedByID_register(): application is non gui not registering");
         return false;
     }
 
-    ctx->m_QLinWriteByIDMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
-    //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
-    ctx->m_QLinWriteByIDMenu->addSection(ctx->m_app->translate("MainWindow", "Write By ID"));
-    if (ctx->m_QLinWriteByIDMenu->style()->styleHint(QStyle::SH_Menu_SupportsSections) == 0) {
-        ctx->m_QLinWriteByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Write By ID"));
-    }
-    ctx->m_QLinWriteByIDMenu->addMenu(ctx->m_settings);
-    ctx->m_QLinWriteByIDMenu->insertAction(nullptr, ctx->m_newInstance);
+    auto linbusMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 
-
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
-    if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QLinWriteByIDMenu);
+    if (linbusMenu == nullptr) {
+        log->message("QLinWriteByID_register(): linbus menu not found");
+        return false;
     }
+
+    windowAddInstanceSettings(linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLinWriteByID", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QLinWriteByID") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QLinWriteByID*>(plugin)->objectName(), ctx->m_QLinWriteByIDMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QLinWriteByID*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QLinWriteByID*>(plugin), &QLinWriteByID::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinWriteByID*>(plugin)->objectName() + "/Settings");  //ctx->m_app->translate("MainWindow", "QLinWriteByID/Settings"));
-            });
-        });
-
+        windowAddPluginSettingsAction<QLinWriteByID, QLinWriteByIDMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLinWriteByID"), gtx, ctx, log);
+    });
 
     return true;
 }
@@ -101,12 +69,13 @@ REGISTER_PLUGIN(
     QLinWriteByIDMenu,
     { "QLin" },
     true,
-    1100
+    1100,
+    LinWriteByIDSettings
 )
 
 
-QLinWriteByID::QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath, new LinWriteByIDSettings(Settings::get(), settingsPath))
+QLinWriteByID::QLinWriteByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinWriteByIDSettings* set, const QString& uuid)
+    : Widget(ld, plugins, parent, settingsPath, set, uuid)
     , m_data(new Ui::QLinWriteByIDUI) {
     m_data.m_ui->setupUi(this);
     QObject::connect(m_data.m_ui->pushButton, &QPushButton::clicked, this, &QLinWriteByID::writeById);
@@ -170,8 +139,8 @@ bool QLinWriteByID::deinitialize() {
 void QLinWriteByID::settingsChanged() {
     emit message("QLinWriteByID::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinWriteByIDSettings>();
-    *set = LinWriteByIDSettings(Settings::get(), settingsPath());
-
+    //*set = LinWriteByIDSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<LinWriteByIDSettings>(settingsPath()));
     m_data.m_ui->title->setText(set->title());
 
     disconnect(this, SLOT(dataReady(const QByteArray&)));
@@ -205,6 +174,8 @@ void QLinWriteByID::settingsChanged() {
             connect(dynamic_cast<QObject*>(source.data()), SIGNAL(success(const QByteArray&)), this, SLOT(fillInput(const QByteArray&)));
         }
     }
+
+    emit settingsApplied();
 }
 
 SettingsMdi* QLinWriteByID::settingsWindow() const {

@@ -55,16 +55,18 @@ REGISTER_STATIC_PLUGIN(
     InstancesMenu,
     {},
     false,
-    1300
+    1300,
+    PluginSettings
 )
 
-Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-	: Widget(ld, plugins, parent, settingsPath)
+Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, PluginSettings* setts, const QString& uuid)
+	: Widget(ld, plugins, parent, settingsPath, setts, uuid)
     , m_model(new QStandardItemModel(0, 4))
     , m_view(new QTableView()){
 }
 
 bool Instances::initialize() {
+    emit message("Instances::initialize()");
     connect(plugins(), &PluginsLoader::loaded, this, &Instances::loaded);
 
     if (plugins() != nullptr) {
@@ -109,18 +111,26 @@ bool Instances::deinitialize() {
     return false;
 }
 
-bool Instances::saveSettings() {
-	return true;
-}
+//bool Instances::saveSettings() {
+//	return true;
+//}
 
 void Instances::settingsChanged() {
 }
 
 SettingsMdi* Instances::settingsWindow() const {
-    return nullptr; //new SettingsDialog(nullptr, nullptr, settingsPath());
+    return nullptr;
 }
 
 void Instances::loaded(const Plugin* plugin) {
+    emit message("Instances::loaded(const Plugin* plugin)");
+    for (int row = 0; row < m_model->rowCount(); ++row) {
+        const QStandardItem* item = m_model->item(row, Columns::UUID);
+        if (item->text() == plugin->uuid()) {
+            return;
+        }
+    }
+
     QList<QStandardItem*> row;
     row << new QStandardItem(plugin->name());
     row << new QStandardItem(dynamic_cast<const QObject*>(plugin)->objectName());
@@ -130,6 +140,7 @@ void Instances::loaded(const Plugin* plugin) {
 }
 
 void Instances::activated(const QModelIndex& index) {
+    emit message("Instances::activated(const QModelIndex& index)");
     if (index.isValid() == false) {
         return;
     }
@@ -151,19 +162,24 @@ void Instances::activated(const QModelIndex& index) {
     }
 
     auto p = mld->find(uuid);
-    widget = dynamic_cast<Widget*>(p.data());
+    if ((widget = dynamic_cast<Widget*>(p.data())) == nullptr) {
+        return;
+    }
     win->addSubWindow(widget);
 }
 
 void Instances::customMenuRequested(QPoint point) {
+    emit message("Instances::customMenuRequested(QPoint point)");
     QMenu menu;
-    menu.addAction(tr("Close"), this, &Instances::deletRequested);
+    menu.addAction(tr("Copy"), this, &Instances::copyRequested);
+    menu.addAction(tr("Close"), this, &Instances::deleteRequested);
     menu.addSeparator();
     menu.addAction(tr("Settings"), this, &Instances::settingsRequested);
     menu.exec(m_view->mapToGlobal(point));
 }
 
 MainWindow* Instances::mainWindow() const {
+    emit message("Instances::mainWindow() const");
     const QWidgetList& list = QApplication::topLevelWidgets();
 
     for (QWidget* w : list) {
@@ -176,30 +192,47 @@ MainWindow* Instances::mainWindow() const {
     return nullptr;
 }
 
-void Instances::settingsRequested() {
+std::optional<QPair<QString, QString>> Instances::instanceInfo() const {
+    emit message("Instances::instanceInfo()");
     QItemSelectionModel* selected = m_view->selectionModel();
 
     if (selected->hasSelection() != true) {
-        return;
+        emit message("Instances::instanceInfo(): no selection");
+        return std::nullopt;
     }
 
     QModelIndexList list = selected->selectedRows();
 
     if (list.size() != 1) {
-        return;
+        emit message("Instances::instanceInfo(): selection size =! 1");
+        return std::nullopt;
     }
-    
+
+    const QString name = list[0].siblingAtColumn(Columns::NAME).data().toString();
+    const QString uuid = list[0].siblingAtColumn(Columns::UUID).data().toString();
+
+    return QPair<QString, QString>(name, uuid);
+}
+
+void Instances::settingsRequested() {
+    emit message("Instances::settingsRequested()");
     MainWindow* win = mainWindow();
 
     if (win == nullptr) {
         return;
     }
 
-    const QString name = list[0].siblingAtColumn(Columns::NAME).data().toString();
-    const QString uuid = list[0].siblingAtColumn(Columns::UUID).data().toString();
-    auto plugin = plugins()->find(uuid);
+    auto info = instanceInfo();
+
+    if (info.has_value() == false) {
+        emit message("Instances::settingsRequested(): instance info from selection is empty");
+        return;
+    }
+
+    auto plugin = plugins()->find(info.value().second);
     
     if (plugin.isNull() == true) {
+        emit message("Instances::settingsRequested(): failed to find plugin by uuid");
         return;
     }
 
@@ -209,9 +242,49 @@ void Instances::settingsRequested() {
         return;
     }
 
-    win->addSubWindow(dialog, name+"/Settings");
+    win->addSubWindow(dialog, info.value().first + "/Settings");
 }
 
-void Instances::deletRequested() {
+void Instances::deleteRequested() {
+    emit message("Instances::deleteRequested()");
+    auto info = instanceInfo();
+}
 
+void Instances::copyRequested() {
+    emit message("Instances::copyRequested()");
+    auto info = instanceInfo();
+
+    if (info.has_value() == false) {
+        emit message("Instances::copyRequested(): instance info from selection is empty");
+        return;
+    }
+
+    auto ld = plugins();
+
+    if (ld == nullptr) {
+        emit message("Instances::copyRequested(): plugins loader == nullptr");
+        return;
+    }
+
+    auto clone = ld->copy(info.value().second);
+    if (clone.isNull()) {
+        emit message(QString("Instances::copyRequested(): failed to clone %1").arg(info.value().second));
+        return;
+    }
+    emit message(QString("Instances::copyRequested(): cloned (%1, %2) -> (%3, %4)").arg(info.value().first).arg(info.value().second).arg(clone->name()).arg(clone->uuid()));
+
+    if (clone->type() != Plugin::Type::WIDGET) {
+        return;
+    }
+    
+    PluginsLoader* pld = plugins();
+    MLoader* mld = reinterpret_cast<ModuleLoader<Loader>*>(pld);
+
+    MainWindow* win = qobject_cast<MainWindow*>(mld->context()->to<GuiLoaderContext>()->m_win);
+    if (win == nullptr) {
+        emit message("Instances::copyRequested(): failed to obtain main window");
+        return;
+    }
+
+    win->addSubWindow(clone.dynamicCast<Widget>().data());
 }

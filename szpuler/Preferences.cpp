@@ -3,7 +3,7 @@
 #include "PreferencePage.h"
 
 Preferences::Preferences(QWidget* mwin, Loader* loader, const QString& settingsPath, MLoader* plugins) 
-    : SettingsMdi(mwin)
+    : SettingsMdi(mwin, nullptr, settingsPath)
     , m_ui(new Ui::Preferences)
     , m_plugins(plugins)
     , m_model(new QStandardItemModel(0,1)){

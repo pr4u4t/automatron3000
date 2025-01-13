@@ -19,16 +19,6 @@ struct QLinCommandMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-
-        m_QLinCommandMenu = new QMenu(m_app->translate("MainWindow", "Command"));
-
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        //m_QLinReadByIDMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_QLinCommandMenu);
-        m_newInstance->setData(QVariant("QLinCommand"));
-        //m_QLinReadByIDMenu->addAction(m_newInstance);
     }
 
     QMenu* m_QLinCommandMenu = nullptr;
@@ -44,52 +34,29 @@ static bool QLinCommand_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, 
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QLinCommand_register(): application is non gui not registering");
         return false;
     }
 
-    ctx->m_QLinCommandMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
-    //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
-    ctx->m_QLinCommandMenu->addSection(ctx->m_app->translate("MainWindow", "Command"));
-    if (ctx->m_QLinCommandMenu->style()->styleHint(QStyle::SH_Menu_SupportsSections) == 0) {
-        ctx->m_QLinCommandMenu->addAction(ctx->m_app->translate("MainWindow", "Command"));
-    }
-    ctx->m_QLinCommandMenu->addMenu(ctx->m_settings);
-    ctx->m_QLinCommandMenu->insertAction(nullptr, ctx->m_newInstance);
+    auto linbusMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 
-
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
-    if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QLinCommandMenu);
+    if (linbusMenu == nullptr) {
+        log->message("QLinCommand_register(): linbus menu not found");
+        return false;
     }
+
+    windowAddInstanceSettings(linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLinCommand", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QLinCommand") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_QLinCommandMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QLinCommand*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QLinCommand*>(plugin), &QLinCommand::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinCommand*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinReadByID/Settings"));
-            });
-        });
-
+        windowAddPluginSettingsAction<QLinCommand, QLinCommandMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLinCommand"), gtx, ctx, log);
+    });
 
     return true;
 }
 
-static bool QLinReadByID_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinCommandMenu* ctx, Logger* log) {
-    log->message("QLinReadByID_unregister()");
+static bool QLinCommand_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinCommandMenu* ctx, Logger* log) {
+    log->message("QLinCommand_unregister()");
     return true;
 }
 
@@ -100,15 +67,16 @@ REGISTER_PLUGIN(
     "pawel.ciejka@gmail.com",
     "example plugin",
     QLinCommand_register,
-    QLinReadByID_unregister,
+    QLinCommand_unregister,
     QLinCommandMenu,
     { "QLin" },
     true,
-    900
+    900,
+    LinCommandSettings
 )
 
-QLinCommand::QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath, new LinCommandSettings(Settings::get(), settingsPath))
+QLinCommand::QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinCommandSettings* set, const QString& uuid)
+    : Widget(ld, plugins, parent, settingsPath, set, uuid)
     , m_data(new Ui::QLinCommandUI) {
     m_data.m_ui->setupUi(this);
     //settingsChanged();
@@ -164,8 +132,9 @@ bool QLinCommand::deinitialize() {
 void QLinCommand::settingsChanged() {
     emit message("QLinCommand::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinCommandSettings>();
-    *(set) = LinCommandSettings(Settings::get(), settingsPath());
-    
+    //*(set) = LinCommandSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<LinCommandSettings>(settingsPath()));
+
     disconnect(this, SLOT(dataReady(const QByteArray&)));
     disconnect(this, SLOT(errorReady(const QByteArray&)));
     disconnect(this, SLOT(previousSuccess(const QByteArray&)));
@@ -205,6 +174,7 @@ void QLinCommand::settingsChanged() {
     }
 
     QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
+    emit settingsApplied();
 }
 
 QLinCommand::~QLinCommand() {

@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
+#include <QCoreApplication>
 
 #include "logger.h"
 #include "api_global.h"
@@ -28,7 +29,7 @@ public:
 	virtual bool addSubWindow(Widget* widget) = 0;
 
 	QMenu* findMenu(const QString& title) {
-		QList<QMenu*> menus = menuBar()->findChildren<QMenu*>(Qt::FindDirectChildrenOnly);
+		QList<QMenu*> menus = menuBar()->findChildren<QMenu*>(Qt::FindChildrenRecursively);
 
 		for (auto it = menus.begin(), end = menus.end(); it != end; ++it) {
 			if ((*it)->title() == title) {
@@ -53,5 +54,38 @@ public slots:
 
 };
 
-//#endif // DAEMON
+template<typename T, typename C, typename G, typename D, typename P>
+void windowAddPluginSettingsAction(const P* plugin, const QString& name, G* gtx, C* ctx, Logger* log) {
+	if (plugin->name() != name) {
+		return;
+	}
+
+	const auto actions = ctx->m_settings->actions();
+	if (actions.size() == 1) {
+		actions[0]->setVisible(false);
+	}
+
+	const T* mod = dynamic_cast<const T*>(plugin);
+
+	if (mod == nullptr) {
+		log->message("windowAddPluginSettingsAction(): Failed to cast plugin to QObject");
+		return;
+	}
+
+	QAction* settings = ctx->m_settings->addAction(mod->objectName());
+	settings->setData(QVariant(plugin->settingsPath()));
+	
+	QObject::connect(settings, &QAction::triggered, [gtx, mod, ctx] {
+		if (gtx->m_win->toggleWindow(mod->objectName() + "/Settings")) {
+			return;
+		}
+
+		auto dialog = new D(gtx->m_win, mod);
+		QObject::connect(dialog, &D::settingsUpdated, mod, &T::settingsChanged);
+		gtx->m_win->addSubWindow(dialog, mod->objectName() + "/Settings");
+	});
+}
+
+API_EXPORT void windowAddInstanceSettings(QMenu *parent, QMenu** settings, QAction** newInstance, const QString& name, QCoreApplication *app, Logger* log);
+
 #endif // WINDOW_H

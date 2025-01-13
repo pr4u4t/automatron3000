@@ -24,57 +24,50 @@ struct QDataMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_dataMenu = new QMenu(m_app->translate("MainWindow", "&Data"));
-
-        m_database = new QAction(m_app->translate("MainWindow", "Database"), m_dataMenu);
-        m_database->setData(QVariant("QData"));
-        m_dataMenu->addAction(m_database);
-        m_dbSettings = new QAction(m_app->translate("MainWindow", "Settings"), m_dataMenu);
-        m_dataMenu->addAction(m_dbSettings);
     }
 
     QMenu* m_dataMenu = nullptr;
-    QAction* m_dbSettings = nullptr;
-    QAction* m_database = nullptr;
+    QMenu* m_settings = nullptr;
+    QAction* m_newInstance = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 
 };
 
 static bool QData_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
-    log->message("PluginList_register");
+    log->message("QData_register()");
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QData_register(): application is non gui not registering");
         return false;
     }
 
-	if (gtx->m_win == nullptr) {
-		return false;
-	}
-
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
-    if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_dataMenu);
+    if (gtx->m_win == nullptr) {
+        log->message("QData_register(): window pointer == nullptr");
+        return false;
     }
 
-	QObject::connect(ctx->m_database, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
+    auto dataMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "Data"));
 
-    QObject::connect(ctx->m_dbSettings, &QAction::triggered, [ld, gtx, ctx] {
-        QSharedPointer<Plugin> data = ld->instance("QData", gtx->m_win);
+    if (dataMenu == nullptr) {
+        log->message("QData_register(): data menu == nullptr");
+        return false;
+    }
 
-        if (gtx->m_win->toggleWindow(dynamic_cast<const QData*>(data.data())->objectName() + "/Settings")) {
-            return;
-        }
+    if ((ctx->m_dataMenu = dataMenu->addMenu(ctx->m_app->translate("MainWindow", "Inventory"))) == nullptr) {
+        log->message("QData_register(): failed to create Inventory menu");
+        return false;
+    }
 
-        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, data->settingsPath());
-        QObject::connect(dialog, &SettingsDialog::settingsUpdated, data.dynamicCast<QData>().data(), &QData::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QData*>(data.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "Database-Settings"));
+    windowAddInstanceSettings(ctx->m_dataMenu, &ctx->m_settings, &ctx->m_newInstance, "Inventory", ctx->m_app, log);
+
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        windowAddPluginSettingsAction<QData, QDataMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QData"), gtx, ctx, log);
     });
 
-	return true;
+    return true;
 }
 
 static bool QData_unregister(ModuleLoaderContext* win, PluginsLoader* ld, QDataMenu* ctx, Logger* log) {
@@ -93,16 +86,18 @@ REGISTER_PLUGIN(
     QDataMenu,
     {"QSerial"},
     true,
-    300
+    300,
+    DataSettings
 )
 
-QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
+QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, DataSettings* set, const QString& uuid)
     : Widget(
         ld, 
         plugins, 
         parent, 
         path, 
-        new DataSettings() //ettings::get(), path)
+        set,
+        uuid
     )
     , m_ui(new Ui::QDataUI) {
     m_ui->setupUi(this);
@@ -440,14 +435,16 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
 
 void QData::settingsChanged() {
     Window* win = qobject_cast<Window*>(parent());
-    *(settings<DataSettings>()) = DataSettings(Settings::get(), settingsPath());
+    //*(settings<DataSettings>()) = DataSettings(Settings::get(), settingsPath());
+    const auto set = settings<DataSettings>();
+    *set = *(Settings::fetch<DataSettings>(settingsPath()));
 
     if (m_db.isValid() || m_db.isOpen()) {
         m_db.close();
     }
 
-    m_db = QSqlDatabase::addDatabase(settings<DataSettings>()->dbDriver());
-    m_db.setDatabaseName(settings<DataSettings>()->dbUri());
+    m_db = QSqlDatabase::addDatabase(set->dbDriver());
+    m_db.setDatabaseName(set->dbUri());
 
     bool rc = m_db.open();
 
@@ -457,8 +454,8 @@ void QData::settingsChanged() {
         return;
     }
 
-    if (m_db.tables().contains(settings<DataSettings>()->dbTable(), Qt::CaseInsensitive) == false) {
-        m_db.exec(QString(createTable).arg(settings<DataSettings>()->dbTable()));
+    if (m_db.tables().contains(set->dbTable(), Qt::CaseInsensitive) == false) {
+        m_db.exec(QString(createTable).arg(set->dbTable()));
     } else {
         emit message("QData::QData: table already exists");
     }
@@ -470,7 +467,7 @@ void QData::settingsChanged() {
 
     m_model = new QSqlTableModel(nullptr, m_db);
     m_ui->dbView->setModel(m_model);
-    m_model->setTable(settings<DataSettings>()->dbTable());
+    m_model->setTable(set->dbTable());
     m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
     m_model->select();
     m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
@@ -480,19 +477,21 @@ void QData::settingsChanged() {
 
     m_timer.stop();
 
-    if (settings<DataSettings>()->serialInterval() != -1) {
-        m_timer.setInterval(settings<DataSettings>()->serialInterval());
+    if (set->serialInterval() != -1) {
+        m_timer.setInterval(set->serialInterval());
     }
 
-    if (settings<DataSettings>()->keepClear() == true && settings<DataSettings>()->clearCode() != -1) {
-        m_selected = QString::number(settings<DataSettings>()->clearCode());
+    if (set->keepClear() == true && set->clearCode() != -1) {
+        m_selected = QString::number(set->clearCode());
     }
 
-    if (settings<DataSettings>()->keepClear() == true
-        && settings<DataSettings>()->serialInterval() != -1 
-        && settings<DataSettings>()->clearCode() != -1) {
+    if (set->keepClear() == true
+        && set->serialInterval() != -1 
+        && set->clearCode() != -1) {
         m_timer.start();
     }
+
+    emit settingsApplied();
 }
 
 void QData::prepareForFocus() {

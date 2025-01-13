@@ -25,7 +25,7 @@ class QMLVISUAL_EXPORT QMLVisual : public Widget {
     Q_OBJECT
 
 public:
-    QMLVisual(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QMLVisual(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, MLVisualSettings* set, const QString& uuid);
 
     bool saveSettings();
 

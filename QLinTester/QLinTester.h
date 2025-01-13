@@ -45,7 +45,7 @@ class QLINTESTER_EXPORT QLinTester : public Widget {
     Q_OBJECT
 
 public:
-    QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QLinTester(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinTesterSettings* set, const QString& uuid);
 
     SettingsMdi* settingsWindow() const;
 

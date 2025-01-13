@@ -1,14 +1,24 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QBadge.h"
 
 #include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new BadgeSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QBadge* badge)
+    : SettingsMdi(parent, new BadgeSettings(*(badge->settings<BadgeSettings>())), badge->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -24,34 +34,44 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {}
-
-BadgeSettings SettingsDialog::dataSettings() const {
-    return m_currentSettings;
-}
-
-QString SettingsDialog::settingsPath() const {
-    return m_settingsPath;
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    BadgeSettings* setts = settings<BadgeSettings>();
+    m_ui->imagePathEdit->setText(setts->imagePath());
+    m_ui->textEdit->setText(setts->text());
+    m_ui->titleEdit->setText(setts->title());
 
-    m_ui->imagePathEdit->setText(m_currentSettings.imagePath());
-    m_ui->textEdit->setText(m_currentSettings.text());
-    m_ui->titleEdit->setText(m_currentSettings.title());
+}
 
+SettingsDialog::operator BadgeSettings() const {
+    BadgeSettings ret;
+    ret.setImagePath(m_ui->imagePathEdit->text());
+    ret.setText(m_ui->textEdit->document()->toMarkdown());
+    ret.setTitle(m_ui->titleEdit->text());
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
-    m_currentSettings.setImagePath(m_ui->imagePathEdit->text());
-    m_currentSettings.setText(m_ui->textEdit->document()->toMarkdown());
-    m_currentSettings.setTitle(m_ui->titleEdit->text());
+    BadgeSettings newSettings = *this;
+    BadgeSettings* setts = settings<BadgeSettings>();
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+    *setts = newSettings;
+    Settings::store<BadgeSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::chooseImage() {

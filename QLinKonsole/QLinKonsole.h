@@ -27,7 +27,7 @@ signals:
     void getData(const QByteArray& data);
 
 public:
-    QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, KonsoleSettings* set, const QString& uuid);
 
     void processCommand(const QString& commands);
 

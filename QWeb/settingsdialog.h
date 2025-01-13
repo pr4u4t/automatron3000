@@ -60,10 +60,21 @@ public:
     qint32 refresh() const { return m_refresh; }
     void setRefresh(qint32 refresh) { m_refresh = refresh; }
 
+    bool operator==(const WebSettings& other) const {
+        return m_url == other.m_url &&
+            m_refresh == other.m_refresh;
+    }
+
+    bool operator!=(const WebSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     QString m_url;
     qint32 m_refresh;
 };
+
+class QWeb;
 
 class SettingsDialog : public SettingsMdi {
 
@@ -73,11 +84,11 @@ public:
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
 
+    SettingsDialog(QWidget* parent, const QWeb *web);
+
     ~SettingsDialog();
 
-    WebSettings dataSettings() const;
-
-    QString settingsPath() const;
+    operator WebSettings() const;
 
 private slots:
     void ok();
@@ -91,11 +102,11 @@ private:
     
     void fillFromSettings();
 
+    void setup();
+
 private:
-    WebSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif

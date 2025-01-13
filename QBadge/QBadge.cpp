@@ -16,15 +16,6 @@ struct QBadgeMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_badgesMenu = new QMenu(m_app->translate("MainWindow", "Badges"));
-
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        m_badgesMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_badgesMenu);
-        m_newInstance->setData(QVariant("QBadge"));
-        m_badgesMenu->addAction(m_newInstance);
     }
 
     QMenu* m_badgesMenu = nullptr;
@@ -44,33 +35,19 @@ static bool QBadge_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QBadg
         return false;
     }
 
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
-    if (windowMenu != nullptr) {
-        windowMenu->addMenu(ctx->m_badgesMenu);
-        //gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_badgesMenu);
-        log->message("QBadge_register: menu added");
-    } else {
-        log->message("QBadge_register: faiiled to find viusualization menu");
+    if (gtx->m_win == nullptr) {
+        log->message("QBadge_register(): window pointer == nullptr");
+        return false;
     }
+
+    auto visualMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
+    ctx->m_badgesMenu = visualMenu->addMenu(ctx->m_app->translate("MainWindow", "Badges"));
+
+    windowAddInstanceSettings(ctx->m_badgesMenu, &ctx->m_settings, &ctx->m_newInstance, "QBadge", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QBadge") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_badgesMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QBadge*>(plugin), &QBadge::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings"); // ctx->m_app->translate("MainWindow", dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings"));
-        });
+        windowAddPluginSettingsAction<QBadge, QBadgeMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QBadge"), gtx, ctx, log);
     });
 
     return true;
@@ -92,16 +69,18 @@ REGISTER_PLUGIN(
     QBadgeMenu,
     {},
     true,
-    100
+    100,
+    BadgeSettings
 )
 
-QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath)
+QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath, BadgeSettings* set, const QString& uuid)
     : Widget(
         ld, 
         plugins, 
         parent, 
         sPath, 
-        new BadgeSettings() // Settings::get(), sPath)
+        set,
+        uuid
     )
     , m_ui(new Ui::QBadgeUI) {
     m_ui->setupUi(this);
@@ -139,7 +118,8 @@ bool QBadge::deinitialize() {
 void QBadge::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<BadgeSettings>();
-    *set = BadgeSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<BadgeSettings>(settingsPath()));
+    //*set = BadgeSettings(Settings::get(), settingsPath());
 
     m_ui->label->setText(set->text());
     m_ui->title->setText(set->title());
@@ -148,6 +128,8 @@ void QBadge::settingsChanged() {
     if (set->imagePath().isEmpty() == false && pix.load(set->imagePath())) {
         m_ui->image->setPixmap(pix);
     }
+
+    emit settingsApplied();
 }
 
 SettingsMdi* QBadge::settingsWindow() const {

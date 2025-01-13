@@ -17,16 +17,6 @@ struct QLinReadByIDMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-
-        m_QLinReadByIDMenu = new QMenu(m_app->translate("MainWindow", "ReadByID"));
-        
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        //m_QLinReadByIDMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_QLinReadByIDMenu);
-        m_newInstance->setData(QVariant("QLinReadByID"));
-        //m_QLinReadByIDMenu->addAction(m_newInstance);
     }
 
     QMenu* m_QLinReadByIDMenu = nullptr;
@@ -42,47 +32,24 @@ static bool QLinReadByID_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QLinReadByID_register(): application is non gui not registering");
         return false;
     }
 
-    ctx->m_QLinReadByIDMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
-    //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
-    ctx->m_QLinReadByIDMenu->addSection(ctx->m_app->translate("MainWindow", "Read By ID"));
-    if (ctx->m_QLinReadByIDMenu->style()->styleHint(QStyle::SH_Menu_SupportsSections) == 0) {
-        ctx->m_QLinReadByIDMenu->addAction(ctx->m_app->translate("MainWindow", "Read By ID"));
-    }
-    ctx->m_QLinReadByIDMenu->addMenu(ctx->m_settings);
-    ctx->m_QLinReadByIDMenu->insertAction(nullptr, ctx->m_newInstance);
+    auto linbusMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 
-
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
-    if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QLinReadByIDMenu);
+    if (linbusMenu == nullptr) {
+        log->message("QLinReadByID_register(): linbus menu not found");
+        return false;
     }
+
+    windowAddInstanceSettings(linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLinReadByID", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QLinReadByID") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_QLinReadByIDMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QLinReadByID*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QLinReadByID*>(plugin), &QLinReadByID::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinReadByID*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QLinReadByID/Settings"));
-            });
-        });
-        
-
+        windowAddPluginSettingsAction<QLinReadByID, QLinReadByIDMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLinReadByID"), gtx, ctx, log);
+    });
+    
     return true;
 }
 
@@ -102,11 +69,12 @@ REGISTER_PLUGIN(
     QLinReadByIDMenu,
     {"QLin"},
     true,
-    900
+    900,
+    LinReadByIDSettings
 )
 
-QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath)
-    : Widget(ld, plugins, parent, settingsPath, new LinReadByIDSettings(Settings::get(), settingsPath))
+QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinReadByIDSettings* set, const QString& uuid)
+    : Widget(ld, plugins, parent, settingsPath, set, uuid)
     , m_data(new Ui::QLinReadByIDUI) {
     m_data.m_ui->setupUi(this);
     //settingsChanged();
@@ -161,7 +129,8 @@ bool QLinReadByID::initialize() {
 void QLinReadByID::settingsChanged() {
     emit message("QLinReadByID::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinReadByIDSettings>();
-    *(set) = LinReadByIDSettings(Settings::get(), settingsPath());
+    //*(set) = LinReadByIDSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<LinReadByIDSettings>(settingsPath()));
     m_data.m_ui->title->setText(set->title());
     disconnect(this, SLOT(previousSuccess(const QByteArray&)));
     disconnect(this, SLOT(dataReady(const QByteArray&)));
@@ -185,6 +154,7 @@ void QLinReadByID::settingsChanged() {
     }
 
     m_data.m_lin = plugin.dynamicCast<IODevice>();
+    emit settingsApplied();
 
     connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinReadByID::dataReady);
     if (m_data.m_lin->isOpen() == false) {

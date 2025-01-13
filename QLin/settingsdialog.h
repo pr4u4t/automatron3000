@@ -251,6 +251,24 @@ public:
     int checksumMethod() const { return m_checksumMethod; }
     void setChecksumMethod(int checksumMethod) { m_checksumMethod = checksumMethod; }
 
+    bool operator==(const LinSettings& other) const {
+        return m_linVersion == other.m_linVersion &&
+            m_slaveID == other.m_slaveID &&
+            m_mode == other.m_mode &&
+            m_initialData == other.m_initialData &&
+            m_autoConnect == other.m_autoConnect &&
+            m_baudrate == other.m_baudrate &&
+            m_slaveDLC == other.m_slaveDLC &&
+            m_dlc == other.m_dlc &&
+            m_appName == other.m_appName &&
+            m_hwChannel == other.m_hwChannel &&
+            m_queueSize == other.m_queueSize &&
+            m_checksumMethod == other.m_checksumMethod;
+    }
+
+    bool operator!=(const LinSettings& other) const {
+        return !(*this == other);
+    }
 
 private:
 
@@ -268,6 +286,7 @@ private:
     int m_checksumMethod;
 };
 
+class QLin;
 
 class SettingsDialog : public SettingsMdi {
 
@@ -275,19 +294,13 @@ class SettingsDialog : public SettingsMdi {
 
 public:
 
-    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
+
+    SettingsDialog(QWidget* parent, const QLin* lin);
 
     ~SettingsDialog();
 
-    LinSettings linSettings() const;
-
-    bool saveSettings() {
-        return true;
-    }
-
-    QString settingsPath() const {
-        return m_settingsPath;
-    }
+    operator LinSettings() const;
 
 private slots:
     void apply();
@@ -301,10 +314,11 @@ private slots:
     void fillFromSettings();
 
 private:
-    LinSettings m_currentSettings;
+
+    void setup();
+
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
     QStandardItemModel* m_model = nullptr;
     QStandardItemModel* m_sdlcModel = nullptr;
 };

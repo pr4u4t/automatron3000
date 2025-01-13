@@ -1,27 +1,18 @@
 #include "plugin.h"
 
 QString Settings::m_confPath = QString();
+QHash<QString, PluginSettings*> Settings::m_psettings = QHash<QString, PluginSettings*>();
 
-PluginPrivate::PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set)
+PluginPrivate::PluginPrivate(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set, const QString& uuid)
 	: m_loader(ld)
 	, m_plugins(plugins)
 	, m_settingsPath(path)
-	, m_settings(set){
+	, m_settings(set)
+	, m_uuid(uuid){
 }
 
-Plugin::Plugin(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set)
-	:  m_d(ld, plugins, path, set){
-	QRegExp rx("([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})");
-	int idx;
-
-	if (settingsPath().isEmpty()) {
-		m_d.m_uuid = QUuid::createUuid().toString();
-		m_d.m_settingsPath = /*QString(settings_path) +*/ name() + "-" + m_d.m_uuid;
-	} else if ((idx = rx.indexIn(path)) != -1) {
-		m_d.m_uuid = "{" + rx.cap(1) + "}";
-		m_d.m_settingsPath = /*QString(settings_path) +*/ path;
-	}
-}
+Plugin::Plugin(Loader* ld, PluginsLoader* plugins, const QString& path, PluginSettings* set, const QString& uuid)
+	:  m_d(ld, plugins, path, set, uuid){}
 
 QString Plugin::name() const {
 	return m_d.m_loader->name();
@@ -71,9 +62,9 @@ bool Plugin::multipleInstances() const {
 //	*(m_d.m_settings) = settings;
 //}
 
-Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, PluginSettings* set)
-	: QObject(parent)
-	, Plugin(ld, plugins, path, set) {
+Extension::Extension(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, PluginSettings* set, const QString& uuid)
+	: QObject()//(parent)
+	, Plugin(ld, plugins, path, set, uuid) {
 
 	if (set != nullptr && set->objectName().isEmpty() == false) {
 		setObjectName(set->objectName());
@@ -86,17 +77,18 @@ void Extension::nameChanged(const QString& name) {
 
 	const auto set = settings<PluginSettings>();
 	if (set != nullptr && set->objectName() != name) {
-		set->objectName() = name;
-		QSettings s = Settings::get();
-		PluginSettings ps;
-		ps.setObjectName(name);
-		ps.save(s, settingsPath());
+		set->setObjectName(name);
+		//set->objectName() = name;
+		//QSettings s = Settings::get();
+		//PluginSettings ps;
+		//ps.setObjectName(name);
+		//ps.save(s, settingsPath());
 		//set->save(s, settingsPath());
 	}
 }
 
-Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, PluginSettings* set)
-	: Plugin(ld, plugins, path, set)
+Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, PluginSettings* set, const QString& uuid)
+	: Plugin(ld, plugins, path, set, uuid)
 	, MdiChild(parent) {
 	
 	if (set != nullptr && set->objectName().isEmpty() == false) {
@@ -108,16 +100,15 @@ Widget::Widget(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStrin
 
 void Widget::nameChanged(const QString& objName) {
 	const auto set = settings<PluginSettings>();
-
 	if (set != nullptr) {
-		QRegExp rx("^"+name()+"([ ][0-9]+)?$");
+		QRegExp rx("^" + name() + "([ ][0-9]+)?$");
 		if (rx.exactMatch(objName)) {
 			if (set->objectName() != objName) {
-				set->objectName() = objName;
-				QSettings s = Settings::get();
-				PluginSettings ps;
-				ps.setObjectName(objName);
-				ps.save(s, settingsPath());
+				set->setObjectName(objName);
+				//QSettings s = Settings::get();
+				//PluginSettings ps;
+				//ps.setObjectName(objName);
+				//ps.save(s, settingsPath());
 				//set->save(s, settingsPath());
 			}
 		} else {

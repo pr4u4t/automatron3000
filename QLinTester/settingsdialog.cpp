@@ -4,6 +4,7 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QLinTester.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
@@ -16,11 +17,20 @@
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new LinTesterSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QLinTester* tester)
+    : SettingsMdi(parent, new LinTesterSettings(*(tester->settings<LinTesterSettings>())), tester->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -35,35 +45,49 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 }
 
 SettingsDialog::~SettingsDialog() {
-    delete m_ui;
-}
-
-LinTesterSettings SettingsDialog::lintesterSettings() const {
-    emit message("SettingsDialog::settings");
-    return m_currentSettings;
+    if (m_ui) {
+        delete m_ui;
+    }
 }
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
-
-    m_ui->testStartID->setValue(m_currentSettings.testStartID());
-    m_ui->testStopID->setValue(m_currentSettings.testStopID());
-    m_ui->interval->setValue(m_currentSettings.testInterval());
-    m_ui->tries->setValue(m_currentSettings.tries());
-    m_ui->linEdit->setText(m_currentSettings.linDevice());
+    const LinTesterSettings* setts = settings<LinTesterSettings>();
+    m_ui->testStartID->setValue(setts->testStartID());
+    m_ui->testStopID->setValue(setts->testStopID());
+    m_ui->interval->setValue(setts->testInterval());
+    m_ui->tries->setValue(setts->tries());
+    m_ui->linEdit->setText(setts->linDevice());
 }
 
 void SettingsDialog::updateSettings() {
-    emit message("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
 
-    m_currentSettings.setTestStartID(m_ui->testStartID->value());
-    m_currentSettings.setTestStopID(m_ui->testStopID->value());
-    m_currentSettings.setTestInterval(m_ui->interval->value());
-    m_currentSettings.setTries(m_ui->tries->value());
-    m_currentSettings.setLinDevice(m_ui->linEdit->text());
+    LinTesterSettings newSettings = *this;
+    LinTesterSettings* setts = settings<LinTesterSettings>();
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+
+    *setts = newSettings;
+    Settings::store<LinTesterSettings>(settingsPath(), setts);
+}
+
+SettingsDialog::operator LinTesterSettings() const {
+    LinTesterSettings ret;
+
+    ret.setTestStartID(m_ui->testStartID->value());
+    ret.setTestStopID(m_ui->testStopID->value());
+    ret.setTestInterval(m_ui->interval->value());
+    ret.setTries(m_ui->tries->value());
+    ret.setLinDevice(m_ui->linEdit->text());
+
+    return ret;
 }
 
 void SettingsDialog::ok() {

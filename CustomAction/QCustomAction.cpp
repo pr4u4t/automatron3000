@@ -19,15 +19,6 @@ struct QCustomActionMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_actionsMenu = new QMenu(m_app->translate("MainWindow", "Actions"));
-
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        m_actionsMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_actionsMenu);
-        m_newInstance->setData(QVariant("QCustomAction"));
-        m_actionsMenu->addAction(m_newInstance);
     }
 
     QMenu* m_actionsMenu = nullptr;
@@ -47,30 +38,20 @@ static bool QCustomAction_register(ModuleLoaderContext* ldctx, PluginsLoader* ld
         return false;
     }
 
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
-    if (windowMenu != nullptr) {
-        gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_actionsMenu);
+    if (gtx->m_win == nullptr) {
+        log->message("QCustomAction_register(): window pointer == nullptr");
+        return false;
     }
+
+    auto actionsMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "Actions"));
+    ctx->m_actionsMenu = actionsMenu->addMenu(ctx->m_app->translate("MainWindow", "CustomAction"));
+
+    windowAddInstanceSettings(ctx->m_actionsMenu, &ctx->m_settings, &ctx->m_newInstance, "QCustomAction", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QCustomAction") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QObject*>(plugin)->objectName(), ctx->m_actionsMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QCustomAction*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QCustomAction*>(plugin), &QCustomAction::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QCustomAction*>(plugin)->objectName() + "/Settings"); // ctx->m_app->translate("MainWindow", dynamic_cast<const QBadge*>(plugin)->objectName() + "/Settings"));
-            });
-        });
+        windowAddPluginSettingsAction<QCustomAction, QCustomActionMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QCustomAction"), gtx, ctx, log);
+    });
 
     return true;
 }
@@ -91,16 +72,18 @@ REGISTER_PLUGIN(
     QCustomActionMenu,
     {},
     true,
-    100
+    100,
+    CustomActionSettings
 )
 
-QCustomAction::QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath)
+QCustomAction::QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath, CustomActionSettings* set, const QString& uuid)
     : Widget(
         ld,
         plugins,
         parent,
         sPath,
-        new CustomActionSettings() //Settings::get(), sPath)
+        set,
+        uuid
     )
     , m_ui(new Ui::QCustomActionUI) {
     m_ui->setupUi(this);
@@ -130,12 +113,14 @@ QCustomAction::~QCustomAction() {
 void QCustomAction::settingsChanged() {
     emit message("QCustomAction::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<CustomActionSettings>();
-    *set = CustomActionSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<CustomActionSettings>(settingsPath()));
+    //*set = CustomActionSettings(Settings::get(), settingsPath());
 
     m_ui->pushButton->setText(set->buttonText());
     m_ui->title->setText(set->title());
     m_ui->progressBar->setHidden(!set->progress());
     m_ui->textEdit->setHidden(!set->verbose());
+    emit settingsApplied();
 }
 
 SettingsMdi* QCustomAction::settingsWindow() const {

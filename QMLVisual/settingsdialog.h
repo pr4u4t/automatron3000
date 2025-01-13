@@ -62,11 +62,22 @@ public:
     QString searchPath() const { return m_searchPath; }
     void setSearchPath(const QString& searchPath) { m_searchPath = searchPath; }
 
+    bool operator==(const MLVisualSettings& other) const {
+        return m_viewerPath == other.m_viewerPath &&
+            m_searchPath == other.m_searchPath;
+    }
+
+    bool operator!=(const MLVisualSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
 
     QString m_viewerPath;
     QString m_searchPath;
 };
+
+class QMLVisual;
 
 class SettingsDialog : public SettingsMdi {
 
@@ -76,11 +87,11 @@ public:
 
     SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
 
+    SettingsDialog(QWidget* parent, const QMLVisual* visual);
+
     ~SettingsDialog();
 
-    MLVisualSettings visualSettings() const;
-
-    QString settingsPath() const;
+    operator MLVisualSettings() const;
 
 private slots:
     void ok();
@@ -100,11 +111,11 @@ private:
 
     bool verifySettings() const;
 
+    void setup();
+
 private:
-    MLVisualSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif

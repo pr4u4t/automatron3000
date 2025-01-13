@@ -391,10 +391,7 @@ bool MainWindow::addSubWindow(QWidget* widget, const QString& title) {
 void MainWindow::createActions(){
     m_logger->message("MainWindow::createActions()", LoggerSeverity::LOG_DEBUG);
 
-    QMenu* fileMenu = findMenu(tr("&File"));
-    if (fileMenu == nullptr) {
-        fileMenu = menuBar()->addMenu(tr("&File"));
-    }
+    QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 
     if (fileMenu) {
         fileMenu->addAction(tr("Save session"), this, &MainWindow::sessionStore);
@@ -410,13 +407,20 @@ void MainWindow::createActions(){
     }
 
     m_viewMenu = menuBar()->addMenu(tr("&View"));
-    m_toggleToolbar = new QAction(tr("Togggle toolbar"), this);
+    m_toggleToolbar = new QAction(tr("Toggle toolbar"), this);
     connect(m_toggleToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
     m_viewMenu->addAction(m_toggleToolbar);
 
     m_windowMenu = menuBar()->addMenu(tr("&Window"));
 
     m_visualMenu = menuBar()->addMenu(tr("V&isualization"));
+    //m_visualMenu->addAction(tr("(empty)"));
+
+    menuBar()->addMenu(tr("Input/Output"));
+
+    menuBar()->addMenu(tr("Actions"));
+
+    menuBar()->addMenu(tr("Data"));
 
     QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
     //QAction* pluginsList = new QAction(tr("Plugins"), this);
@@ -493,13 +497,18 @@ void MainWindow::setPlugins(MLoader* loader) {
 }
 
 bool MainWindow::openPerspective(const QString& state) {
-    //TODO: check if perspective exists
+    m_logger->message("MainWindow::openPerspective(const QString& state)", LoggerSeverity::LOG_DEBUG);
+    if (!m_dockManager->hasPerspective(state)) {
+        m_logger->message(QString("MainWindow::openPerspective: perspective %1 does not exist").arg(state), LoggerSeverity::LOG_DEBUG);
+        return false;
+    }
     m_perspectiveComboBox->setCurrentText(state);
     m_dockManager->openPerspective(state);
     return true;
 }
 
 void MainWindow::sessionRestored() {
+    m_logger->message("MainWindow::sessionRestored()", LoggerSeverity::LOG_DEBUG);
     openPerspective(m_winSettings.perspective);
 }
 
@@ -509,12 +518,14 @@ void MainWindow::createStatusBar(){
 }
 
 void MainWindow::createToolbar() {
+    m_logger->message("MainWindow::createToolbar()", LoggerSeverity::LOG_DEBUG);
     m_perspectiveComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     m_perspectiveComboBox->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     m_perspectiveListAction->setDefaultWidget(m_perspectiveComboBox);
     m_tbar->addAction(m_perspectiveListAction);
+
     if (Settings::get().value("perspectiveManage", true).toBool() == true) {
-        m_saveState = new QAction(tr("Save perspective"));
+        m_saveState = new QAction(tr("Save workspace"));
         m_tbar->addAction(m_saveState);
         m_tbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         m_saveState->setIcon(svgIcon(":/images/save.svg"));
@@ -532,20 +543,28 @@ void MainWindow::createToolbar() {
         a->setChecked(false);
         QObject::connect(a, &QAction::triggered, this, &MainWindow::lockWorkspace);
 
-        m_newPerspective = new QAction("Create Perspective");
+        m_newPerspective = new QAction("Create workspace");
         m_newPerspective->setIcon(svgIcon(":/images/picture_in_picture.svg"));
         QObject::connect(m_newPerspective, &QAction::triggered, this, [this](bool checked = false) {
             this->newPerspective(checked);
-            });
+        });
         m_tbar->addAction(m_newPerspective);
+
+        m_copyPerspective = new QAction("Copy workspace");
+        m_copyPerspective->setIcon(svgIcon(":/images/note_add.svg"));
+        QObject::connect(m_copyPerspective, &QAction::triggered, this, [this](bool checked = false) {
+            this->copyPerspective(this->m_currentPerspective);
+        });
+        m_tbar->addAction(m_copyPerspective);
     }
 
     connect(m_perspectiveComboBox, SIGNAL(textActivated(QString)),
-        m_dockManager, SLOT(openPerspective(QString)));
+        this, SLOT(changePerspective(QString)));
 
     restorePerspectives();
     if (m_perspectiveComboBox->currentText().isEmpty()) {
-        newPerspective(QString("Default"));
+        const QString defName("Default");
+        newPerspective(defName);
     }
 }
 
@@ -560,21 +579,20 @@ void MainWindow::writeSettings(){
 
 ads::CDockWidget* MainWindow::findChildWindow(const QString& name) const {
     m_logger->message(QString("MainWindow::findMdiChild(%1)").arg(name));
-    //TODO: check this
    
     ads::CDockWidget* ret = nullptr;
 
-    QMap<QString, ads::CDockWidget*> map = m_dockManager->dockWidgetsMap();
-    for (auto it = map.cbegin(), end = map.cend(); it != end; ++it) {
-        const QString k = it.key();
-        QWidget* w = it.value()->widget();
+    auto map = m_dockManager->dockWidgetsMap();
+    for (auto it = map.cbegin(); it != map.cend(); ++it) {
+        const auto value = it.value();
+        QWidget* w = value->widget();
         const Widget* child = qobject_cast<Widget*>(w);
         if (child == nullptr) {
             continue;
         }
 
         if (child->name() == name) {
-            ret = it.value();
+            ret = value;
             break;
         }
     }

@@ -4,6 +4,7 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QLinBus.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
@@ -16,11 +17,26 @@
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new LinBusSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QLinBus* linbus)
+    : SettingsMdi(parent, new LinBusSettings(*(linbus->settings<LinBusSettings>())), linbus->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -34,36 +50,44 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {
-    delete m_ui;
-}
-
-LinBusSettings SettingsDialog::linbusSettings() const {
-    emit message("SettingsDialog::settings");
-    return m_currentSettings;
-}
-
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    const LinBusSettings* setts = settings<LinBusSettings>();
+    m_ui->scanStartID->setValue(setts->scanStartID());
+    m_ui->scanStopID->setValue(setts->scanStopID());
+    m_ui->scanInterval->setValue(setts->scanInterval());
+    m_ui->enableColors->setChecked(setts->enableColors());
+    m_ui->linEdit->setText(setts->linDevice());
+}
 
-    m_ui->scanStartID->setValue(m_currentSettings.scanStartID());
-    m_ui->scanStopID->setValue(m_currentSettings.scanStopID());
-    m_ui->scanInterval->setValue(m_currentSettings.scanInterval());
-    m_ui->enableColors->setChecked(m_currentSettings.enableColors());
-    m_ui->linEdit->setText(m_currentSettings.linDevice());
+SettingsDialog::operator LinBusSettings() const {
+    LinBusSettings ret;
+
+    ret.setScanStartID(m_ui->scanStartID->value());
+    ret.setScanStopID(m_ui->scanStopID->value());
+    ret.setScanInterval(m_ui->scanInterval->value());
+    ret.setEnableColors(m_ui->enableColors->isChecked());
+    ret.setLinDevice(m_ui->linEdit->text());
+
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
-    emit message("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
 
-    m_currentSettings.setScanStartID(m_ui->scanStartID->value());
-    m_currentSettings.setScanStopID(m_ui->scanStopID->value());
-    m_currentSettings.setScanInterval(m_ui->scanInterval->value());
-    m_currentSettings.setEnableColors(m_ui->enableColors->isChecked());
-    m_currentSettings.setLinDevice(m_ui->linEdit->text());
+    LinBusSettings newSettings = *this;
+    LinBusSettings* setts = settings<LinBusSettings>();
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+
+    *setts = newSettings;
+    Settings::store<LinBusSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

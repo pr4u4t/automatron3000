@@ -5,6 +5,8 @@
 #include <QStandardItemModel>
 #include <QVBoxLayout>
 #include <QHeaderView>
+#include <QPair>
+
 #include "../api/api.h"
 #include "../core/core.h"
 
@@ -23,9 +25,9 @@ public:
 		UUID
 	};
 
-	Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
+	Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, PluginSettings* setts, const QString& uuid);
 
-	bool saveSettings();
+	//bool saveSettings();
 
 	void settingsChanged();
 
@@ -56,13 +58,17 @@ protected slots:
 
 	void settingsRequested();
 
-	void deletRequested();
+	void deleteRequested();
+
+	void copyRequested();
 
 protected:
 
 	MainWindow* mainWindow() const;
 
 private:
+
+	std::optional<QPair<QString, QString>> instanceInfo() const;
 
 	QTableView* m_view = nullptr;
 	QStandardItemModel* m_model = nullptr;

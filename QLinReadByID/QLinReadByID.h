@@ -104,7 +104,7 @@ class QLINREADBYID_EXPORT QLinReadByID : public Widget
     Q_OBJECT
 
 public:
-    QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, LinReadByIDSettings* set, const QString& uuid);
 
     ~QLinReadByID();
 

@@ -134,6 +134,20 @@ public:
         m_steps = steps;
     }
 
+    bool operator==(const CircularBarSettings& other) const {
+        return m_minValue == other.m_minValue &&
+            m_maxValue == other.m_maxValue &&
+            m_threshold == other.m_threshold &&
+            m_precision == other.m_precision &&
+            m_label == other.m_label &&
+            m_units == other.m_units &&
+            m_steps == other.m_steps;
+    }
+
+    bool operator!=(const CircularBarSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     double m_minValue;
     double m_maxValue;
@@ -144,6 +158,8 @@ private:
     int m_steps;
 };
 
+class QCircularBar;
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
@@ -152,11 +168,11 @@ public:
 
     SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
 
+    SettingsDialog(QWidget* parent, const QCircularBar* bar);
+
     ~SettingsDialog();
 
-    CircularBarSettings circularbarSettings() const;
-
-    QString settingsPath() const;
+    operator CircularBarSettings() const;
 
 private slots:
     void ok();
@@ -166,12 +182,11 @@ private slots:
 private:
     void updateSettings();
     void fillFromSettings();
+    void setup();
 
 private:
-    CircularBarSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif

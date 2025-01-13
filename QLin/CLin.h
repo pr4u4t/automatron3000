@@ -109,12 +109,12 @@ public:
 
 	static XLstatus LINSaveConfiuration(const LinSettings& settings) {
 		return xlSetApplConfig(										// Registration of Application with default settings
-							settings.appName().toLocal8Bit().data(),	// Application Name
-							settings.hwChannel().appChannel,			// Application channel 0 or 1
-							settings.hwChannel().hwType,				// hwType  (CANcardXL...)
-							settings.hwChannel().hwIndex,				// Index of hardware (slot) (0,1,...)
-							settings.hwChannel().hwChannel,			// Index of channel (connector) (0,1,...)
-							settings.hwChannel().busType				// the application is for LIN.
+			settings.appName().toLocal8Bit().data(),	// Application Name
+			settings.hwChannel().appChannel,			// Application channel 0 or 1
+			settings.hwChannel().hwType,				// hwType  (CANcardXL...)
+			settings.hwChannel().hwIndex,				// Index of hardware (slot) (0,1,...)
+			settings.hwChannel().hwChannel,			// Index of channel (connector) (0,1,...)
+			settings.hwChannel().busType				// the application is for LIN.
 		);
 	}
 

@@ -17,18 +17,9 @@ struct QCircularBarMenu {
                 m_app->installTranslator(m_translator);
             }
         }
-
-        m_QCircularBarMenu = new QMenu(m_app->translate("MainWindow", "V&isualization"));
-
-        m_settings = new QMenu(m_app->translate("MainWindow", "Settings")); //new QAction(m_app->translate("MainWindow", "Settings"), m_badgesMenu);
-        m_QCircularBarMenu->addMenu(m_settings);
-
-        m_newInstance = new QAction(m_app->translate("MainWindow", "New instance"), m_QCircularBarMenu);
-        m_newInstance->setData(QVariant("QCircularBar"));
-        m_QCircularBarMenu->addAction(m_newInstance);
     }
 
-    QMenu* m_QCircularBarMenu = nullptr;
+    QMenu* m_circularBarMenu = nullptr;
     QMenu* m_settings = nullptr;
     QAction* m_newInstance = nullptr;
 
@@ -45,32 +36,19 @@ static bool QCircularBar_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
         return false;
     }
 
-    QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
-    if (windowMenu != nullptr) {
-        //gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_QCircularBarMenu);
-        windowMenu->addMenu(ctx->m_QCircularBarMenu);
-    } else {
-        log->message("QCircularBar_register: failed to add menu");
+    if (gtx->m_win == nullptr) {
+        log->message("QCircularBar_register(): window pointer == nullptr");
+        return false;
     }
+
+    auto visualMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
+    ctx->m_circularBarMenu = visualMenu->addMenu(ctx->m_app->translate("MainWindow", "CircularBar"));
+
+    windowAddInstanceSettings(ctx->m_circularBarMenu, &ctx->m_settings, &ctx->m_newInstance, "QCircularBar", ctx->m_app, log);
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        if (plugin->name() != "QCircularBar") {
-            return;
-        }
-
-        QAction* settings = new QAction(dynamic_cast<const QCircularBar*>(plugin)->objectName(), ctx->m_QCircularBarMenu);
-        settings->setData(QVariant(plugin->settingsPath()));
-        ctx->m_settings->addAction(settings);
-
-        QObject::connect(settings, &QAction::triggered, [gtx, plugin, ctx] {
-            if (gtx->m_win->toggleWindow(dynamic_cast<const QCircularBar*>(plugin)->objectName() + "/Settings")) {
-                return;
-            }
-            SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, plugin->settingsPath());
-            QObject::connect(dialog, &SettingsDialog::settingsUpdated, dynamic_cast<const QCircularBar*>(plugin), &QCircularBar::settingsChanged);
-            gtx->m_win->addSubWindow(dialog, dynamic_cast<const QCircularBar*>(plugin)->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QJTAG-Settings"));
-            });
+        windowAddPluginSettingsAction<QCircularBar, QCircularBarMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QCircularBar"), gtx, ctx, log);
         });
 
     return true;
@@ -92,16 +70,18 @@ REGISTER_PLUGIN(
     QCircularBarMenu,
     {},
     true,
-    200
+    200,
+    CircularBarSettings
 )
 
-QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
+QCircularBar::QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, CircularBarSettings* set, const QString& uuid)
     : Widget(
         ld, 
         plugins, 
         parent, 
         path, 
-        new CircularBarSettings() //Settings::get(), path)
+        set,
+        uuid
     )
     , m_lcd(new QLCDNumber(this)){
 }
@@ -173,7 +153,8 @@ bool QCircularBar::deinitialize() {
 void QCircularBar::settingsChanged() {
     emit message("QCircularBar::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<CircularBarSettings>();
-    *set = CircularBarSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<CircularBarSettings>(settingsPath()));
+    //*set = CircularBarSettings(Settings::get(), settingsPath());
 
     setMinValue(set->minValue());
     setMaxValue(set->maxValue());
@@ -184,6 +165,7 @@ void QCircularBar::settingsChanged() {
     setSteps(set->steps());
 
     update();
+    emit settingsApplied();
 }
 
 void QCircularBar::setBarSize(int barSize) {

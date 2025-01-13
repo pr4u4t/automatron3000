@@ -12,7 +12,7 @@ class LogViewer : public Widget{
     
 public:
     
-    LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent = nullptr, const QString& settingsPath = QString());
+    LogViewer(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, PluginSettings* setts, const QString& uuid);
 
     SettingsMdi* settingsWindow() const override;
 

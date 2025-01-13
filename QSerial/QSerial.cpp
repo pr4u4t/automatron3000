@@ -15,23 +15,10 @@ struct QSerialMenu {
 				m_app->installTranslator(m_translator);
 			}
 		}
-
-		//m_serialMenu = new QMenu(m_app->translate("MainWindow", "&Serial"));
-		m_actionConfigure = new QAction(m_app->translate("MainWindow", "Settings"));
-		m_actionConfigure->setData(QVariant("QSerial"));
-		//m_serialMenu->addAction(m_actionConfigure);
-
-		m_actionConnect = new QAction(app->translate("MainWindow", "Connect"));
-		//m_serialMenu->addAction(m_actionConnect);
-
-		m_actionDisconnect = new QAction(app->translate("MainWindow", "Disconnect"));
-		//m_serialMenu->addAction(m_actionDisconnect);
 	}
-
 	QMenu* m_serialMenu = nullptr;
-	QAction* m_actionConfigure = nullptr;
-	QAction* m_actionConnect = nullptr;
-	QAction* m_actionDisconnect = nullptr;
+	QMenu* m_settings = nullptr;
+	QAction* m_newInstance = nullptr;
 	QTranslator* m_translator = nullptr;
 
 	QCoreApplication* m_app = nullptr;
@@ -42,69 +29,33 @@ static bool QSerial_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QSer
 
 	GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
 	if (gtx == nullptr) {
-		log->message("PluginList_register(): application is non gui not registering");
+		log->message("QSerial_register(): application is non gui not registering");
 		return false;
 	}
 
 	if (gtx->m_win == nullptr) {
+		log->message("QSerial_register(): window pointer == nullptr");
 		return false;
 	}
-	ctx->m_serialMenu = new QMenu(ctx->m_app->translate("MainWindow", "&Serial"), gtx->m_win->menuBar());
-	ctx->m_serialMenu->addAction(ctx->m_actionConnect);
-	ctx->m_serialMenu->addAction(ctx->m_actionDisconnect);
-	ctx->m_serialMenu->addAction(ctx->m_actionConfigure);
-	
-	QMenu* windowMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&Settings"));
-	if (windowMenu != nullptr) {
-		gtx->m_win->menuBar()->insertMenu(windowMenu->menuAction(), ctx->m_serialMenu);
+
+	auto ioMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "Input/Output"));
+
+	if (ioMenu == nullptr) {
+		log->message("QSerial_register(): i/o menu not found");
+		return false;
 	}
-	
-	QObject::connect(ctx->m_actionConfigure, &QAction::triggered, [ld, gtx, ctx] {
-		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
 
-		if (gtx->m_win->toggleWindow(dynamic_cast<const QSerial*>(serial.data())->objectName() + "/Settings")) {
-			return;
-		}
-
-		SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, serial->settingsPath());
-		QObject::connect(dialog, &SettingsDialog::settingsUpdated, serial.dynamicCast<QSerial>().data(), &QSerial::settingsChanged);
-		gtx->m_win->addSubWindow(dialog, dynamic_cast<const QSerial*>(serial.data())->objectName() + "/Settings"); //ctx->m_app->translate("MainWindow", "QSerial/Settings"));
-	});
-	
-	QObject::connect(ctx->m_actionConnect, &QAction::triggered, [ld, gtx, ctx, log] {
-		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
-		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
-		if (io->isOpen() == false) {
-			if (io->open() == true) {
-				ctx->m_actionConnect->setEnabled(false);
-				ctx->m_actionDisconnect->setEnabled(true);
-				ctx->m_actionConfigure->setEnabled(false);
-			}
-		}
-	});
-	
-	QObject::connect(ctx->m_actionDisconnect, &QAction::triggered, [ld, gtx, ctx, log] {
-		if (ld->hasInstance("QSerial") == false) {
-			return;
-		}
-
-		QSharedPointer<Plugin> serial = ld->instance("QSerial", gtx->m_win);
-		QSharedPointer<IODevice> io = serial.dynamicCast<IODevice>();
-		if (io->isOpen()) {
-			io->close();
-			ctx->m_actionDisconnect->setEnabled(false);
-			ctx->m_actionConnect->setEnabled(true);
-			ctx->m_actionConfigure->setEnabled(true);
-		}
-	});
-
-	if (ld->hasInstance("QSerial") == true) {
-		
-	} else {
-		ctx->m_actionConfigure->setEnabled(true);
-		ctx->m_actionConnect->setEnabled(true);
-		ctx->m_actionDisconnect->setEnabled(false);
+	if ((ctx->m_serialMenu = ioMenu->addMenu(ctx->m_app->translate("MainWindow", "&Serial"))) == nullptr) {
+		log->message("QSerial_register(): failed to create serial menu");
+		return false;
 	}
+
+	windowAddInstanceSettings(ctx->m_serialMenu, &ctx->m_settings, &ctx->m_newInstance, "QSerial", ctx->m_app, log);
+
+	QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+	QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+		windowAddPluginSettingsAction<QSerial, QSerialMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QSerial"), gtx, ctx, log);
+	});
 
 	return true;
 }
@@ -125,11 +76,12 @@ REGISTER_PLUGIN(
 	QSerialMenu,
 	{},
 	true,
-	500
+	500,
+	SerialSettings
 )
 
-QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path)
-	: IODevice(ld, plugins, parent, path, new SerialSettings()) //Settings::get(), path)),
+QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& path, SerialSettings* set, const QString& uuid)
+	: IODevice(ld, plugins, parent, path, set, uuid) //Settings::get(), path)),
 	,  m_serial(new QSerialPort(this)){
 	emit message("QSerial::QSerial()", LoggerSeverity::LOG_DEBUG);
 
@@ -178,29 +130,7 @@ bool QSerial::open(const QString& url) {
 		return true;
 	}
 
-	auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
-
-    if (m_serial->open(QIODevice::ReadWrite)) {
-		emit message("QSerial::open: success");
-		if (sld->context()) {
-			sld->context()->m_actionConnect->setEnabled(false);
-			sld->context()->m_actionDisconnect->setEnabled(true);
-		}
-        
-    } else {
-		emit message(QString("QSerial::open: failed: %1").arg(m_serial->errorString()));
-		if (sld->context()) {
-			sld->context()->m_actionConnect->setEnabled(true);
-			sld->context()->m_actionDisconnect->setEnabled(false);
-		}
-		//TODO: display status: probably using log
-        //showStatusMessage(tr("Open error"));
-		return false;
-    }
-
-	//m_serial->op
-
-	return true;
+	return m_serial->open(QIODevice::ReadWrite);
 }
 
 qint64 QSerial::write(const QString& data) {
@@ -228,12 +158,6 @@ void QSerial::close() {
 	if (m_serial != nullptr) {
 		m_serial->close();
 	}
-
-	auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
-	if (sld->context()) {
-		sld->context()->m_actionConnect->setEnabled(true);
-		sld->context()->m_actionDisconnect->setEnabled(false);
-	}
 }
 
 bool QSerial::isOpen() const {
@@ -260,26 +184,7 @@ void QSerial::settingsChanged() {
 	m_serial->setFlowControl(m_settings.flowControl);
 	*/
 
-	if (wasOpened == true) {
-		if (m_serial->open(QIODevice::ReadWrite) == true) {
-			emit message("QSerial::open: success");
-
-			auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
-			if (sld->context()) {
-				sld->context()->m_actionConnect->setEnabled(false);
-				sld->context()->m_actionDisconnect->setEnabled(true);
-			}
-
-		} else {
-			emit message(QString("QSerial::open: failed: %1").arg(m_serial->errorString()));
-			
-			auto sld = dynamic_cast<PluginLoader<QSerial, QSerialMenu>*>(loader());
-			if (sld->context()) {
-				sld->context()->m_actionConnect->setEnabled(true);
-				sld->context()->m_actionDisconnect->setEnabled(false);
-			}
-		}
-	}
+	emit settingsApplied();
 }
 
 void QSerial::readData() {

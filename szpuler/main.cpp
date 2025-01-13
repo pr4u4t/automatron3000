@@ -52,6 +52,7 @@ int main(int argc, char *argv[]){
     splash << "creating session...";
     Session session(&ld, &log, Main::configurationPath() + "/" + "configuration.ini", &mainWin);
     QObject::connect(&session, &Session::sessionRestored, &mainWin, &MainWindow::sessionRestored);
+    QObject::connect(&session, &Session::message, &log, &Logger::message);
     splash.setProgress(70);
 
     splash << "creating tray icon...";
@@ -70,7 +71,8 @@ int main(int argc, char *argv[]){
     tray.show();
 
     QObject::connect(&mainWin, SIGNAL(aboutToQuit(const MainWindowQuit&)), &session, SLOT(aboutToQuit(const MainWindowQuit&)));
-
+    QObject::connect(&mainWin, SIGNAL(sessionStore()), &session, SLOT(store()));
+    QObject::connect(&ld, SIGNAL(loaded(const Plugin*)), &session, SLOT(loaded(const Plugin*)));
     WebServer server(&ld);
     server.start();
 

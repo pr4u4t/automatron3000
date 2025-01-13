@@ -17,46 +17,36 @@ struct QLinBusMenu {
         if (m_translator->load(QLocale::system(), "QLinBus", "_", "translations")) { //set directory of ts
             m_app->installTranslator(m_translator);
         }
-
-        //m_linbusMenu = new QMenu(m_app->translate("MainWindow", "&LinBus"));
-        m_linbusAction = new QAction(m_app->translate("MainWindow", "Sniff/Scan"), m_linbusMenu);
-        m_linbusAction->setData(QVariant("QLinBus"));
-        //m_linbusMenu->addAction(m_linbusAction);
-        //m_linbusMenu->addSeparator();
-        m_linbusSettings = new QAction(m_app->translate("MainWindow", "Settings"), m_linbusMenu);
-        //m_linbusMenu->addAction(m_linbusSettings);
     }
 
     QMenu* m_linbusMenu = nullptr;
-    QAction* m_linbusAction = nullptr;
-    QAction* m_linbusSettings = nullptr;
+    QAction* m_newInstance = nullptr;
+    QMenu* m_settings = nullptr;
     QCoreApplication* m_app = nullptr;
     QTranslator* m_translator = nullptr;
 };
 
 static bool QLinBus_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinBusMenu* ctx, Logger* log) {
+    log->message("QLinBus_register()");
 
     GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
     if (gtx == nullptr) {
-        log->message("PluginList_register(): application is non gui not registering");
+        log->message("QLinBus_register(): application is non gui not registering");
         return false;
     }
 
-    QObject::connect(ctx->m_linbusAction, &QAction::triggered, gtx->m_win, &Window::createOrActivate);
-    QMenu* menu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
-    //win->menuBar()->insertMenu(menu->menuAction(), ctx->m_linbusMenu);
-    menu->addSection(ctx->m_app->translate("MainWindow", "Sniffer/Scanner"));
-    menu->insertAction(nullptr, ctx->m_linbusAction);
-    menu->insertAction(nullptr, ctx->m_linbusSettings);
+    auto linbusMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 
-    QObject::connect(ctx->m_linbusSettings, &QAction::triggered, [ld, gtx, ctx] {
-        QSharedPointer<Plugin> linbus = ld->instance("QLinBus", gtx->m_win);
-        if (gtx->m_win->toggleWindow(dynamic_cast<const QLinBus*>(linbus.data())->objectName() + "/Settings")) {
-            return;
-        }
-        SettingsDialog* dialog = new SettingsDialog(gtx->m_win, nullptr, linbus->settingsPath());
-        QObject::connect(dialog, &SettingsDialog::settingsUpdated, linbus.dynamicCast<QLinBus>().data(), &QLinBus::settingsChanged);
-        gtx->m_win->addSubWindow(dialog, dynamic_cast<const QLinBus*>(linbus.data())->objectName() + "/Settings");  //ctx->m_app->translate("MainWindow", "Linbus-Settings"));
+    if (linbusMenu == nullptr) {
+        log->message("QLinBus_register(): linbus menu not found");
+        return false;
+    }
+
+    windowAddInstanceSettings(linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLinBus", ctx->m_app, log);
+
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        windowAddPluginSettingsAction<QLinBus, QLinBusMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLinBus"), gtx, ctx, log);
     });
 
     return true;
@@ -77,11 +67,12 @@ REGISTER_PLUGIN(
     QLinBusMenu,
     {"QLin"},
     true,
-    700
+    700,
+    LinBusSettings
 )
 
-QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path)
-	: Widget(ld, plugins, parent, path, new LinBusSettings(Settings::get(), path))
+QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& path, LinBusSettings* set, const QString& uuid)
+	: Widget(ld, plugins, parent, path, set, uuid)
     , m_ui(new Ui::QLinBusUI)
     , m_model(new QStandardItemModel(0,5))
     , m_state(QLinBusState::INITIAL)
@@ -151,10 +142,12 @@ SettingsMdi* QLinBus::settingsWindow() const {
 void QLinBus::settingsChanged() {
     emit message("QLinBus::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinBusSettings>();
-    *set = LinBusSettings(Settings::get(), settingsPath());
+    //*set = LinBusSettings(Settings::get(), settingsPath());
+    *set = *(Settings::fetch<LinBusSettings>(settingsPath()));
     m_timer.setInterval(set->scanInterval());
     m_ui->scanProgress->setMinimum(set->scanStartID());
     m_ui->scanProgress->setMaximum(set->scanStopID());
+    emit settingsApplied();
 }
 
 void QLinBus::startScan() {

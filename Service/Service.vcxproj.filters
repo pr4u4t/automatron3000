@@ -35,9 +35,15 @@
     <ClCompile Include="CmdHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ServiceThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="main.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ServiceThread.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

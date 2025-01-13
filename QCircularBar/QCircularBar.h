@@ -49,7 +49,7 @@ public:
       \param parent Parent Widget
     */
 
-    QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath);
+    QCircularBar(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& settingsPath, CircularBarSettings* set, const QString& uuid);
 
     Q_INVOKABLE bool reset(Reset type = Reset::SOFT) {
         emit message("QCircularBar::reset(Reset type)");

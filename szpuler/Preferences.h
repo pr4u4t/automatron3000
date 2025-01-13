@@ -68,14 +68,8 @@ public:
 
     ~Preferences();
 
-    //SerialSettings serialSettings() const;
-
     bool saveSettings() {
         return true;
-    }
-
-    QString settingsPath() const {
-        return m_settingsPath;
     }
 
     static void registerPage(PageLoader* ld) {
@@ -93,10 +87,8 @@ protected:
     void updateSettings();
 
 private:
-    //SerialSettings m_currentSettings;
     Ui::Preferences* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
     static QList<PageLoader*> m_pageLoaders;
     MLoader* m_plugins = nullptr;
     QStandardItemModel* m_model = nullptr;

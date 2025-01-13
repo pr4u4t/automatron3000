@@ -4,6 +4,7 @@
 
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "QLinKonsole.h"
 
 #include <QIntValidator>
 #include <QLineEdit>
@@ -16,11 +17,26 @@
 static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent)
-    , m_currentSettings(Settings::get(), settingsPath)
+    : SettingsMdi(parent, new KonsoleSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    , m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_settingsPath(settingsPath) {
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::SettingsDialog(QWidget* parent, const QLinKonsole* konsole)
+    : SettingsMdi(parent, new KonsoleSettings(*(konsole->settings<KonsoleSettings>())), konsole->settingsPath())
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this)) {
+    setup();
+}
+
+SettingsDialog::~SettingsDialog() {
+    if (m_ui) {
+        delete m_ui;
+    }
+}
+
+void SettingsDialog::setup() {
     emit message("SettingsDialog::SettingsDialog");
     m_ui->setupUi(this);
 
@@ -34,34 +50,40 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
     fillFromSettings();
 }
 
-SettingsDialog::~SettingsDialog() {
-    delete m_ui;
-}
-
-KonsoleSettings SettingsDialog::konsoleSettings() const {
-    emit message("SettingsDialog::settings");
-    return m_currentSettings;
-}
-
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
+    const KonsoleSettings* setts = settings<KonsoleSettings>();
+    m_ui->prompt->setText(setts->prompt());
+    m_ui->localEcho->setChecked(setts->localEcho());
+    m_ui->commandDelay->setValue(setts->commandDelay());
+    m_ui->linEdit->setText(setts->linDevice());
+}
 
-    m_ui->prompt->setText(m_currentSettings.prompt());
-    m_ui->localEcho->setChecked(m_currentSettings.localEcho());
-    m_ui->commandDelay->setValue(m_currentSettings.commandDelay());
-    m_ui->linEdit->setText(m_currentSettings.linDevice());
+SettingsDialog::operator KonsoleSettings() const {
+    KonsoleSettings ret;
+    ret.setPrompt(m_ui->prompt->text());
+    ret.setLocalEcho(m_ui->localEcho->isChecked());
+    ret.setCommandDelay(m_ui->commandDelay->value());
+    ret.setLinDevice(m_ui->linEdit->text());
+    return ret;
 }
 
 void SettingsDialog::updateSettings() {
-    emit message("SettingsDialog::updateSettings");
+    emit message("SettingsDialog::updateSettings", LoggerSeverity::LOG_DEBUG);
 
-    m_currentSettings.setPrompt(m_ui->prompt->text());
-    m_currentSettings.setLocalEcho(m_ui->localEcho->isChecked());
-    m_currentSettings.setCommandDelay(m_ui->commandDelay->value());
-    m_currentSettings.setLinDevice(m_ui->linEdit->text());
+    KonsoleSettings newSettings = *this;
+    KonsoleSettings* setts = settings<KonsoleSettings>();
 
-    QSettings s = Settings::get();
-    m_currentSettings.save(s, settingsPath());
+    if (newSettings == *setts) {
+        emit message("SettingsDialog::updateSettings: settings not changed");
+        return;
+    }
+
+    //QSettings s = Settings::get();
+    //newSettings.save(s, settingsPath());
+
+    *setts = newSettings;
+    Settings::store<KonsoleSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

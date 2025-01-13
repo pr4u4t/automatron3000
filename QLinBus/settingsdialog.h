@@ -83,6 +83,18 @@ public:
     QString linDevice() const { return m_linDevice; }
     void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
 
+    bool operator==(const LinBusSettings& other) const {
+        return m_scanStartID == other.m_scanStartID &&
+            m_scanStopID == other.m_scanStopID &&
+            m_scanInterval == other.m_scanInterval &&
+            m_enableColors == other.m_enableColors &&
+            m_linDevice == other.m_linDevice;
+    }
+
+    bool operator!=(const LinBusSettings& other) const {
+        return !(*this == other);
+    }
+
 private:
     uint8_t m_scanStartID;
     uint8_t m_scanStopID;
@@ -91,21 +103,21 @@ private:
     QString m_linDevice;
 };
 
+class QLinBus;
+
 class SettingsDialog : public SettingsMdi {
 
     Q_OBJECT
 
 public:
 
-    SettingsDialog(QWidget* mwin, Loader* loader, const QString& settingsPath);
+    SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath);
+
+    SettingsDialog(QWidget* parent, const QLinBus* linbus);
 
     ~SettingsDialog();
 
-    LinBusSettings linbusSettings() const;
-
-    QString settingsPath() const {
-        return m_settingsPath;
-    }
+    operator LinBusSettings() const;
 
 private slots:
     void ok();
@@ -115,12 +127,11 @@ private slots:
 private:
     void updateSettings();
     void fillFromSettings();
+    void setup();
 
 private:
-    LinBusSettings m_currentSettings;
     Ui::SettingsDialog* m_ui = nullptr;
     QIntValidator* m_intValidator = nullptr;
-    QString m_settingsPath;
 };
 
 #endif // SETTINGSDIALOG_H

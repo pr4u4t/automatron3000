@@ -464,6 +464,18 @@ public:
 	void addPerspective(const QString& UniquePrespectiveName);
 
 	/**
+     * Gets perspective from the internal list of perspectives.
+     * If a perspective with the given name doesn't exist, then
+     * empty QByteArray would be returned.
+     */
+    QByteArray getPerspective(const QString& UniquePrespectiveName) const;
+
+	/**
+     * Checks if a given perspective exists in the internal list of perspectives.
+     */
+    bool hasPerspective(const QString& UniquePrespectiveName) const;
+
+	/**
 	 * Removes the perspective with the given name from the list of perspectives
 	 */
 	void removePerspective(const QString& Name);

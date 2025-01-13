@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CORE_GLOBAL_H
+#define CORE_GLOBAL_H
 
 #include <QtCore/qglobal.h>
 
@@ -10,4 +11,6 @@
 # endif
 #else
 # define CORE_EXPORT
+#endif
+
 #endif
