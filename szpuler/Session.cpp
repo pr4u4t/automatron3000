@@ -82,8 +82,17 @@ qint64 Session::store() {
     }
 
     m_data.m_settings.instances = ordered;
-    QSettings set = Settings::get();
+    auto set = Settings::get();
     m_data.m_settings.save(set, "Session");
+
+    auto inst = plugins()->instances();
+
+    for (auto i = inst.begin(), end = inst.end(); i != end; ++i) {
+        const auto s = i->data()->settings<PluginSettings>(); 
+        const QString path = i->data()->settingsPath();
+        m_data.m_logger->message(QString("Sesson::store: saving %1").arg(path));
+        s->save(set, path);
+    }
 
     return 0;
 }
@@ -102,17 +111,22 @@ qint64 Session::restore() {
         auto order = orderOfModules();
         for (const auto& item : order) {
             for (const auto& instance : m_data.m_settings.instances) {
-                if (item == instance.m_name && ordered.lastIndexOf(instance) == -1) {
-                    ordered << instance;
+                if (item == instance.m_plugin) {
+                    if (ordered.lastIndexOf(instance) == -1) {
+                        m_data.m_logger->message(QString("Session::restore: adding module to order: %1").arg(instance.toString()));
+                        ordered << instance;
+                    } else {
+                        m_data.m_logger->message(QString("Session::restore: possible module duplicate %1").arg(instance.toString()));
+                    }
                 }
             }
         }
 
         for (auto it = ordered.begin(), end = ordered.end(); it != end; ++it, ++ret) {
-            auto plugin = plugins()->instance(it->m_name, window(), it->m_path, ModuleHint::DONT_INITIALIZE);
+            auto plugin = plugins()->instance(it->m_plugin, window(), it->m_path, ModuleHint::DONT_INITIALIZE);
 
             if (plugin.isNull()) {
-                m_data.m_logger->message("Session::restore(): failed to create plugin: " + it->m_path);
+                m_data.m_logger->message("Session::restore: failed to create plugin: " + it->m_path);
             }
         }
          
@@ -120,20 +134,20 @@ qint64 Session::restore() {
             auto plugin = plugins()->findByObjectName(it->m_name);
 
             if (plugin.isNull()) {
-                m_data.m_logger->message("Session::restore(): failed find plugin instance: " + it->m_path);
+                m_data.m_logger->message("Session::restore: failed find plugin instance: " + it->m_path);
                 continue;
             }
 
             plugin->initialize();
 
             if (plugin->type() == Plugin::Type::WIDGET) {
-                m_data.m_logger->message("Session::restore(): adding widget: " + *it);
+                m_data.m_logger->message("Session::restore: adding widget: " + *it);
 
                 window()->addSubWindowInternal(dynamic_cast<Widget*>(plugin.data()), it->m_name);
             }
         }
     } else {
-        m_data.m_logger->message("Session::restore() : empty");
+        m_data.m_logger->message("Session::restore: empty");
         return 0;
     }
 

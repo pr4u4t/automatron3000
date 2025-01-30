@@ -46,7 +46,7 @@
     <QtDeploy>true</QtDeploy>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.6.2_msvc2019_64</QtInstall>
+    <QtInstall>6.8.1</QtInstall>
     <QtModules>core;widgets;core5compat</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
@@ -74,6 +74,15 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
+    <QtTranslation>
+      <QmOutputDir>$(SolutionDir)translations</QmOutputDir>
+      <BuildAction>lrelease</BuildAction>
+    </QtTranslation>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtTranslation>
+      <BuildAction>lrelease</BuildAction>
+    </QtTranslation>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
@@ -114,6 +123,9 @@
     <QtMoc Include="mdichild.h" />
     <QtMoc Include="logger.h" />
     <ClInclude Include="api.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="api_pl_PL.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

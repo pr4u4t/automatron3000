@@ -63,6 +63,8 @@ void SettingsDialog::fillFromSettings() {
     m_ui->buttonTextEdit->setText(setts->buttonText());
     m_ui->previousEdit->setText(setts->previous());
     m_ui->linEdit->setText(setts->linDevice());
+    m_ui->rescheduleIntervalEdit->setValue(setts->rescheduleInterval());
+    m_ui->reschedulesEdit->setValue(setts->maxReschedules());
 }
 
 SettingsDialog::operator LinCommandSettings() const {
@@ -75,6 +77,8 @@ SettingsDialog::operator LinCommandSettings() const {
     ret.setButtonText(m_ui->buttonTextEdit->text());
     ret.setPrevious(m_ui->previousEdit->text());
     ret.setLinDevice(m_ui->linEdit->text());
+    ret.setMaxReschedules(m_ui->reschedulesEdit->value());
+    ret.setRescheduleInterval(m_ui->rescheduleIntervalEdit->value());
 
     return ret;
 }
@@ -92,9 +96,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<LinCommandSettings>(settingsPath(), setts);
+    //Settings::store<LinCommandSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

@@ -96,8 +96,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<QExternalActionSettings>(settingsPath(), setts);
+    //Settings::store<QExternalActionSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::chooseFile() {

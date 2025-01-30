@@ -10,6 +10,17 @@
 #include <QStyleOption>
 #include <QPainter>
 
+#ifdef __GNUC__
+#define PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+#define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
+#endif
+
+
+#include <bitset>
+
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -33,6 +44,27 @@ struct PCI_t {
 struct LinFrame {
     quint8 ID = 0xff;
     quint8 payload[8] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+
+    QByteArray dump() const {
+        QByteArray ret;
+
+        ret += "ID: ";
+        QString tmp = QString::number(ID, 16);
+        if (tmp.size() == 1) {
+            tmp.prepend("0");
+        }
+        ret += tmp.toLocal8Bit() + " ";
+
+        for (int i = 0; i < sizeof(payload); ++i) {
+            tmp = QString::number(payload[i], 16);
+            if (tmp.size() == 1) {
+                tmp.prepend("0");
+            }
+            ret += tmp.toLocal8Bit() + " ";
+        }
+
+        return ret;
+    }
 };
 
 struct UDSgenericFrame {
@@ -57,15 +89,26 @@ struct UDSsingleFrame {
     quint8 data[3];
 };
 
-struct UDSfirstFrame {
+/*
+PACK(struct FFPCI_t {
+    quint16 type : 4;
+    quint16 len : 12;
+});
+*/
+
+struct FFPCI_t {
+    quint8 type;
+    quint8 len;
+};
+
+PACK(struct UDSfirstFrame {
     quint8 NAD;
-    PCI_t PCI;
-    quint8 LEN;
+    FFPCI_t pci;
     quint8 SID;
     quint8 DIDH;
     quint8 DIDL;
     quint8 data[2];
-};
+});
 
 struct UDSconsecutiveFrame {
     quint8 NAD;
@@ -82,7 +125,7 @@ struct UDSnegativeFrame {
 };
 
 union UDSFrame {
-    quint8 payload[8] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    quint8 payload[8] = {0, 0, 0, 0, 0, 0, 0, 0 };
     UDSgenericFrame df;
     UDSsingleFrame sf;
     UDSfirstFrame ff;
@@ -115,14 +158,14 @@ struct LinUdsFrame {
         if (tmp.size() == 1) {
             tmp.prepend("0");
         }
-        ret += tmp.toLocal8Bit();
+        ret += tmp.toLocal8Bit()+" ";
 
         for (int i = 0; i < length - 1; ++i) {
             tmp = QString::number(uds.payload[i], 16);
             if (tmp.size() == 1) {
                 tmp.prepend("0");
             }
-            ret += tmp.toLocal8Bit();
+            ret += tmp.toLocal8Bit()+" ";
         }
 
         return ret;
@@ -135,7 +178,8 @@ enum class QLinWriteByIDState {
     WAIT,
     PAUSE,
     STOP,
-    ERR
+    ERR,
+    SUCCESS
 };
 
 struct QLinWriteByIDData {
@@ -152,6 +196,8 @@ struct QLinWriteByIDData {
     QTimer m_timer;
     int m_try = 0;
     UDSgenericFrame m_frame;
+    QEventLoop* m_loop = nullptr;
+    int m_resched = 0;
 };
 
 class QLINWRITEBYID_EXPORT QLinWriteByID : public Widget {
@@ -186,7 +232,20 @@ public slots:
     void writeById();
 
     QVariant exec() {
-        return QVariant();
+        emit message("QLinWriteByID::exec()");
+        if (m_data.m_state != QLinWriteByIDState::INITIAL) {
+            reset();
+        }
+
+        QEventLoop loop;
+        m_data.m_loop = &loop;
+        writeById();
+        if (m_data.m_state == QLinWriteByIDState::WRITE) {
+            loop.exec();
+        }
+        m_data.m_loop = nullptr;
+
+        return (m_data.m_state == QLinWriteByIDState::SUCCESS) ? QVariant(true) : QVariant();
     }
 
 protected slots:
@@ -208,7 +267,7 @@ protected:
 
     QString errorString(quint8 err) const;
 
-    QQueue<LinUdsFrame> prepareFrames(const QByteArrayList& data, const UDSserviceFrame* service);
+    QQueue<LinUdsFrame> prepareFrames(const QByteArrayList& data);//, const UDSserviceFrame* service);
 
     void success();
 

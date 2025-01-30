@@ -91,7 +91,6 @@ QSerial::QSerial(Loader* ld, PluginsLoader* plugins, QObject* parent, const QStr
 bool QSerial::initialize() {
 
 	const auto set = settings<SerialSettings>();
-	*set = SerialSettings(Settings::get(), settingsPath());
 
 	m_serial->setPortName(set->name());
 	m_serial->setBaudRate(set->baudRate());
@@ -114,7 +113,7 @@ bool QSerial::deinitialize() {
 }
 
 SettingsMdi* QSerial::settingsWindow() const {
-	auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+	auto ret = new SettingsDialog(nullptr, this);
 	QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QSerial::settingsChanged);
 	return ret;
 }
@@ -167,22 +166,12 @@ bool QSerial::isOpen() const {
 
 void QSerial::settingsChanged() {
 
-	bool wasOpened = false;
+	const auto set = settings<SerialSettings>();
+	const auto src = qobject_cast<SettingsDialog*>(sender());
+	const auto nset = src->settings<SerialSettings>();
+	*set = *nset;
 
-	if ((wasOpened = m_serial->isOpen()) == true) {
-		m_serial->close();
-	}
-
-	*(settings<SerialSettings>()) = SerialSettings(Settings::get(), settingsPath());
-	
-	/*
-	m_serial->setPortName(m_settings.name);
-	m_serial->setBaudRate(m_settings.baudRate);
-	m_serial->setDataBits(m_settings.dataBits);
-	m_serial->setParity(m_settings.parity);
-	m_serial->setStopBits(m_settings.stopBits);
-	m_serial->setFlowControl(m_settings.flowControl);
-	*/
+	initialize();
 
 	emit settingsApplied();
 }

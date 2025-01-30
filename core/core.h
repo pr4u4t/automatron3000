@@ -131,7 +131,7 @@ public:
 	}
 
 	auto newInstance(const QString& name, QWidget* parent, const QString& settingsPath = QString(), const ModuleHint& hint = ModuleHint::INITIALIZE) -> PluginType {
-		logger()->message("ModuleLoader::newInstance(const QString& name, QWidget* parent, const QString& settingsPath, const ModuleHint& hint");
+		logger()->message("ModuleLoader::newInstance(const QString& name, QWidget* parent, const QString& settingsPath, const ModuleHint& hint)");
 		if (m_data.m_loaders.contains(name) == false) {
 			return nullptr;
 		}
@@ -159,6 +159,7 @@ public:
 		}
 
 		emit loaded(ret.data());
+		logger()->message(QString("ModuleLoader::newInstance: created new instance of module name: %1, uuid: %2").arg(ret.data()->name()).arg(ret.data()->uuid()));
 		return ret;
 	}
 
@@ -362,13 +363,18 @@ public:
 	}
 
 	void deleteInstance(const QString& uuid) {
-		m_data.m_instances.removeIf([uuid](QMultiHash<QString, PluginType>::iterator it) {
+		PluginsLoader::PluginType instance;
+
+		m_data.m_instances.removeIf([uuid, &instance](QMultiHash<QString, PluginType>::iterator it) {
 			if (it->data()->uuid() == uuid) {
+				instance = it.value();
 				return true;
 			}
 
 			return false;
 		});
+
+		emit aboutToDelete(instance.data());
 	}
 
 	auto copy(const QString& uuid) -> PluginType {
@@ -392,10 +398,10 @@ public:
 		}
 
 		const QString path = QString("%1-%2").arg(srcName).arg(QUuid::createUuid().toString());
-		PluginSettings* sets = fetchSettings(src->settingsPath());
-		Settings::store(path, sets);
+		//PluginSettings* sets = fetchSettings(src->settingsPath());
+		//Settings::store(path, sets);
 
-		auto ret = m_data.m_loaders[srcName]->load(this, nullptr, path);
+		auto ret = m_data.m_loaders[srcName]->load(this, nullptr, path, src->settings<PluginSettings>());
 		if (ret == nullptr) {
 			logger()->message(QString("ModuleLoader::copy: failed to load: %1").arg(srcName));
 			return nullptr;

@@ -1,7 +1,0 @@
-settingsdialog.cpp
-QLinBus.cpp
-qlinbus_global.h
-settingsdialog.h
-QLinBus.h
-qlinbus.ui
-settingsdialog.ui

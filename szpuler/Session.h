@@ -48,11 +48,13 @@ struct SessionModuleInstance {
     }
 
     inline bool operator==(const SessionModuleInstance& rhs) const {
-        return m_name == rhs.m_name && m_path == rhs.m_path && m_plugin == rhs.m_plugin;
+        return m_name == rhs.m_name 
+            && m_path == rhs.m_path && 
+            m_plugin == rhs.m_plugin;
     }
 
     inline QByteArray toByteArray() const {
-        return QString("%1@%2").arg(m_path).arg(m_name).toLocal8Bit();
+        return toString().toLocal8Bit();
     }
 
     inline QString toString() const {

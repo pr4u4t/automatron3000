@@ -47,7 +47,7 @@
     <QtDeployDebugRelease>debug</QtDeployDebugRelease>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.6.2_msvc2019_64</QtInstall>
+    <QtInstall>6.8.1</QtInstall>
     <QtModules>core;gui;widgets;core5compat</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
@@ -106,6 +106,9 @@
     <ClInclude Include="core_global.h" />
     <QtMoc Include="core.h" />
     <ClCompile Include="core.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="core_pl_PL.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

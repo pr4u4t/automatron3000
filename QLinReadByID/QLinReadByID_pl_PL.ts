@@ -49,7 +49,7 @@
     <message>
         <location filename="linreadbyid.ui" line="151"/>
         <source>Read</source>
-        <translation>Read</translation>
+        <translation>Odczyt</translation>
     </message>
 </context>
 <context>

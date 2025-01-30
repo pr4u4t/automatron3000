@@ -85,7 +85,7 @@ QLinReadByID::QLinReadByID(Loader* ld, PluginsLoader* plugins, QWidget* parent, 
 bool QLinReadByID::initialize() {
     emit message("QLinReadByID::init()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinReadByIDSettings>();
-    *(set) = LinReadByIDSettings(Settings::get(), settingsPath());
+   
     m_data.m_ui->title->setText(set->title());
     
     if (set->linDevice().isEmpty()) {
@@ -129,42 +129,13 @@ bool QLinReadByID::initialize() {
 void QLinReadByID::settingsChanged() {
     emit message("QLinReadByID::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinReadByIDSettings>();
-    //*(set) = LinReadByIDSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<LinReadByIDSettings>(settingsPath()));
-    m_data.m_ui->title->setText(set->title());
-    disconnect(this, SLOT(previousSuccess(const QByteArray&)));
-    disconnect(this, SLOT(dataReady(const QByteArray&)));
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<LinReadByIDSettings>();
+    *set = *nset;
 
-    if (set->previous().isEmpty() == false) {
-        emit message("QLinReadByID::settingsChanged: previous not empty");
-        auto prev = plugins()->findByObjectName(set->previous());
-        if (prev.isNull() == false) {
-            emit message("QLinReadByID::settingsChanged: connecting previous");
-            connect(prev.dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
-        } else {
-            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous()));
-        }
-    }
+    initialize();
 
-    auto plugin = plugins()->instance(set->linDevice(), 0);
-
-    if (plugin.isNull() == true) {
-        emit message(QString("QLinReadByID::init lin device == nullptr").arg(set->linDevice()));
-        return;
-    }
-
-    m_data.m_lin = plugin.dynamicCast<IODevice>();
     emit settingsApplied();
-
-    connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinReadByID::dataReady);
-    if (m_data.m_lin->isOpen() == false) {
-        if (m_data.m_lin->open() == false) {
-            emit message(QString("QLinReadByID::init: failed to open lin device %1").arg(set->linDevice()));
-            return;
-        }
-    }
-
-    QObject::connect(m_data.m_lin.data(), &IODevice::closed, this, &QLinReadByID::linClosed);
 }
 
 bool QLinReadByID::deinitialize() {
@@ -173,7 +144,7 @@ bool QLinReadByID::deinitialize() {
 }
 
 SettingsMdi* QLinReadByID::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinReadByID::settingsChanged);
     return ret;
 }
@@ -183,15 +154,33 @@ QLinReadByID::~QLinReadByID() {
 
 void QLinReadByID::dataReady(const QByteArray& data) {
     emit message("QLinReadByID::dataReady(const QByteArray& data)");
+    emit message(QString("QLinReadByID::dataReady: recv: %1").arg(data));
+
     if (m_data.m_state != QLinReadByIDState::READ) {
         emit message("QLinReadByID::dataReady: not in read state");
         return;
     }
-
+    auto set = settings<LinReadByIDSettings>();
     auto response = dataFromResponse(data);
     const UDSFrame* frame;
 
     if (response.has_value() == false) {
+        emit message("QLinReadByID::dataReady: no answer response request sent to early looks like device needs more time to process");
+        
+        if (m_data.m_resched < set->maxReschedules()) {
+            ++m_data.m_resched;
+            QByteArray data(1, 0);
+            data[0] = QString("0x3d").toUInt(nullptr, 16);
+
+            QThread::msleep(set->rescheduleInterval());
+
+            if (m_data.m_lin->write(data) != -1) {
+                emit message("QLinReadByID::dataReady: rescheduling read event successful");
+                return;
+            }
+        }
+
+        emit message(QString("QLinReadByID::dataReady: failed to read response after max: %1 reschedules").arg(set->maxReschedules()));
         m_data.m_state = QLinReadByIDState::ERR;
     }
 
@@ -199,9 +188,11 @@ void QLinReadByID::dataReady(const QByteArray& data) {
     case QLinReadByIDState::READ:
         switch (response.value().ID) {
         case 0x3c:
+            emit message("QLinReadByID::dataReady: got 0x3c");
             return;
 
         case 0x3d:
+            emit message("QLinReadByID::dataReady: got 0x3d");
             frame = reinterpret_cast<const UDSFrame*>(response.value().payload);
             switch (static_cast<PCITypes>(frame->df.PCI.type)) {
             case PCITypes::CF:
@@ -225,12 +216,17 @@ void QLinReadByID::dataReady(const QByteArray& data) {
         [[fallthrough]];
 
     case QLinReadByIDState::ERR:
-        if (m_data.m_try > 0) {
-            --m_data.m_try;
-            startRead();
+        if (m_data.m_try < set->tries()) {
+            emit message(QString("QLinReadByID::dataReady: try %1 of %3").arg(m_data.m_try).arg(set->tries()));
+            if (m_data.m_try < set->tries()) {
+                startRead();
+            }
+            ++m_data.m_try;
         } else {
+            emit message("QLinReadByID::dataReady: entering failed state");
             m_data.m_state = QLinReadByIDState::ERR;
             stateFailed();
+            emit failed();
         }
     }
 }
@@ -249,6 +245,11 @@ bool QLinReadByID::processSingleFrame(const UDSsingleFrame* frame) {
         return false;
     }
 
+    if (m_data.m_result.size() > 0) {
+        emit message("QLinReadByID::processSingleFrame: internal frame data not empty looks like first frame already processed");
+        return false;
+    }
+
     for (int i = 0; i < frame->PCI.len - 3; ++i) {
         const QString tmp = QString::number(frame->data[i], 16);
         m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
@@ -258,6 +259,7 @@ bool QLinReadByID::processSingleFrame(const UDSsingleFrame* frame) {
     setAsciiResult(m_data.m_result);
     m_data.m_state = QLinReadByIDState::SUCCESS;
     success();
+    emit message(QString("QLinReadByID::processSingleFrame: '%1'").arg(m_data.m_result.trimmed()));
     emit success(m_data.m_result.trimmed().toLocal8Bit());
     
     return true;
@@ -285,6 +287,9 @@ bool QLinReadByID::processFirstFrame(const UDSfirstFrame* frame) {
 
     tmp = QString::number(frame->data[1], 16);
     m_data.m_result += (tmp.size() == 2) ? tmp + ' ' : '0' + tmp + ' ';
+    
+    emit message(QString("QLinReadByID::processFirstFrame: data after processing: %1").arg(m_data.m_result));
+    
     m_data.m_lin->write(QByteArray(1, 0x3d));
     QThread::msleep(set->interval());
 
@@ -299,6 +304,15 @@ bool QLinReadByID::processConsecutiveFrame(const UDSconsecutiveFrame* frame) {
 
     auto set = settings<LinReadByIDSettings>();
 
+    if (m_data.m_frames.indexOf(frame->PCI.len) != -1) {
+        emit message(QString("QLinReadByID::processConsecutiveFrame: frame with index %1 already processed, discarding").arg(frame->PCI.len));
+        QThread::msleep(set->interval());
+        m_data.m_lin->write(QByteArray(1, 0x3d));
+        return false;
+    } else {
+        emit message(QString("QLinReadByID::processConsecutiveFrame: adding frame with index %1 to processed list").arg(frame->PCI.len));
+    }
+    
     if (m_data.m_remaining > 6) {
         for (int i = 0; i < 6; ++i) {
             const QString tmp = QString::number(frame->data[i], 16);
@@ -317,8 +331,11 @@ bool QLinReadByID::processConsecutiveFrame(const UDSconsecutiveFrame* frame) {
         setAsciiResult(m_data.m_result);
         m_data.m_state = QLinReadByIDState::SUCCESS;
         success();
+        emit message(QString("QLinReadByID::processConsecutiveFrame: '%1'").arg(m_data.m_result.trimmed()));
         emit success(m_data.m_result.trimmed().toLocal8Bit());
     }
+
+    emit message(QString("QLinReadByID::processConsecutiveFrame: data after processing: %1").arg(m_data.m_result));
 
     return true;
 }
@@ -369,6 +386,9 @@ void QLinReadByID::success() {
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; color:green; }");
     m_data.m_ui->successLabel->setEnabled(true);
     setStyleSheet("QLinReadByID { border:2px solid green; }");
+    if (m_data.m_loop != nullptr) {
+        m_data.m_loop->exit();
+    }
 }
 
 void QLinReadByID::stateFailed() {
@@ -380,6 +400,9 @@ void QLinReadByID::stateFailed() {
     m_data.m_ui->failedLabel->setEnabled(true);
     m_data.m_ui->progressLabel->setEnabled(false);
     setStyleSheet("QLinReadByID { border:2px solid red; }");
+    if (m_data.m_loop != nullptr) {
+        m_data.m_loop->exit();
+    }
 }
 
 void QLinReadByID::inprogress() {
@@ -406,6 +429,9 @@ void QLinReadByID::initial() {
     m_data.m_ui->successLabel->setEnabled(false);
     m_data.m_ui->progressLabel->setEnabled(false);
     setStyleSheet("");
+    m_data.m_result.clear();
+    m_data.m_frames.clear();
+    m_data.m_ui->lenLabel->setText("");
 }
 
 void QLinReadByID::startRead() {
@@ -414,6 +440,13 @@ void QLinReadByID::startRead() {
     QByteArray data = QByteArray(1 + (set->frameData().size() - 2) / 2, 0);
     quint32 value;
     
+    m_data.m_resched = 0;
+
+    if (m_data.m_lin == nullptr) {
+        emit message("QLinReadByID::startRead: LIN device is not set or does not exist");
+        return;
+    }
+
     inprogress();
     m_data.m_state = QLinReadByIDState::READ;
     m_data.m_result.clear();
@@ -459,7 +492,7 @@ void QLinReadByID::linOpened() {
 void QLinReadByID::readById(bool checked) {
     emit message("QLinReadByID::readById(bool checked)");
     const auto set = settings<LinReadByIDSettings>();
-    m_data.m_try = set->tries();
+    m_data.m_try = 0;
     m_data.m_startTime = QDateTime::currentMSecsSinceEpoch();
     startRead();
 }

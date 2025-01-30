@@ -55,25 +55,33 @@ SettingsDialog::~SettingsDialog() {
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
     const LinWriteByIDSettings* setts = settings<LinWriteByIDSettings>();
-    m_ui->frameData->setText(setts->frameData());
+    m_ui->nadEdit->setText(setts->nad());
+    m_ui->didlEdit->setText(setts->didl());
+    m_ui->didhEdit->setText(setts->didh());
     m_ui->interval->setValue(setts->interval());
     m_ui->tries->setValue(setts->tries());
     m_ui->title->setText(setts->title());
     m_ui->dataSource->setText(setts->dataSource());
     m_ui->previousEdit->setText(setts->previous());
     m_ui->linEdit->setText(setts->linDevice());
+    m_ui->reschedulesEdit->setValue(setts->maxReschedules());
+    m_ui->rescheduleIntervalEdit->setValue(setts->rescheduleInterval());
 }
 
 SettingsDialog::operator LinWriteByIDSettings() const {
     LinWriteByIDSettings ret;
 
-    ret.setFrameData(m_ui->frameData->text().toLocal8Bit());
+    ret.setNad(m_ui->nadEdit->text().toLocal8Bit());
+    ret.setDidl(m_ui->didlEdit->text().toLocal8Bit());
+    ret.setDidh(m_ui->didhEdit->text().toLocal8Bit());
     ret.setInterval(m_ui->interval->value());
     ret.setTries(m_ui->tries->value());
     ret.setTitle(m_ui->title->text());
     ret.setDataSource(m_ui->dataSource->text());
     ret.setPrevious(m_ui->previousEdit->text());
     ret.setLinDevice(m_ui->linEdit->text());
+    ret.setMaxReschedules(m_ui->reschedulesEdit->value());
+    ret.setRescheduleInterval(m_ui->rescheduleIntervalEdit->value());
 
     return ret;
 }
@@ -91,9 +99,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<LinWriteByIDSettings>(settingsPath(), setts);
+    //Settings::store<LinWriteByIDSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

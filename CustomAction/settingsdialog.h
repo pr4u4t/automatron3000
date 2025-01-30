@@ -12,6 +12,47 @@
 
 #include "../api/api.h"
 
+#include <QStyledItemDelegate>
+
+class ComboBoxItemDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+public:
+    ComboBoxItemDelegate(QObject* parent = nullptr);
+    ~ComboBoxItemDelegate();
+
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
+    void setEditorData(QWidget* editor, const QModelIndex& index) const override;
+    void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
+};
+
+
+enum class JobReturnType {
+    VOID,
+    BOOLEAN,
+    QVARIANT
+};
+
+struct Job {
+    Job(const QString& module, const QString& func, const JobReturnType& type) 
+    : m_module(module)
+    , m_function(func)
+    , m_type(type){}
+
+    Job(const QString& module, const QString& func, const QString& type)
+        : m_module(module)
+        , m_function(func){
+        if (type == "bool") {
+            m_type = JobReturnType::BOOLEAN;
+        } else {
+            m_type = JobReturnType::VOID;
+        }
+    }
+
+    QString m_module;
+    QString m_function;
+    JobReturnType m_type;
+};
 
 QT_BEGIN_NAMESPACE
 
@@ -35,6 +76,13 @@ struct CustomActionSettings : public PluginSettings {
     static constexpr const char* const intervalKey = "interval";
     static constexpr const int intervalValue = 0;
 
+    static constexpr const char* const retryOnFailureKey = "retryOnFailure";
+    static constexpr const bool retryOnFailureValue = true;
+    static constexpr const char* const numberOfRetriesKey = "numberOfRetries";
+    static constexpr const int numberOfRetriesValue = 3;
+    static constexpr const char* const retryIntervalKey = "retryInterval";
+    static constexpr const int retryIntervalValue = 5000;
+
     Q_GADGET
 
     Q_PROPERTY(QJsonArray pluginsActions READ pluginsActions WRITE setPluginsActions NOTIFY pluginsActionsChanged)
@@ -43,6 +91,9 @@ struct CustomActionSettings : public PluginSettings {
     Q_PROPERTY(bool progress READ progress WRITE setProgress NOTIFY progressChanged)
     Q_PROPERTY(bool verbose READ verbose WRITE setVerbose NOTIFY verboseChanged)
     Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
+    Q_PROPERTY(bool retryOnFailure READ retryOnFailure WRITE setRetryOnFailure NOTIFY retryOnFailureChanged)
+    Q_PROPERTY(int numberOfRetries READ numberOfRetries WRITE setNumberOfRetries NOTIFY numberOfRetriesChanged)
+    Q_PROPERTY(int retryInterval READ retryInterval WRITE setRetryInterval NOTIFY retryIntervalChanged)
 
 public:
 
@@ -52,7 +103,10 @@ public:
         , m_title(titleValue)
         , m_progress(progressValue)
         , m_verbose(verboseValue)
-        , m_interval(intervalValue) {
+        , m_interval(intervalValue)
+        , m_retryOnFailure(retryOnFailureValue)
+        , m_numberOfRetries(numberOfRetriesValue)
+        , m_retryInterval(retryIntervalValue) {
         registerMetaObject(&staticMetaObject);
     }
 
@@ -65,7 +119,10 @@ public:
         , m_title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
         , m_progress(settings.value(settingsPath + "/" + progressKey, progressValue).toBool())
         , m_verbose(settings.value(settingsPath + "/" + verboseKey, verboseValue).toBool())
-        , m_interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt()) {
+        , m_interval(settings.value(settingsPath + "/" + intervalKey, intervalValue).toInt())
+        , m_retryOnFailure(settings.value(settingsPath + "/" + retryOnFailureKey, retryOnFailureValue).toBool())
+        , m_numberOfRetries(settings.value(settingsPath + "/" + numberOfRetriesKey, numberOfRetriesValue).toInt())
+        , m_retryInterval(settings.value(settingsPath + "/" + retryIntervalKey, retryIntervalValue).toInt()) {
         registerMetaObject(&staticMetaObject);
     }
 
@@ -76,12 +133,15 @@ public:
         settings.setValue(settingsPath + "/" + progressKey, m_progress);
         settings.setValue(settingsPath + "/" + verboseKey, m_verbose);
         settings.setValue(settingsPath + "/" + intervalKey, m_interval);
+        settings.setValue(settingsPath + "/" + retryOnFailureKey, m_retryOnFailure);
+        settings.setValue(settingsPath + "/" + numberOfRetriesKey, m_numberOfRetries);
+        settings.setValue(settingsPath + "/" + retryIntervalKey, m_retryInterval);
 
         PluginSettings::save(settings, settingsPath);
     }
 
-    QStringList jobList() const {
-        QStringList ret;
+    QList<Job> jobList() const {
+        QList<Job> ret;
 
         for (QJsonArray::const_iterator iter = m_pluginsActions.begin(), end = m_pluginsActions.end(); iter != end; ++iter) {
             const QJsonObject o = iter->toObject();
@@ -89,18 +149,8 @@ public:
                 continue;
             }
 
-            QString tmp = o["objectName"].toString();
-            if (tmp.isEmpty() == false) {
-                ret << tmp;
-            }
-
-            tmp = o["function"].toString();
-            if (tmp.isEmpty() == false) {
-                ret << tmp;
-            }
-
-            const bool r = o["return"].toBool();
-            ret << (r ? "true" : "false");
+            Job job(o["objectName"].toString().trimmed(), o["function"].toString().trimmed(), o["return"].toString().trimmed());
+            ret << job;
         }
 
         return ret;
@@ -154,6 +204,21 @@ public:
         m_interval = interval;
     }
 
+    bool retryOnFailure() const { return m_retryOnFailure; }
+    void setRetryOnFailure(bool retryOnFailure) {
+        m_retryOnFailure = retryOnFailure;
+    }
+
+    int numberOfRetries() const { return m_numberOfRetries; }
+    void setNumberOfRetries(int numberOfRetries) {
+        m_numberOfRetries = numberOfRetries;
+    }
+    
+    int retryInterval() const { return m_retryInterval; }
+    void setRetryInterval(int retryInterval) {
+        m_retryInterval = retryInterval;
+    }
+    
     bool operator==(const CustomActionSettings& other) const {
         return m_pluginsActions == other.m_pluginsActions &&
             m_buttonText == other.m_buttonText &&
@@ -174,6 +239,9 @@ private:
     bool m_progress;
     bool m_verbose;
     int m_interval;
+    bool m_retryOnFailure;
+    int m_numberOfRetries;
+    int m_retryInterval;
 };
 
 class QCustomAction;
@@ -234,9 +302,7 @@ protected:
             check->setCheckState(iter->toObject()["enabled"].toBool() ? Qt::Checked : Qt::Unchecked);
             items << check;
 
-            QStandardItem* ret = new QStandardItem();
-            check->setCheckable(true);
-            check->setCheckState(iter->toObject()["return"].toBool() ? Qt::Checked : Qt::Unchecked);
+            QStandardItem* ret = new QStandardItem((iter->toObject()["type"].toString() == "bool") ? "bool" : "void");
             items << ret;
 
             m_model->appendRow(items);
@@ -276,6 +342,9 @@ protected:
 
             idx = idx.siblingAtColumn(2);
             o["enabled"] = idx.data(Qt::CheckStateRole).toBool();
+
+            idx = idx.siblingAtColumn(3);
+            o["type"] = idx.data().toString();
 
             ret.push_back(o);
         }

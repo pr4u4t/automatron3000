@@ -239,9 +239,9 @@ void SettingsDialog::updateSettings(){
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<SerialSettings>(settingsPath(), setts);
+    //Settings::store<SerialSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::settingsChanged(){

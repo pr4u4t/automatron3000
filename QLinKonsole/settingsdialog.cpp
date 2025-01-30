@@ -81,9 +81,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<KonsoleSettings>(settingsPath(), setts);
+    //Settings::store<KonsoleSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

@@ -1,7 +1,0 @@
-settingsdialog.cpp
-QLinCommand.cpp
-qlincommand_global.h
-settingsdialog.h
-QLinCommand.h
-lincommand.ui
-settingsdialog.ui

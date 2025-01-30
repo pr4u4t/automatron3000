@@ -68,7 +68,7 @@ Instances::Instances(Loader* ld, PluginsLoader* plugins, QWidget* parent, const 
 bool Instances::initialize() {
     emit message("Instances::initialize()");
     connect(plugins(), &PluginsLoader::loaded, this, &Instances::loaded);
-
+    connect(plugins(), &PluginsLoader::aboutToDelete, this, &Instances::unloaded);
     if (plugins() != nullptr) {
         auto mloader = reinterpret_cast<MLoader*>(plugins());
         auto list = mloader->instances();
@@ -139,6 +139,22 @@ void Instances::loaded(const Plugin* plugin) {
     m_model->appendRow(row);
 }
 
+void Instances::unloaded(const Plugin* plugin) {
+    emit message("Instances::unloaded(const Plugin* plugin)");
+    const auto qobject = dynamic_cast<const QObject*>(plugin);
+    if (qobject == nullptr) {
+        emit message("Instances::unloaded: cast to qobject failed");
+        return;
+    }
+    const auto name = qobject->objectName();
+    const auto items = m_model->findItems(name, Qt::MatchExactly, 1);
+    if (items.size() != 1) {
+        emit message(QString("Instances::unloaded: found multiple items with name: %1").arg(name));
+        return;
+    }
+    m_model->removeRows(items[0]->row(), 1);
+}
+
 void Instances::activated(const QModelIndex& index) {
     emit message("Instances::activated(const QModelIndex& index)");
     if (index.isValid() == false) {
@@ -172,7 +188,7 @@ void Instances::customMenuRequested(QPoint point) {
     emit message("Instances::customMenuRequested(QPoint point)");
     QMenu menu;
     menu.addAction(tr("Copy"), this, &Instances::copyRequested);
-    menu.addAction(tr("Close"), this, &Instances::deleteRequested);
+    menu.addAction(tr("Remove"), this, &Instances::deleteRequested);
     menu.addSeparator();
     menu.addAction(tr("Settings"), this, &Instances::settingsRequested);
     menu.exec(m_view->mapToGlobal(point));
@@ -248,6 +264,20 @@ void Instances::settingsRequested() {
 void Instances::deleteRequested() {
     emit message("Instances::deleteRequested()");
     auto info = instanceInfo();
+
+    if (info.has_value() == false) {
+        emit message("Instances::deleteRequested(): instance info from selection is empty");
+        return;
+    }
+
+    auto ld = plugins();
+
+    if (ld == nullptr) {
+        emit message("Instances::deleteRequested(): plugins loader == nullptr");
+        return;
+    }
+
+    ld->deleteInstance(info.value().second);
 }
 
 void Instances::copyRequested() {

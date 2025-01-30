@@ -259,7 +259,7 @@ public:
 
 	bool multipleInstances() const;
 
-	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const = 0;
+	virtual QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString(), PluginSettings* srcset = nullptr) const = 0;
 
 	virtual PluginSettings* settings(const QString& path) const = 0;
 
@@ -310,31 +310,6 @@ public:
 	static QString settingsPath() {
 		return m_confPath;
 	}
-	//TODO: make implicit sharing of configuration
-	template<typename S>
-	static const S* fetch(const QString& path) {
-		if (m_psettings.contains(path) == false) {
-			auto set = get();
-			S* ret = new S(get(), path);
-			m_psettings[path] = ret;
-			return ret;
-		}
-		PluginSettings* p = m_psettings[path];
-		S* ret = dynamic_cast<S*>(p);
-		return ret;
-	}
-
-	template<typename S>
-	static bool store(const QString& path, S* settings) {
-		
-		if (m_psettings.contains(path) == true) {
-			const auto old = m_psettings.take(path);
-			delete old;
-		}
-
-		m_psettings[path] = settings;
-		return true;
-	}
 
 private:
 
@@ -370,7 +345,7 @@ public:
 		, m_d(reg, unreg, D(QCoreApplication::instance())) {
 	}
 
-	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString()) const {
+	QSharedPointer<Plugin> load(PluginsLoader* plugins, QObject* parent, const QString& settingsPath = QString(), PluginSettings* srcset = nullptr) const {
 		QString path;
 		QString uuid;
 		
@@ -381,11 +356,18 @@ public:
 			
 		uuid = opt.value();
 		path = settingsPath;
-		const S* srcset = Settings::fetch<S>(path);
-		if (srcset == nullptr) {
-			return nullptr;
+		S* setts = nullptr;
+		
+		if (srcset != nullptr) {
+			const auto src = dynamic_cast<S*>(srcset);
+			if (src == nullptr) {
+				return nullptr;
+			}
+			setts = new S(*src);
+		} else {
+			auto s = Settings::get();
+			setts = new S(s, path);
 		}
-		S* setts = new S(*srcset);
 
 		if (setts == nullptr) {
 			return nullptr;
@@ -402,7 +384,8 @@ public:
 	}
 
 	PluginSettings* settings(const QString& path) const {
-		return new S(*Settings::fetch<S>(path));
+		auto set = Settings::get();
+		return new S(set, path);
 	}
 
 	PluginSettings* settings() const {

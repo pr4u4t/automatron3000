@@ -1,11 +1,45 @@
+#include <QComboBox>
+
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 #include "QCustomAction.h"
 
+ComboBoxItemDelegate::ComboBoxItemDelegate(QObject* parent)
+    : QStyledItemDelegate(parent){}
+
+ComboBoxItemDelegate::~ComboBoxItemDelegate(){}
+
+QWidget* ComboBoxItemDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const{
+    // Create the combobox and populate it
+    QComboBox* cb = new QComboBox(parent);
+    const int row = index.row();
+    cb->addItem("void");
+    cb->addItem("bool");
+    cb->addItem("variant");
+    return cb;
+}
+
+void ComboBoxItemDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const{
+    QComboBox* cb = qobject_cast<QComboBox*>(editor);
+    Q_ASSERT(cb);
+    // get the index of the text in the combobox that matches the current value of the item
+    const QString currentText = index.data(Qt::EditRole).toString();
+    const int cbIndex = cb->findText(currentText);
+    // if it is valid, adjust the combobox
+    if (cbIndex >= 0)
+        cb->setCurrentIndex(cbIndex);
+}
+
+
+void ComboBoxItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const{
+    QComboBox* cb = qobject_cast<QComboBox*>(editor);
+    Q_ASSERT(cb);
+    model->setData(index, cb->currentText(), Qt::EditRole);
+}
+
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
     : SettingsMdi(parent, new CustomActionSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
-    //, m_intValidator(new QIntValidator(0, 4000000, this))
     , m_model(new QStandardItemModel(0, 3)) {
     setup();
 }
@@ -13,8 +47,7 @@ SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& s
 SettingsDialog::SettingsDialog(QWidget* parent, const QCustomAction* action)
     : SettingsMdi(parent, new CustomActionSettings(*(action->settings<CustomActionSettings>())), action->settingsPath())
     , m_ui(new Ui::SettingsDialog)
-    //, m_intValidator(new QIntValidator(0, 4000000, this))
-    , m_model(new QStandardItemModel(0, 3)) {
+    , m_model(new QStandardItemModel(0, 4)) {
     setup();
 }
 
@@ -32,6 +65,7 @@ void SettingsDialog::setup() {
     m_model->setHeaderData(0, Qt::Horizontal, tr("Object Name"));
     m_model->setHeaderData(1, Qt::Horizontal, tr("Function"));
     m_model->setHeaderData(2, Qt::Horizontal, tr("Enabled"));
+    m_model->setHeaderData(3, Qt::Horizontal, tr("Type"));
 
     m_ui->tableView->setShowGrid(true);
     m_ui->tableView->setAlternatingRowColors(true);
@@ -40,6 +74,9 @@ void SettingsDialog::setup() {
     m_ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_ui->tableView->setModel(m_model);
+
+    ComboBoxItemDelegate* cbid = new ComboBoxItemDelegate(); 
+    m_ui->tableView->setItemDelegateForColumn(3, cbid);
 
     m_ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_ui->tableView, SIGNAL(customContextMenuRequested(QPoint)),
@@ -63,6 +100,10 @@ void SettingsDialog::fillFromSettings() {
     m_ui->verboseCheckbox->setChecked(setts->verbose());
     m_ui->progressCheckbox->setChecked(setts->progress());
     m_ui->intervalSpin->setValue(setts->interval());
+
+    m_ui->retryOnFailure->setChecked(setts->retryOnFailure());
+    m_ui->retries->setValue(setts->numberOfRetries());
+    m_ui->retryInterval->setValue(setts->retryInterval());
 
     fillModel(setts->pluginsActions());
 }
@@ -96,6 +137,7 @@ void SettingsDialog::insBeforeArgument() {
     check->setCheckable(true);
     check->setCheckState(Qt::Checked);
     items << check;
+    items << new QStandardItem("void");
     m_model->insertRow(list[0].row(), items);
 }
 
@@ -118,6 +160,7 @@ void SettingsDialog::insAfterArgument() {
     check->setCheckable(true);
     check->setCheckState(Qt::Checked);
     items << check;
+    items << new QStandardItem("void");
     m_model->insertRow(list[0].row() + 1, items);
 }
 
@@ -128,7 +171,7 @@ void SettingsDialog::addArgument() {
     check->setCheckable(true);
     check->setCheckState(Qt::Checked);
     items << check;
-
+    items << new QStandardItem("void");
     m_model->appendRow(items);
 }
 
@@ -156,6 +199,10 @@ SettingsDialog::operator CustomActionSettings() const {
     ret.setVerbose(m_ui->verboseCheckbox->isChecked());
     ret.setProgress(m_ui->progressCheckbox->isChecked());
     ret.setInterval(m_ui->intervalSpin->value());
+    ret.setRetryOnFailure(m_ui->retryOnFailure->isChecked());
+    ret.setNumberOfRetries(m_ui->retries->value());
+    ret.setRetryInterval(m_ui->retryInterval->value());
+
     return ret;
 }
 
@@ -171,8 +218,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<CustomActionSettings>(settingsPath(), setts);
+    //Settings::store<CustomActionSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

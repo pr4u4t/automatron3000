@@ -5,9 +5,11 @@
 #include "../api/api.h"
 #include "settingsdialog.h"
 #include "ui_linreadbyid.h"
+
 #include <QTimer>
 #include <QStyleOption>
 #include <QPainter>
+#include <QVector>
 
 QT_BEGIN_NAMESPACE
 
@@ -72,6 +74,40 @@ struct UDSconsecutiveFrame {
     quint8 NAD;
     PCI_t PCI;
     quint8 data[6];
+
+    QByteArray dump() const {
+        QByteArray ret;
+
+        ret += "NAD: ";
+        QString tmp = QString::number(NAD, 16);
+        if (tmp.size() == 1) {
+            tmp.prepend("0");
+        }
+        ret += tmp.toLocal8Bit() + ", ";
+
+        ret += "PCI: ";
+        tmp = QString::number(PCI.type);
+        if (tmp.size() == 1) {
+            tmp.prepend("0");
+        }
+        ret += tmp.toLocal8Bit() + ", ";
+
+        tmp = QString::number(PCI.len);
+        if (tmp.size() == 1) {
+            tmp.prepend("0");
+        }
+        ret += tmp.toLocal8Bit() + ", ";
+
+        for (int i = 0; i < sizeof(data); ++i) {
+            tmp = QString::number(data[i], 16);
+            if (tmp.size() == 1) {
+                tmp.prepend("0");
+            }
+            ret += tmp.toLocal8Bit() + " ";
+        }
+
+        return ret;
+    }
 };
 
 union UDSFrame {
@@ -97,10 +133,12 @@ struct QLinReadByIDData {
     QString m_result;
     int m_remaining;
     qint64 m_startTime;
+    int m_resched = 0;
+    QEventLoop* m_loop = nullptr;
+    QVector<int> m_frames;
 };
 
-class QLINREADBYID_EXPORT QLinReadByID : public Widget
-{
+class QLINREADBYID_EXPORT QLinReadByID : public Widget {
     Q_OBJECT
 
 public:
@@ -135,8 +173,20 @@ public slots:
 
     void readById(bool checked = true);
 
-    QVariant exec() override {
-        return QVariant();
+    Q_INVOKABLE QVariant exec() override {
+        if (m_data.m_state != QLinReadByIDState::INITIAL) {
+            reset();
+        }
+
+        QEventLoop loop;
+        m_data.m_loop = &loop;
+        readById();
+        if (m_data.m_state == QLinReadByIDState::READ) {
+            loop.exec();
+        }
+        m_data.m_loop = nullptr;
+        
+        return (m_data.m_state == QLinReadByIDState::SUCCESS) ? QVariant(true) : QVariant(false);
     }
 
 protected slots:
@@ -164,13 +214,16 @@ protected:
     void setAsciiResult(const QString& hexResult) {
         QStringList list = hexResult.split(' ');
         QString result;
+        int pairs = 0;
 
         for (const auto& i : list) {
             result += QChar(i.toInt(nullptr, 16));
             result += ' ';
+            ++pairs;
         }
 
         m_data.m_ui->resultAscii->setText(result);
+        m_data.m_ui->lenLabel->setText(QString::number(pairs-1));
     }
 
     bool processSingleFrame(const UDSsingleFrame* frame);
@@ -190,7 +243,6 @@ protected:
 private:
     
     QLinReadByIDData m_data;
-    
 };
 
 #endif

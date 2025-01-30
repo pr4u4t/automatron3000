@@ -83,7 +83,6 @@ bool QLinTester::initialize() {
     emit message("QLinTester::initialize()", LoggerSeverity::LOG_DEBUG);
     
     const auto set = settings<LinTesterSettings>();
-    *(set) = LinTesterSettings(Settings::get(), settingsPath());
 
     if (set->linDevice().isEmpty()) {
         emit message("QLinTester::init: lin device name empty");
@@ -120,40 +119,17 @@ bool QLinTester::deinitialize() {
 void QLinTester::settingsChanged() {
     emit message("QLinTester::settingsChanged()");
     const auto set = settings<LinTesterSettings>();
-    //*(set) = LinTesterSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<LinTesterSettings>(settingsPath()));
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<LinTesterSettings>();
+    *set = *nset;
 
-    disconnect(this, SLOT(dataReady(const QByteArray&)));
-    disconnect(this, SLOT(linClosed));
+    initialize();
 
-    if (m_data.m_lin.isNull() == true) {
-        emit message("QLinTester::settingsChanged: lin device == null");
-        return;
-    }
-
-    auto plugin = plugins()->instance(set->linDevice(), 0);
-    m_data.m_lin = plugin.dynamicCast<IODevice>();
-
-    if (m_data.m_lin.isNull()) {
-        emit message("QLinTester::init: lin device == null");
-        emit message("QLinTester::init: !!! please select lin device in settings !!!");
-        return;
-    }
-
-    connect(m_data.m_lin.data(), &IODevice::dataReady, this, &QLinTester::dataReady);
-
-    if (m_data.m_lin->isOpen() == false) {
-        if (m_data.m_lin->open() == false) {
-            emit message(QString("QLinTester::init: failed to open lin device %1").arg(m_data.m_lin->objectName()));
-        }
-    }
-
-    QObject::connect(m_data.m_lin.data(), &IODevice::closed, this, &QLinTester::linClosed);
     emit settingsApplied();
 }
 
 SettingsMdi* QLinTester::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinTester::settingsChanged);
     return ret;
 }

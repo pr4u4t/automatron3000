@@ -71,6 +71,8 @@ struct QLinCommandData {
     QTimer m_timer;
     qint32 m_try = 0;
     qint64 m_startTime;
+    QEventLoop* m_loop = nullptr;
+    int m_resched = 0;
 };
 
 class QLINCOMMAND_EXPORT QLinCommand : public Widget {
@@ -106,7 +108,19 @@ public slots:
     void errorReady(const QByteArray& err);
 
     QVariant exec() {
-        return QVariant();
+        if (m_data.m_state != QLinCommandState::INITIAL) {
+            reset();
+        }
+
+        QEventLoop loop;
+        m_data.m_loop = &loop;
+        sendCommand();
+        if (m_data.m_state == QLinCommandState::READ) {
+            loop.exec();
+        }
+        m_data.m_loop = nullptr;
+
+        return (m_data.m_state == QLinCommandState::SUCCESS) ? QVariant(true) : QVariant();
     }
 
 protected slots:

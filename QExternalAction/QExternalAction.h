@@ -10,6 +10,13 @@
 #include <QStyleOption>
 #include <QPainter>
 
+enum class QExternalActionState {
+    INITIAL,
+    INPROGRESS,
+    SUCCESS,
+    FAILED
+};
+
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -28,6 +35,8 @@ struct QExternalActionData {
     QString m_program;
     QStringList m_arguments;
     int m_try;
+    QExternalActionState m_state = QExternalActionState::INITIAL;
+    QEventLoop* m_loop = nullptr;
 };
 
 class QEXTERNALACTION_EXPORT QExternalAction : public Widget {
@@ -63,7 +72,23 @@ public slots:
 
     void command(bool checked = false);
 
-    QVariant exec() override;
+    QVariant exec() override {
+        if (m_data.m_state != QExternalActionState::INITIAL) {
+            reset();
+        }
+
+        QEventLoop loop;
+        m_data.m_loop = &loop;
+        command();
+        if (m_data.m_state == QExternalActionState::INPROGRESS) {
+            loop.exec();
+        }
+        m_data.m_loop = nullptr;
+
+        return (m_data.m_state == QExternalActionState::SUCCESS) ? QVariant(true) : QVariant(false);
+    }
+
+    QVariant execute();
 
 protected slots:
 

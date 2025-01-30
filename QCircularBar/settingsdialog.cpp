@@ -74,8 +74,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<CircularBarSettings>(settingsPath(), setts);
+    //Settings::store<CircularBarSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

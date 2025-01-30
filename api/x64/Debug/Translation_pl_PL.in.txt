@@ -1,0 +1,12 @@
+logger.cpp
+mdichild.cpp
+plugin.cpp
+window.cpp
+api_global.h
+api.h
+settingsmdi.h
+iodevice.h
+plugin.h
+window.h
+mdichild.h
+logger.h

@@ -12,17 +12,7 @@
         <translation type="vanished">&amp;Plik</translation>
     </message>
     <message>
-        <location filename="QKonsole.cpp" line="11"/>
-        <source>Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="QKonsole.cpp" line="20"/>
-        <source>Konsole</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="QKonsole.cpp" line="42"/>
+        <location filename="QKonsole.cpp" line="40"/>
         <source>&amp;Serial</source>
         <translation type="unfinished"></translation>
     </message>
@@ -30,7 +20,7 @@
 <context>
     <name>QKonsole</name>
     <message>
-        <location filename="QKonsole.cpp" line="87"/>
+        <location filename="QKonsole.cpp" line="90"/>
         <source>&lt;b&gt;Welcome to serial (rs-232) terminal&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -151,7 +141,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="settingsdialog.cpp" line="16"/>
+        <location filename="settingsdialog.cpp" line="17"/>
         <source>N/A</source>
         <translation type="unfinished"></translation>
     </message>

@@ -101,10 +101,7 @@ QData::QData(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString&
     )
     , m_ui(new Ui::QDataUI) {
     m_ui->setupUi(this);
-}
-
-bool QData::initialize() {
-    m_db = QSqlDatabase::database();
+    //m_db = QSqlDatabase::database();
 
     m_ui->dbView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_lmodel = new QStandardItemModel(0, 1);
@@ -124,14 +121,72 @@ bool QData::initialize() {
 
     connect(&m_timer, &QTimer::timeout, this, &QData::timeout);
 
-
     m_ui->left->setPixmap(QPixmap(":qdata/left-arrow.png"));
     m_ui->left->setEnabled(false);
 
     m_ui->right->setPixmap(QPixmap(":qdata/right-arrow.png"));
     m_ui->right->setEnabled(false);
+}
 
-    settingsChanged();
+bool QData::initialize() {
+    
+    //Window* win = qobject_cast<Window*>(parent());
+    //*(settings<DataSettings>()) = DataSettings(Settings::get(), settingsPath());
+    const auto set = settings<DataSettings>();
+    //*set = *(Settings::fetch<DataSettings>(settingsPath()));
+
+    if (m_db.isValid() || m_db.isOpen()) {
+        m_db.close();
+    }
+
+    m_db = QSqlDatabase::addDatabase(set->dbDriver());
+    m_db.setDatabaseName(set->dbUri());
+
+    bool rc = m_db.open();
+
+    emit message(QString("QData::QData: connection to database: %1").arg(rc ? tr("success") : tr("failed")));
+
+    if (rc == false) {
+        return false;
+    }
+
+    if (m_db.tables().contains(set->dbTable(), Qt::CaseInsensitive) == false) {
+        m_db.exec(QString(createTable).arg(set->dbTable()));
+    } else {
+        emit message("QData::QData: table already exists");
+    }
+
+    if (m_model != nullptr) {
+        m_ui->dbView->setModel(nullptr);
+        delete m_model;
+    }
+
+    m_model = new QSqlTableModel(nullptr, m_db);
+    m_ui->dbView->setModel(m_model);
+    m_model->setTable(set->dbTable());
+    m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    m_model->select();
+    m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
+    m_model->setHeaderData(2, Qt::Horizontal, tr("Cell"));
+    m_ui->dbView->setModel(m_model);
+    m_ui->dbView->setColumnHidden(0, true);
+
+    m_timer.stop();
+
+    if (set->serialInterval() != -1) {
+        m_timer.setInterval(set->serialInterval());
+    }
+
+    if (set->keepClear() == true && set->clearCode() != -1) {
+        m_selected = QString::number(set->clearCode());
+    }
+
+    if (set->keepClear() == true
+        && set->serialInterval() != -1
+        && set->clearCode() != -1) {
+        m_timer.start();
+    }
+
     //QTimer::singleShot(0, this, &QData::timeout);
     auto serial = plugins()->instance("QSerial", nullptr);
     auto io = serial.dynamicCast<IODevice>();
@@ -154,7 +209,7 @@ bool QData::deinitialize() {
 }
 
 SettingsMdi* QData::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QData::settingsChanged);
     return ret;
 }
@@ -434,62 +489,14 @@ void QData::queryToCsv(const QString& path, const QString& queryStr) {
 }
 
 void QData::settingsChanged() {
-    Window* win = qobject_cast<Window*>(parent());
-    //*(settings<DataSettings>()) = DataSettings(Settings::get(), settingsPath());
+    emit message("QData::settingsChanged()");
+
     const auto set = settings<DataSettings>();
-    *set = *(Settings::fetch<DataSettings>(settingsPath()));
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<DataSettings>();
+    *set = *nset;
 
-    if (m_db.isValid() || m_db.isOpen()) {
-        m_db.close();
-    }
-
-    m_db = QSqlDatabase::addDatabase(set->dbDriver());
-    m_db.setDatabaseName(set->dbUri());
-
-    bool rc = m_db.open();
-
-    emit message(QString("QData::QData: connection to database: %1").arg(rc ? tr("success") : tr("failed")));
-    
-    if (rc == false) {
-        return;
-    }
-
-    if (m_db.tables().contains(set->dbTable(), Qt::CaseInsensitive) == false) {
-        m_db.exec(QString(createTable).arg(set->dbTable()));
-    } else {
-        emit message("QData::QData: table already exists");
-    }
-
-    if (m_model != nullptr) {
-        m_ui->dbView->setModel(nullptr);
-        delete m_model;
-    }
-
-    m_model = new QSqlTableModel(nullptr, m_db);
-    m_ui->dbView->setModel(m_model);
-    m_model->setTable(set->dbTable());
-    m_model->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    m_model->select();
-    m_model->setHeaderData(1, Qt::Horizontal, tr("Part"));
-    m_model->setHeaderData(2, Qt::Horizontal, tr("Cell"));
-    m_ui->dbView->setModel(m_model);
-    m_ui->dbView->setColumnHidden(0, true);
-
-    m_timer.stop();
-
-    if (set->serialInterval() != -1) {
-        m_timer.setInterval(set->serialInterval());
-    }
-
-    if (set->keepClear() == true && set->clearCode() != -1) {
-        m_selected = QString::number(set->clearCode());
-    }
-
-    if (set->keepClear() == true
-        && set->serialInterval() != -1 
-        && set->clearCode() != -1) {
-        m_timer.start();
-    }
+    initialize();
 
     emit settingsApplied();
 }

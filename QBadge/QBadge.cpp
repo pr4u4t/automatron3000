@@ -106,7 +106,16 @@ QBadge::~QBadge() {
 //}
 
 bool QBadge::initialize() {
-    settingsChanged();
+    //settingsChanged();
+    const auto set = settings<BadgeSettings>();
+    m_ui->label->setText(set->text());
+    m_ui->title->setText(set->title());
+
+    QPixmap pix;
+    if (set->imagePath().isEmpty() == false && pix.load(set->imagePath())) {
+        m_ui->image->setPixmap(pix);
+    }
+
     return true;
 }
 
@@ -118,22 +127,17 @@ bool QBadge::deinitialize() {
 void QBadge::settingsChanged() {
     emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<BadgeSettings>();
-    *set = *(Settings::fetch<BadgeSettings>(settingsPath()));
-    //*set = BadgeSettings(Settings::get(), settingsPath());
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<BadgeSettings>();
+    *set = *nset;
 
-    m_ui->label->setText(set->text());
-    m_ui->title->setText(set->title());
-
-    QPixmap pix;
-    if (set->imagePath().isEmpty() == false && pix.load(set->imagePath())) {
-        m_ui->image->setPixmap(pix);
-    }
+    initialize();
 
     emit settingsApplied();
 }
 
 SettingsMdi* QBadge::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QBadge::settingsChanged);
     return ret;
 }

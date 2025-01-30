@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\Admin\Documents\GitHub\szpuler\plugins\QKonsole.dll</FullPath>
+      <FullPath>C:\Users\Admin\Documents\GitHub\szpuler\x64\Release\plugins\QKonsole.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

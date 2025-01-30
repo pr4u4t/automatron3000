@@ -394,7 +394,7 @@ void MainWindow::createActions(){
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 
     if (fileMenu) {
-        fileMenu->addAction(tr("Save session"), this, &MainWindow::sessionStore);
+        fileMenu->addAction(tr("Save session"), this, &MainWindow::storeSettings);
 
         fileMenu->addAction(tr("Switch layout direction"), this, &MainWindow::switchLayoutDirection);
         fileMenu->addSeparator();
@@ -537,25 +537,44 @@ void MainWindow::createToolbar() {
 
         m_tbar->addSeparator();
 
-        QAction* a = m_tbar->addAction("Lock Workspace");
+        QAction* a = m_tbar->addAction(tr("Lock Workspace"));
         a->setIcon(svgIcon(":/images/lock_outline.svg"));
         a->setCheckable(true);
         a->setChecked(false);
         QObject::connect(a, &QAction::triggered, this, &MainWindow::lockWorkspace);
 
-        m_newPerspective = new QAction("Create workspace");
+        m_newPerspective = new QAction(tr("Create workspace"));
         m_newPerspective->setIcon(svgIcon(":/images/picture_in_picture.svg"));
         QObject::connect(m_newPerspective, &QAction::triggered, this, [this](bool checked = false) {
             this->newPerspective(checked);
         });
         m_tbar->addAction(m_newPerspective);
 
-        m_copyPerspective = new QAction("Copy workspace");
+        m_copyPerspective = new QAction(tr("Copy workspace"));
         m_copyPerspective->setIcon(svgIcon(":/images/note_add.svg"));
         QObject::connect(m_copyPerspective, &QAction::triggered, this, [this](bool checked = false) {
             this->copyPerspective(this->m_currentPerspective);
         });
         m_tbar->addAction(m_copyPerspective);
+
+        m_deletePerspective = new QAction(tr("Delete workspace"));
+        m_deletePerspective->setIcon(svgIcon(":/images/edit.svg"));
+        QObject::connect(m_deletePerspective, &QAction::triggered, this, [this](bool checked = false) {
+            DeleteWorkspaceDialog dw(this, this->m_dockManager->perspectiveNames());
+            if (dw.exec() != QDialog::Accepted) {
+                emit message("MainWindow::deleteWorkspace: name dialog discarded");
+                return;
+            }
+
+            const auto deletion = dw.selectedOption();
+            if (this->m_currentPerspective == deletion) {
+                emit message("MainWindow::deleteWorkspace: cannot delete current workspace");
+                return;
+            }
+
+            this->deletePerspective(deletion);
+        });
+        m_tbar->addAction(m_deletePerspective);
     }
 
     connect(m_perspectiveComboBox, SIGNAL(textActivated(QString)),

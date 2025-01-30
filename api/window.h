@@ -32,7 +32,8 @@ public:
 		QList<QMenu*> menus = menuBar()->findChildren<QMenu*>(Qt::FindChildrenRecursively);
 
 		for (auto it = menus.begin(), end = menus.end(); it != end; ++it) {
-			if ((*it)->title() == title) {
+			const QString& current = (*it)->title();
+			if (current == title) {
 				return *it;
 			}
 		}

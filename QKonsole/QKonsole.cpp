@@ -53,7 +53,7 @@ static bool QKonsole_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QKo
 
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
-        windowAddPluginSettingsAction<QKonsole, QKonsoleMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QLin"), gtx, ctx, log);
+        windowAddPluginSettingsAction<QKonsole, QKonsoleMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QKonsole"), gtx, ctx, log);
     });
 
     return true;
@@ -93,23 +93,40 @@ QKonsole::QKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QS
     QBoxLayout* l = new QVBoxLayout();
     l->addWidget(m_terminal);
     setLayout(l);
+    QObject::connect(m_terminal, &QTerminal::execCommand, this, &QKonsole::enterPressed);
 }
 
 bool QKonsole::initialize() {
-    settingsChanged();
-    QObject::connect(m_terminal, &QTerminal::execCommand, this, &QKonsole::enterPressed);
-    auto io = plugins()->instance("QSerial", nullptr);
+    emit message("QKonsole::initialize()");
+    const auto set = settings<KonsoleSettings>();
+    m_terminal->setPrompt(set->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
+    
+    auto io = plugins()->instance(set->port(), nullptr);
+    if (io.isNull()) {
+        emit message(QString("QKonsole::initialize: port %1 not found"));
+        return false;
+    }
     QObject::connect(dynamic_cast<IODevice*>(io.data()), &IODevice::dataReady, this, &QKonsole::putData);
     m_serial = io.dynamicCast<IODevice>();
+    if (m_serial->isOpen() == false) {
+        if (m_serial->open() == false) {
+            emit message(QString("QKonsole::initialize: failed to open serial port: %1").arg(set->port()));
+            return false;
+        }
+       
+        emit message(QString("QKonsole::initialize: opened serial port: %1").arg(set->port()));
+    }
     return true;
 }
 
 bool QKonsole::deinitialize() {
+    emit message("QKonsole::deinitialize()");
     return true;
 }
 
 SettingsMdi* QKonsole::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    emit message("QKonsole::settingsWindow()");
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QKonsole::settingsChanged);
     return ret;
 }
@@ -130,9 +147,13 @@ void QKonsole::enterPressed(const QString& command) {
 }
 
 void QKonsole::settingsChanged() {
+    emit message("QKonsole::settingsChanged()");
     const auto set = settings<KonsoleSettings>();
-    //*(settings<KonsoleSettings>()) = KonsoleSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<KonsoleSettings>(settingsPath()));
-    m_terminal->setPrompt(set->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<KonsoleSettings>();
+    *set = *nset;
+
+    initialize();
+
     emit settingsApplied();
 }

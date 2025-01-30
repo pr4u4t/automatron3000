@@ -32,6 +32,8 @@ public:
     QLabel *label_2;
     QCheckBox *localEcho;
     QLineEdit *prompt;
+    QLabel *label_3;
+    QLineEdit *port;
     QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout;
     QSpacerItem *horizontalSpacer;
@@ -67,6 +69,16 @@ public:
         prompt->setObjectName("prompt");
 
         formLayout->setWidget(1, QFormLayout::FieldRole, prompt);
+
+        label_3 = new QLabel(SettingsDialog);
+        label_3->setObjectName("label_3");
+
+        formLayout->setWidget(2, QFormLayout::LabelRole, label_3);
+
+        port = new QLineEdit(SettingsDialog);
+        port->setObjectName("port");
+
+        formLayout->setWidget(2, QFormLayout::FieldRole, port);
 
 
         verticalLayout->addLayout(formLayout);
@@ -111,6 +123,7 @@ public:
         label->setText(QCoreApplication::translate("SettingsDialog", "Local echo", nullptr));
         label_2->setText(QCoreApplication::translate("SettingsDialog", "Prompt", nullptr));
         localEcho->setText(QString());
+        label_3->setText(QCoreApplication::translate("SettingsDialog", "Port", nullptr));
         okButton->setText(QCoreApplication::translate("SettingsDialog", "OK", nullptr));
         applyButton->setText(QCoreApplication::translate("SettingsDialog", "Apply", nullptr));
         cancelButton->setText(QCoreApplication::translate("SettingsDialog", "Cancel", nullptr));

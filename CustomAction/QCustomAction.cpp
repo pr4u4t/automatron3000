@@ -8,6 +8,7 @@
 #include <QtGlobal>
 #include <QtGui>
 #include <QScrollBar>
+#include <QFileDialog>
 
 struct QCustomActionMenu {
     QCustomActionMenu(QCoreApplication* app)
@@ -85,13 +86,21 @@ QCustomAction::QCustomAction(Loader* ld, PluginsLoader* plugins, QWidget* parent
         set,
         uuid
     )
-    , m_ui(new Ui::QCustomActionUI) {
-    m_ui->setupUi(this);
+    , m_data(new Ui::QCustomActionUI) {
+    m_data.m_ui->setupUi(this);
+    QObject::connect(m_data.m_ui->pushButton, &QPushButton::clicked, this, &QCustomAction::execClicked);
+    QObject::connect(m_data.m_ui->clearButton, &QPushButton::clicked, this, &QCustomAction::clearLog);
+    QObject::connect(m_data.m_ui->exportButton, &QPushButton::clicked, this, &QCustomAction::exportLog);
+    QObject::connect(m_data.m_ui->stopButton, &QPushButton::clicked, this, &QCustomAction::stopClicked);
+    QObject::connect(m_data.m_ui->pauseButton, &QPushButton::clicked, this, &QCustomAction::pauseClicked);
 }
 
 bool QCustomAction::initialize() {
-    settingsChanged();
-    QObject::connect(m_ui->pushButton, &QPushButton::clicked, this, &QCustomAction::execClicked);
+    const auto set = settings<CustomActionSettings>();
+    m_data.m_ui->pushButton->setText(set->buttonText());
+    m_data.m_ui->title->setText(set->title());
+    m_data.m_ui->progressBar->setHidden(!set->progress());
+    m_data.m_ui->textEdit->setHidden(!set->verbose());
     return true;
 }
 
@@ -110,83 +119,151 @@ bool QCustomAction::saveSettings() {
 QCustomAction::~QCustomAction() {
 }
 
+void QCustomAction::exportLog() const {
+    emit message("QCustomAction::exportLog()");
+    QString fileName = QFileDialog::getSaveFileName(nullptr, tr("Save File"),
+        ".",
+        tr("Text (*.txt)"));
+    if (fileName.isEmpty()) {
+        emit message("QCustomAction::exportLog: no file selected");
+        return;
+    }
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        emit message(QString("QCustomAction::exportLog: failed to open file %1").arg(fileName));
+        return;
+    }
+    QString log = m_data.m_ui->textEdit->toPlainText();
+    file.write(log.toLocal8Bit());
+    file.close();
+}
+
+void QCustomAction::clearLog() const {
+    m_data.m_ui->textEdit->clear();
+    m_data.m_ui->progressBar->setValue(0);
+}
+
 void QCustomAction::settingsChanged() {
     emit message("QCustomAction::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<CustomActionSettings>();
-    *set = *(Settings::fetch<CustomActionSettings>(settingsPath()));
-    //*set = CustomActionSettings(Settings::get(), settingsPath());
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<CustomActionSettings>();
+    *set = *nset;
 
-    m_ui->pushButton->setText(set->buttonText());
-    m_ui->title->setText(set->title());
-    m_ui->progressBar->setHidden(!set->progress());
-    m_ui->textEdit->setHidden(!set->verbose());
+    initialize();
+
     emit settingsApplied();
 }
 
 SettingsMdi* QCustomAction::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QCustomAction::settingsChanged);
     return ret;
 }
 
 void QCustomAction::execClicked(bool checked) {
     const auto set = settings<CustomActionSettings>();
-    QStringList jobs = set->jobList();
-
-    m_ui->progressBar->setMaximum(jobs.size());
-
-    for (int i = 0, end = jobs.size(); i < end; i += 2) {
-        auto plugin = plugins()->findByObjectName(jobs[i]);
+    QList<Job> jobs = set->jobList();
+    m_data.m_state = QCustomActionState::INPROGRESS;
+    m_data.m_ui->progressBar->setMaximum(jobs.size());
+    int i = 0;
+    for (const auto job : jobs) {
+        auto plugin = plugins()->findByObjectName(job.m_module);
         auto object = plugin.dynamicCast<QObject>();
+        //mere this into union
         bool retVal = false;
-        
+        QVariant ret;
+        int tries;
+
         connect(object.data(), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(jobMessage(const QString&, LoggerSeverity)));
 
-        QMetaObject::invokeMethod(object.data(), jobs[i + 1].trimmed().toLocal8Bit().data(),
-            Qt::DirectConnection, Q_RETURN_ARG(bool, retVal));
-        
-        disconnect(this, SLOT(jobMessage(const QString&, LoggerSeverity)));
-        emit message(QString("QCustomAction::execClicked: %1::%2: status: %3").arg(jobs[i]).arg(jobs[i+1]).arg(retVal));
-        m_ui->progressBar->setValue(i+2);
-        jobMessage(QString("Progress.............%1").arg(m_ui->progressBar->text()));
-        QCoreApplication::processEvents(QEventLoop::AllEvents, set->interval());
+        jobMessage(QString("Executing.............%1").arg(object->objectName()));
+
+        for (tries = 0; tries < set->numberOfRetries(); ++tries) {
+            switch (job.m_type) {
+            case JobReturnType::VOID:
+                QMetaObject::invokeMethod(object.data(), job.m_function.toLocal8Bit().data(),
+                    Qt::DirectConnection);
+                emit message(QString("QCustomAction::execClicked: %1::%2").arg(job.m_module).arg(job.m_function));
+                goto JOB_SUCCESS;
+
+            case JobReturnType::BOOLEAN:
+                QMetaObject::invokeMethod(object.data(), job.m_function.toLocal8Bit().data(),
+                    Qt::DirectConnection, Q_RETURN_ARG(bool, retVal));
+                emit message(QString("QCustomAction::execClicked: %1::%2: status: %3").arg(job.m_module).arg(job.m_function).arg(retVal));
+                if (retVal == true) {
+                    goto JOB_SUCCESS;
+                } else break;
+
+            case JobReturnType::QVARIANT:
+                QMetaObject::invokeMethod(object.data(), job.m_function.toLocal8Bit().data(),
+                    Qt::DirectConnection, Q_RETURN_ARG(QVariant, ret));
+                emit message(QString("QCustomAction::execClicked: %1::%2: status: %3").arg(job.m_module).arg(job.m_function).arg(ret.isNull()));
+                if (ret.isNull() == false) {
+                    goto JOB_SUCCESS;
+                } else break;
+            }
+
+            for (auto start = QDateTime::currentMSecsSinceEpoch(); QDateTime::currentMSecsSinceEpoch() - start < set->retryInterval() && m_data.m_state != QCustomActionState::INPROGRESS;) {
+                QCoreApplication::processEvents(QEventLoop::AllEvents, set->retryInterval());
+            }
+        }
+
+        emit message("QCustomAction::execClicked: job failed");
+        return;
+
+    JOB_SUCCESS:
+
+        m_data.m_ui->progressBar->setValue(++i);
+        jobMessage(QString("Progress.............%1").arg(m_data.m_ui->progressBar->text()));
+        for (auto start = QDateTime::currentMSecsSinceEpoch(); QDateTime::currentMSecsSinceEpoch() - start < set->interval() && m_data.m_state == QCustomActionState::INPROGRESS;) {
+            QCoreApplication::processEvents(QEventLoop::AllEvents, set->interval());
+        }
+
+        const auto value = disconnect(object.data(), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(jobMessage(const QString&, LoggerSeverity)));
+        emit message(QString("QCustomAction::execClicked: disconnect result: %1").arg(value));
+
+        if (m_data.m_state != QCustomActionState::INPROGRESS) {
+            break;
+        }
     }
 
     //m_ui->progressBar->setValue(m_ui->progressBar->maximum());
 }
 
 void QCustomAction::jobMessage(const QString& msg, LoggerSeverity severity) {
-    QColor color = m_ui->textEdit->textColor();
+    QColor color = m_data.m_ui->textEdit->textColor();
 
     switch (severity) {
     case LoggerSeverity::LOG_INFO:
-        m_ui->textEdit->setTextColor(QColor(56, 61, 65));
+        m_data.m_ui->textEdit->setTextColor(QColor(56, 61, 65));
         break;
 
     case LoggerSeverity::LOG_NOTICE:
-        m_ui->textEdit->setTextColor(QColor(12, 84, 96));
+        m_data.m_ui->textEdit->setTextColor(QColor(12, 84, 96));
         break;
 
     case LoggerSeverity::LOG_WARNING:
-        m_ui->textEdit->setTextColor(QColor(133, 100, 4));
+        m_data.m_ui->textEdit->setTextColor(QColor(133, 100, 4));
         break;
 
     case LoggerSeverity::LOG_ERROR:
-        m_ui->textEdit->setTextColor(QColor(114, 28, 36));
+        m_data.m_ui->textEdit->setTextColor(QColor(114, 28, 36));
         break;
 
     case LoggerSeverity::LOG_DEBUG:
         break;
     }
 
-    m_ui->textEdit->append(msg);
-    m_ui->textEdit->setTextColor(color);
-    m_ui->textEdit->verticalScrollBar()->setValue(m_ui->textEdit->verticalScrollBar()->maximum());
+    m_data.m_ui->textEdit->append(msg);
+    m_data.m_ui->textEdit->setTextColor(color);
+    m_data.m_ui->textEdit->verticalScrollBar()->setValue(m_data.m_ui->textEdit->verticalScrollBar()->maximum());
 }
 
 bool QCustomAction::reset(Reset type) {
     emit message("QCustomAction::reset(Reset type)");
-    m_ui->progressBar->setValue(0);
-    m_ui->textEdit->clear();
+    m_data.m_ui->progressBar->setValue(0);
+    m_data.m_ui->textEdit->clear();
+    
     return true;
 }

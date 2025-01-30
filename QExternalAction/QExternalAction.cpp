@@ -84,13 +84,6 @@ QExternalAction::QExternalAction(Loader* ld, PluginsLoader* plugins, QWidget* pa
     )
     , m_data(new Ui::QExternalActionUI) {
     m_data.m_ui->setupUi(this);
-}
-
-QExternalAction::~QExternalAction() {
-}
-
-bool QExternalAction::initialize() {
-    settingsChanged();
     QObject::connect(m_data.m_ui->execButton, &QPushButton::clicked, this, &QExternalAction::command);
     QObject::connect(&m_data.m_process, &QProcess::errorOccurred, this, &QExternalAction::errorOccurred);
     QObject::connect(&m_data.m_process, &QProcess::finished, this, &QExternalAction::finished);
@@ -98,6 +91,22 @@ bool QExternalAction::initialize() {
     QObject::connect(&m_data.m_process, &QProcess::readyReadStandardOutput, this, &QExternalAction::readyReadStandardOutput);
     QObject::connect(&m_data.m_process, &QProcess::started, this, &QExternalAction::started);
     QObject::connect(&m_data.m_process, &QProcess::stateChanged, this, &QExternalAction::stateChanged);
+}
+
+QExternalAction::~QExternalAction() {
+}
+
+bool QExternalAction::initialize() {
+    const auto set = settings<QExternalActionSettings>();
+    m_data.m_ui->execButton->setText(set->buttonLabel());
+    m_data.m_ui->title->setText(set->title());
+
+    m_data.m_arguments = set->processArguments();
+    disconnect(this, SLOT(previousSuccess(const QByteArray&)));
+    if (set->previous().isEmpty() == false) {
+        connect(plugins()->findByObjectName(set->previous()).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
+    }
+    
     return true;
 }
 
@@ -112,17 +121,11 @@ bool QExternalAction::saveSettings() {
 void QExternalAction::settingsChanged() {
     emit message("QExternalAction::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<QExternalActionSettings>();
-    *set = *(Settings::fetch<QExternalActionSettings>(settingsPath()));
-    //*set = QExternalActionSettings(Settings::get(), settingsPath());
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<QExternalActionSettings>();
+    *set = *nset;
 
-    m_data.m_ui->execButton->setText(set->buttonLabel());
-    m_data.m_ui->title->setText(set->title());
-
-    m_data.m_arguments = set->processArguments();
-    disconnect(this, SLOT(previousSuccess(const QByteArray&)));
-    if (set->previous().isEmpty() == false) {
-        connect(plugins()->findByObjectName(set->previous()).dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
-    }
+    initialize();
 
     emit settingsApplied();
 }
@@ -132,17 +135,17 @@ void QExternalAction::previousSuccess(const QByteArray& data) {
 }
 
 SettingsMdi* QExternalAction::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QExternalAction::settingsChanged);
     return ret;
 }
 
 void QExternalAction::command(bool checked) {
     m_data.m_try = 0;
-    exec();
+    execute();
 }
 
-QVariant QExternalAction::exec() {
+QVariant QExternalAction::execute() {
     
     const auto set = settings<QExternalActionSettings>();
     if (set->programPath().isEmpty()) {
@@ -160,7 +163,7 @@ QVariant QExternalAction::exec() {
     m_data.m_ui->execButton->setEnabled(false);
     inprogress();
     m_data.m_process.start(set->programPath(), set->processArguments());
-
+    
     return QVariant();
 }
 
@@ -170,12 +173,16 @@ void QExternalAction::errorOccurred(QProcess::ProcessError error) {
 
     const auto set = settings<QExternalActionSettings>();
 
+    emit message(QString("QExternalAction::errorOccurred: try %1 of %2").arg(m_data.m_try).arg(set->tries()));
+
     if (error == QProcess::FailedToStart) {
         ++m_data.m_try;
         if (m_data.m_try < set->tries()) {
-            exec();
+            emit message("QExternalAction::errorOccurred: attempting next try");
+            execute();
             return;
         }
+        emit message("QExternalAction::errorOccurred: enetring failed state");
         failed();
     }
 }
@@ -186,6 +193,7 @@ void QExternalAction::finished(int exitCode, QProcess::ExitStatus exitStatus) {
     emit message("QExternalAction::finished(int exitCode, QProcess::ExitStatus exitStatus)");
     emit message(QString("QExternalAction::finished: %1 %2").arg(exitCode).arg(exitStatusString(exitStatus)));
     m_data.m_ui->execButton->setEnabled(true);
+    emit message(QString("QExternalAction::finished: try %1 of %2").arg(m_data.m_try).arg(set->tries()));
 
     switch (exitCode) {
     case 0:
@@ -194,10 +202,13 @@ void QExternalAction::finished(int exitCode, QProcess::ExitStatus exitStatus) {
     default:
         ++m_data.m_try;
         if (m_data.m_try < set->tries()) {
-            exec();
+            emit message("QExternalAction::finished: attempting next try");
+            execute();
             return;
         }
+        emit message("QExternalAction::finished: enetring failed state");
         failed();
+        
     }
 }
 
@@ -209,6 +220,9 @@ void QExternalAction::success() {
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ color:green; font-weight:bold; }");
     m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
     setStyleSheet("QExternalAction { border:2px solid green; }");
+    if (m_data.m_loop != nullptr) {
+        m_data.m_loop->exit();
+    }
     emit success(objectName().toLocal8Bit());
 }
 
@@ -220,6 +234,7 @@ void QExternalAction::initial() {
     m_data.m_ui->successLabel->setStyleSheet("QLabel { font-weight:bold; }");
     m_data.m_ui->progressLabel->setStyleSheet("QLabel { font-weight:bold; }");
     setStyleSheet("");
+    m_data.m_state = QExternalActionState::INITIAL;
 }
 
 void QExternalAction::failed() {
@@ -230,6 +245,10 @@ void QExternalAction::failed() {
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
     m_data.m_ui->progressLabel->setStyleSheet("QLabel{ font-weight:bold; }");
     setStyleSheet("QExternalAction { border:2px solid red; }");
+    m_data.m_state = QExternalActionState::FAILED;
+    if (m_data.m_loop != nullptr) {
+        m_data.m_loop->exit();
+    }
 }
 
 void QExternalAction::inprogress() {
@@ -240,6 +259,7 @@ void QExternalAction::inprogress() {
     m_data.m_ui->successLabel->setStyleSheet("QLabel{ font-weight:bold; }");
     m_data.m_ui->progressLabel->setStyleSheet("QLabel{ color:blue; font-weight:bold; }");
     setStyleSheet("QExternalAction { border:2px solid blue; }");
+    m_data.m_state = QExternalActionState::INPROGRESS;
 }
 
 void QExternalAction::readyReadStandardError() {

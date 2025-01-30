@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\Admin\Documents\GitHub\szpuler\plugins\QSerial.dll</FullPath>
+      <FullPath>C:\Users\Admin\Documents\GitHub\szpuler\x64\Release\plugins\QSerial.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

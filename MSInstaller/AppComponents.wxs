@@ -20,7 +20,10 @@
 				<File Source="..\x64\Release\Qt6Core5Compat.dll"/>
 			</Component>
 			<Component>
-				<File Source="..\x64\Release\Qt6Pdf.dll"/>
+				<File Source="..\x64\Release\Qt6HttpServer.dll"/>
+			</Component>
+			<Component>
+				<File Source="..\x64\Release\Qt6WebSockets.dll"/>
 			</Component>
 			<Component>
 				<File Source="..\x64\Release\Qt6SerialPort.dll"/>
@@ -32,7 +35,7 @@
 				<File Source="..\x64\Release\Qt6Svg.dll"/>
 			</Component>
 			<Component Directory="Styles">
-				<File Source="..\x64\Release\styles\qwindowsvistastyle.dll"/>
+				<File Source="..\x64\Release\styles\qmodernwindowsstyle.dll"/>
 			</Component>
 			<Component Directory="Sqldrivers">
 				<File Source="..\x64\Release\sqldrivers\qsqlite.dll"/>
@@ -58,9 +61,11 @@
 			<Component Id="CreateTls" Directory="Tls">
 				<File Source="..\x64\Release\tls\qcertonlybackend.dll"/>
 			</Component>
+			<!--
 			<Component Directory="Tls">
 				<File Source="..\x64\Release\tls\qopensslbackend.dll"/>
 			</Component>
+			-->
 			<Component Directory="Tls">
 				<File Source="..\x64\Release\tls\qschannelbackend.dll"/>
 			</Component>
@@ -79,9 +84,11 @@
 			<Component Directory="Imageformats">
 				<File Source="..\x64\Release\imageformats\qjpeg.dll"/>
 			</Component>
+			<!--
 			<Component Directory="Imageformats">
 				<File Source="..\x64\Release\imageformats\qpdf.dll"/>
 			</Component>
+			-->
 			<Component Directory="Imageformats">
 				<File Source="..\x64\Release\imageformats\qsvg.dll"/>
 			</Component>
@@ -194,46 +201,46 @@
 				<File Source="..\x64\Release\api.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QBadge.dll"/>
+				<File Source="..\x64\Release\plugins\QBadge.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QCircularBar.dll"/>
+				<File Source="..\x64\Release\plugins\QCircularBar.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QData.dll"/>
+				<File Source="..\x64\Release\plugins\QData.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QJTAG.dll"/>
+				<File Source="..\x64\Release\plugins\QExternalAction.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QKonsole.dll"/>
+				<File Source="..\x64\Release\plugins\QKonsole.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLin.dll"/>
+				<File Source="..\x64\Release\plugins\QLin.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLinBus.dll"/>
+				<File Source="..\x64\Release\plugins\QLinBus.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLinCommand.dll"/>
+				<File Source="..\x64\Release\plugins\QLinCommand.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLinKonsole.dll"/>
+				<File Source="..\x64\Release\plugins\QLinKonsole.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLinReadByID.dll"/>
+				<File Source="..\x64\Release\plugins\QLinReadByID.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLinTester.dll"/>
+				<File Source="..\x64\Release\plugins\QLinTester.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QLinWriteByID.dll"/>
+				<File Source="..\x64\Release\plugins\QLinWriteByID.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QCustomAction.dll"/>
+				<File Source="..\x64\Release\plugins\QCustomAction.dll"/>
 			</Component>
 			<Component Directory="Plugins">
-				<File Source="..\plugins\QSerial.dll"/>
+				<File Source="..\x64\Release\plugins\QSerial.dll"/>
 			</Component>
 			<Component>
 				<File Source="..\x64\Release\szpuler.exe" Name="Automatron3000.exe">

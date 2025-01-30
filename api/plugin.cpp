@@ -105,11 +105,6 @@ void Widget::nameChanged(const QString& objName) {
 		if (rx.exactMatch(objName)) {
 			if (set->objectName() != objName) {
 				set->setObjectName(objName);
-				//QSettings s = Settings::get();
-				//PluginSettings ps;
-				//ps.setObjectName(objName);
-				//ps.save(s, settingsPath());
-				//set->save(s, settingsPath());
 			}
 		} else {
 			blockSignals(true);

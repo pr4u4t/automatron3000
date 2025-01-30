@@ -55,6 +55,7 @@ void SettingsDialog::fillFromSettings() {
     const KonsoleSettings* setts = settings<KonsoleSettings>();
     m_ui->prompt->setText(setts->prompt());
     m_ui->localEcho->setChecked(setts->localEcho());
+    m_ui->port->setText(setts->port());
 }
 
 SettingsDialog::operator KonsoleSettings() const {
@@ -62,6 +63,7 @@ SettingsDialog::operator KonsoleSettings() const {
 
     ret.setPrompt(m_ui->prompt->text());
     ret.setLocalEcho(m_ui->localEcho->isChecked());
+    ret.setPort(m_ui->port->text());
 
     return ret;
 }
@@ -79,9 +81,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<KonsoleSettings>(settingsPath(), setts);
+    //Settings::store<KonsoleSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

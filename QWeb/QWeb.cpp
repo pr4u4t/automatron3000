@@ -110,7 +110,8 @@ QWeb::~QWeb() {
 //}
 
 bool QWeb::initialize() {
-    settingsChanged();
+    const auto set = settings<WebSettings>();
+    m_ui->webView->setUrl(QUrl(set->url()));
     return true;
 }
 
@@ -122,14 +123,18 @@ bool QWeb::deinitialize() {
 void QWeb::settingsChanged() {
     emit message("QWeb::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<WebSettings>();
-    *set = WebSettings(Settings::get(), settingsPath());
-    m_ui->webView->setUrl(QUrl(set->url()));
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<WebSettings>();
+    *set = *nset;
+
+    initialize();
+
     emit settingsApplied();
 }
 
 SettingsMdi* QWeb::settingsWindow() const {
     emit message("QWeb::settingsWindow()", LoggerSeverity::LOG_DEBUG);
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QWeb::settingsChanged);
     return ret;
 }

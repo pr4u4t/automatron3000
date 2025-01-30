@@ -1,8 +1,0 @@
-CLin.cpp
-settingsdialog.cpp
-QLin.cpp
-qlin_global.h
-CLin.h
-settingsdialog.h
-QLin.h
-settingsdialog.ui

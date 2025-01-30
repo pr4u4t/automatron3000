@@ -85,9 +85,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<LinBusSettings>(settingsPath(), setts);
+    //Settings::store<LinBusSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::ok() {

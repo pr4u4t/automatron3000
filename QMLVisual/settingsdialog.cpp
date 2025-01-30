@@ -68,9 +68,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
-
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<MLVisualSettings>(settingsPath(), setts);
+    //Settings::store<MLVisualSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::selectViewPath() {

@@ -1,7 +1,0 @@
-settingsdialog.cpp
-QLinTester.cpp
-qlintester_global.h
-settingsdialog.h
-QLinTester.h
-qlintester.ui
-settingsdialog.ui

@@ -4,17 +4,17 @@
 <context>
     <name>ChooseWidgetsDialog</name>
     <message>
-        <location filename="MainWindow.h" line="111"/>
+        <location filename="MainWindow.h" line="159"/>
         <source>Choose widgets to copy</source>
         <translation>Wybierz widżety do skopiowania</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="127"/>
+        <location filename="MainWindow.h" line="175"/>
         <source>Submit</source>
         <translation>Potwierdź</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="133"/>
+        <location filename="MainWindow.h" line="181"/>
         <source>Cancel</source>
         <translation>Anuluj</translation>
     </message>
@@ -22,9 +22,22 @@
 <context>
     <name>CustomDockWidgetTab</name>
     <message>
-        <location filename="MainWindow.h" line="493"/>
+        <location filename="MainWindow.h" line="575"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
+    </message>
+</context>
+<context>
+    <name>DeleteWorkspaceDialog</name>
+    <message>
+        <location filename="MainWindow.h" line="131"/>
+        <source>Submit</source>
+        <translation type="unfinished">Potwierdź</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.h" line="137"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Anuluj</translation>
     </message>
 </context>
 <context>
@@ -50,17 +63,21 @@
         <translation>uuid</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="174"/>
+        <location filename="Instances.cpp" line="190"/>
         <source>Copy</source>
         <translation>Kopiuj</translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="175"/>
-        <source>Close</source>
-        <translation>Zamknij</translation>
+        <location filename="Instances.cpp" line="191"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Instances.cpp" line="177"/>
+        <source>Close</source>
+        <translation type="vanished">Zamknij</translation>
+    </message>
+    <message>
+        <location filename="Instances.cpp" line="193"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
@@ -68,7 +85,7 @@
 <context>
     <name>LoadingDialog</name>
     <message>
-        <location filename="LoadingDialog.h" line="34"/>
+        <location filename="LoadingDialog.h" line="37"/>
         <source>Please wait</source>
         <translation>Proszę czekać</translation>
     </message>
@@ -230,7 +247,7 @@
     <message>
         <location filename="MainWindow.cpp" line="419"/>
         <source>Input/Output</source>
-        <translation>Wejscie/Wyjście</translation>
+        <translation>Wejście/Wyjście</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="421"/>
@@ -289,6 +306,26 @@
         <translation>Zapisz obszar roboczy</translation>
     </message>
     <message>
+        <location filename="MainWindow.cpp" line="540"/>
+        <source>Lock Workspace</source>
+        <translation>Zablokuj obszar roboczy</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="546"/>
+        <source>Create workspace</source>
+        <translation>Stwórz obszar roboczy</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="553"/>
+        <source>Copy workspace</source>
+        <translation>Kopiuj obszar roboczy</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="560"/>
+        <source>Delete workspace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Connected to %1 : %2, %3, %4, %5, %6</source>
         <translation type="vanished">Połączony do %1 : %2, %3, %4, %5, %6</translation>
     </message>
@@ -309,44 +346,44 @@
         <translation type="vanished">Ostrzeżenie</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="377"/>
+        <location filename="MainWindow.h" line="456"/>
         <source>Save Perspective</source>
         <translation>Zapisz obszar roboczy</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="220"/>
-        <location filename="MainWindow.h" line="349"/>
-        <location filename="MainWindow.h" line="377"/>
+        <location filename="MainWindow.h" line="274"/>
+        <location filename="MainWindow.h" line="425"/>
+        <location filename="MainWindow.h" line="456"/>
         <source>Enter unique name:</source>
         <translation>Wprowadź unikalną nazwę:</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="220"/>
-        <location filename="MainWindow.h" line="349"/>
+        <location filename="MainWindow.h" line="274"/>
+        <location filename="MainWindow.h" line="425"/>
         <source>Create perspective</source>
         <translation>Stwórz obszar roboczy</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="228"/>
-        <location filename="MainWindow.h" line="356"/>
-        <location filename="MainWindow.h" line="383"/>
+        <location filename="MainWindow.h" line="282"/>
+        <location filename="MainWindow.h" line="433"/>
+        <location filename="MainWindow.h" line="464"/>
         <source>Error perspective already exists</source>
         <translation>Błąd obszar roboczy o tej nawie istnieje</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="228"/>
-        <location filename="MainWindow.h" line="356"/>
-        <location filename="MainWindow.h" line="383"/>
+        <location filename="MainWindow.h" line="282"/>
+        <location filename="MainWindow.h" line="433"/>
+        <location filename="MainWindow.h" line="464"/>
         <source>Perspective %1 already exists</source>
         <translation>Obszar roboczy %1 już istnieje</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="289"/>
+        <location filename="MainWindow.h" line="357"/>
         <source>store current perspective</source>
         <translation>zapisz bieżący obszar roboczy</translation>
     </message>
     <message>
-        <location filename="MainWindow.h" line="290"/>
+        <location filename="MainWindow.h" line="358"/>
         <source>Your current workspace contains changes would you like to save them?</source>
         <translation>Twoja bieżąca przestrzeń robocza zawiera zmiany. Czy chcesz je zapisać?</translation>
     </message>

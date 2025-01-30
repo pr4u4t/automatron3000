@@ -3,7 +3,7 @@ Instances.cpp
 LogViewer.cpp
 main.cpp
 MainWindow.cpp
-PluginList.cpp
+Plugins.cpp
 Preferences.cpp
 Session.cpp
 Splash.cpp
@@ -13,12 +13,15 @@ LogViewer.h
 main.h
 MainWindow.h
 Session.h
+Service.h
+WebServer.h
 Splash.h
 Preferences.h
 PreferencePage.h
 Help.h
+LoadingDialog.h
 Tray.h
 Instances.h
-PluginList.h
+Plugins.h
 preferences.ui
 szpuler.qrc

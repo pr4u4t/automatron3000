@@ -111,7 +111,14 @@ QMLVisual::~QMLVisual() {
 //}
 
 bool QMLVisual::initialize() {
-    settingsChanged();
+    const auto set = settings<MLVisualSettings>();
+    //*set = MLVisualSettings(Settings::get(), settingsPath());
+
+    m_viewer->setSource(QUrl::fromLocalFile(set->viewerPath()));
+    m_viewer->setResizeMode(QQuickWidget::SizeRootObjectToView);
+
+    const auto err = m_viewer->errors();
+    emit message(QString("QMLVisual::settingsChanged: errors %1").arg(err.size()), LoggerSeverity::LOG_DEBUG);
     return true;
 }
 
@@ -122,19 +129,17 @@ bool QMLVisual::deinitialize() {
 void QMLVisual::settingsChanged() {
     emit message("QMLVisual::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<MLVisualSettings>();
-    //*set = MLVisualSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<MLVisualSettings>(settingsPath()));
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<MLVisualSettings>();
+    *set = *nset;
 
-    m_viewer->setSource(QUrl::fromLocalFile(set->viewerPath()));
-    m_viewer->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    initialize();
 
-    const auto err = m_viewer->errors();
-    emit message(QString("QMLVisual::settingsChanged: errors %1").arg(err.size()), LoggerSeverity::LOG_DEBUG);
     emit settingsApplied();
 }
 
 SettingsMdi* QMLVisual::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QMLVisual::settingsChanged);
     return ret;
 }

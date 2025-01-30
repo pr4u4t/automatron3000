@@ -49,7 +49,7 @@ static bool QCircularBar_register(ModuleLoaderContext* ldctx, PluginsLoader* ld,
     QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
     QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
         windowAddPluginSettingsAction<QCircularBar, QCircularBarMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QCircularBar"), gtx, ctx, log);
-        });
+    });
 
     return true;
 }
@@ -92,7 +92,7 @@ QCircularBar::~QCircularBar() {
 }
 
 SettingsMdi* QCircularBar::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QCircularBar::settingsChanged);
     return ret;
 }
@@ -111,6 +111,9 @@ int QCircularBar::digits(int val) {
 }
 
 bool QCircularBar::initialize() {
+
+    const auto set = settings<CircularBarSettings>();
+
     setPrecision(0);
     setSteps(20);
     setBarSize(5);
@@ -141,7 +144,15 @@ bool QCircularBar::initialize() {
     //setCoverGlassEnabled(true);
     setEnabled(true);
 
-    settingsChanged();
+    setMinValue(set->minValue());
+    setMaxValue(set->maxValue());
+    setThreshold(set->threshold());
+    setPrecision(set->precision());
+    setLabel(set->label());
+    setUnits(set->units());
+    setSteps(set->steps());
+
+    update();
 
     return true;
 }
@@ -152,19 +163,14 @@ bool QCircularBar::deinitialize() {
 
 void QCircularBar::settingsChanged() {
     emit message("QCircularBar::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+    
     const auto set = settings<CircularBarSettings>();
-    *set = *(Settings::fetch<CircularBarSettings>(settingsPath()));
-    //*set = CircularBarSettings(Settings::get(), settingsPath());
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<CircularBarSettings>();
+    *set = *nset;
 
-    setMinValue(set->minValue());
-    setMaxValue(set->maxValue());
-    setThreshold(set->threshold());
-    setPrecision(set->precision());
-    setLabel(set->label());
-    setUnits(set->units());
-    setSteps(set->steps());
+    initialize();
 
-    update();
     emit settingsApplied();
 }
 

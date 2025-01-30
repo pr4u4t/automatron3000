@@ -34,6 +34,12 @@ struct LinReadByIDSettings : public PluginSettings {
     static constexpr const char* const linDeviceKey = "linDevice";
     static constexpr const char* const linDeviceValue = nullptr;
 
+    static constexpr const char* const maxReschedulesKey = "maxReschedules";
+    static constexpr const int maxReschedulesValue = 3;
+
+    static constexpr const char* const rescheduleIntervalKey = "rescheduleInterval";
+    static constexpr const int rescheduleIntervalValue = 300;
+
     Q_GADGET
 
     Q_PROPERTY(QByteArray frameData READ frameData WRITE setFrameData)
@@ -42,6 +48,8 @@ struct LinReadByIDSettings : public PluginSettings {
     Q_PROPERTY(QString title READ title WRITE setTitle)
     Q_PROPERTY(QString previous READ previous WRITE setPrevious)
     Q_PROPERTY(QString linDevice READ linDevice WRITE setLinDevice)
+    Q_PROPERTY(int maxReschedules READ maxReschedules WRITE setMaxReschedules)
+    Q_PROPERTY(int rescheduleInterval READ rescheduleInterval WRITE setRescheduleInterval)
 
 public:
 
@@ -50,7 +58,9 @@ public:
         , m_interval(intervalValue)
         , m_tries(triesValue)
         , m_previous(previousValue)
-        , m_linDevice(linDeviceValue) {
+        , m_linDevice(linDeviceValue)
+        , m_maxReschedules(maxReschedulesValue) 
+        , m_rescheduleInterval(rescheduleIntervalValue){
         registerMetaObject(&staticMetaObject);
     }
 
@@ -61,7 +71,9 @@ public:
         , m_tries(settings.value(settingsPath + "/" + triesKey, triesValue).toUInt())
         , m_title(settings.value(settingsPath + "/" + titleKey, titleValue).toString())
         , m_previous(settings.value(settingsPath + "/" + previousKey, previousValue).toString())
-        , m_linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString()) {
+        , m_linDevice(settings.value(settingsPath + "/" + linDeviceKey, linDeviceValue).toString())
+        , m_maxReschedules(settings.value(settingsPath + "/" + maxReschedulesKey, maxReschedulesValue).toInt())
+        , m_rescheduleInterval(settings.value(settingsPath + "/" + rescheduleIntervalKey, rescheduleIntervalValue).toInt()) {
         registerMetaObject(&staticMetaObject);
     }
 
@@ -72,6 +84,8 @@ public:
         settings.setValue(settingsPath + "/" + titleKey, m_title);
         settings.setValue(settingsPath + "/" + previousKey, m_previous);
         settings.setValue(settingsPath + "/" + linDeviceKey, m_linDevice);
+        settings.setValue(settingsPath + "/" + maxReschedulesKey, m_maxReschedules);
+        settings.setValue(settingsPath + "/" + rescheduleIntervalKey, m_rescheduleInterval);
 
         PluginSettings::save(settings, settingsPath);
     }
@@ -99,13 +113,22 @@ public:
     QString linDevice() const { return m_linDevice; }
     void setLinDevice(const QString& linDevice) { m_linDevice = linDevice; }
 
+    // Getter and Setter for tries
+    int maxReschedules() const { return m_maxReschedules; }
+    void setMaxReschedules(int resched) { m_maxReschedules = resched; }
+
+    int rescheduleInterval () const { return m_rescheduleInterval; }
+    void setRescheduleInterval(int interval) { m_rescheduleInterval = interval; }
+
     bool operator==(const LinReadByIDSettings& other) const {
         return m_frameData == other.m_frameData &&
             m_interval == other.m_interval &&
             m_tries == other.m_tries &&
             m_title == other.m_title &&
             m_previous == other.m_previous &&
-            m_linDevice == other.m_linDevice;
+            m_linDevice == other.m_linDevice &&
+            m_maxReschedules == other.m_maxReschedules &&
+            m_rescheduleInterval == other.m_rescheduleInterval;
     }
 
     bool operator!=(const LinReadByIDSettings& other) const {
@@ -120,6 +143,8 @@ private:
     QString m_title;
     QString m_previous;
     QString m_linDevice;
+    int m_maxReschedules;
+    int m_rescheduleInterval;
 };
 
 class QLinReadByID;

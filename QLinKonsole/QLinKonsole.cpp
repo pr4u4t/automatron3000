@@ -86,7 +86,7 @@ QLinKonsole::QLinKonsole(Loader* ld, PluginsLoader* plugins, QWidget* parent, co
 }
 
 SettingsMdi* QLinKonsole::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinKonsole::settingsChanged);
     return ret;
 }
@@ -95,7 +95,6 @@ bool QLinKonsole::initialize() {
 
     emit message("QLinKonsole::init()");
     const auto set = settings<KonsoleSettings>();
-    *(set) = KonsoleSettings(Settings::get(), settingsPath());
 
     if (set->linDevice().isEmpty() == true) {
         emit message("QLinKonsole::init: lin device name == nullptr");
@@ -129,37 +128,13 @@ bool QLinKonsole::deinitialize() {
 void QLinKonsole::settingsChanged() {
     emit message("QLinKonsole::settingsChanged()");
     const auto set = settings<KonsoleSettings>();
-    //*(set) = KonsoleSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<KonsoleSettings>(settingsPath()));
-    m_data.m_terminal->setPrompt(set->prompt()); //setLocalEchoEnabled(m_settings.localEcho);
-    disconnect(this, SLOT(putData(const QByteArray&)));
-    disconnect(this, SLOT(putData(const QString&, LoggerSeverity)));
-    m_data.m_lin = nullptr;
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<KonsoleSettings>();
+    *set = *nset;
 
-    if (set->linDevice().isEmpty() == true) {
-        emit message("QLinKonsole::init: lin device name == nullptr");
-        return;
-    }
-
-    auto io = plugins()->instance(set->linDevice(), nullptr);
-
-    if (io.isNull() == true) {
-        emit message(QString("QLinKonsole::init: failed to open lin device %1").arg(set->linDevice()));
-        return;
-    }
-
-    connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(dataReady(const QByteArray&)), this, SLOT(putData(const QByteArray&)));
-    connect(dynamic_cast<IODevice*>(io.data()), SIGNAL(message(const QString&, LoggerSeverity)), this, SLOT(putData(const QString&, LoggerSeverity)));
-    m_data.m_lin = io.dynamicCast<IODevice>();
+    initialize();
 
     emit settingsApplied();
-
-    if (m_data.m_lin->isOpen() == false) {
-        if (m_data.m_lin->open() == false) {
-            emit message("QLinKonsole::init(): failed to open QLin");
-            return;
-        }
-    }
 }
 
 void QLinKonsole::putData(const QByteArray& data, LoggerSeverity severity) {

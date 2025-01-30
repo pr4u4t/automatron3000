@@ -1,0 +1,144 @@
+#include "UsbCam.h"
+
+#include "../core/core.h"
+#include "settingsdialog.h"
+#include "ui_usbcam.h"
+
+#include <QtGlobal>
+#include <QtGui>
+
+struct UsbCamMenu {
+    UsbCamMenu(QCoreApplication* app)
+        : m_app(app) {
+
+        if (app != nullptr && Settings::localeNeeded()) {
+            m_translator = new QTranslator();
+            if (m_translator->load(QLocale::system(), "UsbCam", "_", "translations")) { //set directory of ts
+                m_app->installTranslator(m_translator);
+            }
+        }
+    }
+
+    QMenu* m_usbcamMenu = nullptr;
+    QMenu* m_settings = nullptr;
+    QAction* m_newInstance = nullptr;
+
+    QCoreApplication* m_app = nullptr;
+    QTranslator* m_translator = nullptr;
+};
+
+static bool UsbCam_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, UsbCamMenu* ctx, Logger* log) {
+    log->message("UsbCam_register()");
+
+    GuiLoaderContext* gtx = ldctx->to<GuiLoaderContext>();
+    if (gtx == nullptr) {
+        log->message("UsbCam_register: application is non gui not registering");
+        return false;
+    }
+
+    if (gtx->m_win == nullptr) {
+        log->message("UsbCam_register(): window pointer == nullptr");
+        return false;
+    }
+
+    auto visualMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "V&isualization"));
+    ctx->m_usbcamMenu = visualMenu->addMenu(ctx->m_app->translate("MainWindow", "UsbCam"));
+
+    windowAddInstanceSettings(ctx->m_badgesMenu, &ctx->m_settings, &ctx->m_newInstance, "QBadge", ctx->m_app, log);
+
+    QObject::connect(ctx->m_newInstance, &QAction::triggered, gtx->m_win, &Window::create);
+    QObject::connect(ld, &PluginsLoader::loaded, [gtx, ctx, log, ld](const Plugin* plugin) {
+        windowAddPluginSettingsAction<QBadge, QBadgeMenu, GuiLoaderContext, SettingsDialog, Plugin>(plugin, QString("QBadge"), gtx, ctx, log);
+        });
+
+    return true;
+}
+
+static bool QBadge_unregister(ModuleLoaderContext* ldctx, PluginsLoader* ld, QBadgeMenu* ctx, Logger* log) {
+    log->message("QBadge_unregister()");
+    return true;
+}
+
+REGISTER_PLUGIN(
+    QBadge,
+    Plugin::Type::WIDGET,
+    "0.0.1",
+    "pawel.ciejka@gmail.com",
+    "example plugin",
+    QBadge_register,
+    QBadge_unregister,
+    QBadgeMenu,
+    {},
+    true,
+    100,
+    BadgeSettings
+)
+
+QBadge::QBadge(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QString& sPath, BadgeSettings* set, const QString& uuid)
+    : Widget(
+        ld,
+        plugins,
+        parent,
+        sPath,
+        set,
+        uuid
+    )
+    , m_ui(new Ui::QBadgeUI) {
+    m_ui->setupUi(this);
+}
+
+bool QBadge::saveSettings() {
+    return true;
+}
+
+/*!
+  \brief Destructor
+  \param none
+*/
+QBadge::~QBadge() {
+}
+
+//void QBadge::resizeEvent(QResizeEvent* event) {
+//    
+//    m_pixmap = m_pixmap.scaled(event->size(), Qt::KeepAspectRatio);
+//    m_ui->image->setPixmap(m_pixmap);
+//
+//    Widget::resizeEvent(event);
+//}
+
+bool QBadge::initialize() {
+    //settingsChanged();
+    const auto set = settings<BadgeSettings>();
+    m_ui->label->setText(set->text());
+    m_ui->title->setText(set->title());
+
+    QPixmap pix;
+    if (set->imagePath().isEmpty() == false && pix.load(set->imagePath())) {
+        m_ui->image->setPixmap(pix);
+    }
+
+    return true;
+}
+
+bool QBadge::deinitialize() {
+
+    return true;
+}
+
+void QBadge::settingsChanged() {
+    emit message("QBadge::settingsChanged()", LoggerSeverity::LOG_DEBUG);
+    const auto set = settings<BadgeSettings>();
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<BadgeSettings>();
+    *set = *nset;
+
+    initialize();
+
+    emit settingsApplied();
+}
+
+SettingsMdi* QBadge::settingsWindow() const {
+    auto ret = new SettingsDialog(nullptr, this);
+    QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QBadge::settingsChanged);
+    return ret;
+}

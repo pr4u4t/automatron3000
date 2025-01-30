@@ -38,12 +38,12 @@
         <translation type="vanished">Błąd otwarcia portu szeregowego</translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="106"/>
+        <location filename="QSerial.cpp" line="105"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="QSerial.cpp" line="106"/>
+        <location filename="QSerial.cpp" line="105"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>

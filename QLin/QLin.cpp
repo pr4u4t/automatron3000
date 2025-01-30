@@ -42,6 +42,10 @@ static bool QLin_register(ModuleLoaderContext* ldctx, PluginsLoader* ld, QLinMen
 	}
 
 	auto ioMenu = gtx->m_win->findMenu(ctx->m_app->translate("MainWindow", "Input/Output"));
+	if (ioMenu == nullptr) {
+		log->message("QLin_register(): ioMenu == nullptr");
+		return false;
+	}
 	ctx->m_linbusMenu = ioMenu->addMenu(ctx->m_app->translate("MainWindow", "&LinBus"));
 	
 	windowAddInstanceSettings(ctx->m_linbusMenu, &ctx->m_settings, &ctx->m_newInstance, "QLin", ctx->m_app, log);
@@ -84,7 +88,8 @@ QLin::QLin(Loader* ld, PluginsLoader* plugins, QObject* parent, const QString& p
 
 bool QLin::initialize() {
 	const auto set = settings<LinSettings>();
-	*set = LinSettings(Settings::get(), settingsPath());
+	close();
+	open(QString());
 	return true;
 }
 
@@ -95,10 +100,12 @@ bool QLin::deinitialize() {
 void QLin::settingsChanged() {
 	emit message("QLin::settingsChanged()", LoggerSeverity::LOG_DEBUG);
 	const auto set = settings<LinSettings>();
-	//*set = LinSettings(Settings::get(), settingsPath());
-	*set = *(Settings::fetch<LinSettings>(settingsPath()));
-	close();
-	open(QString());
+	const auto src = qobject_cast<SettingsDialog*>(sender());
+	const auto nset = src->settings<LinSettings>();
+	*set = *nset;
+
+	initialize();
+
 	emit settingsApplied();
 }
 
@@ -144,7 +151,7 @@ bool QLin::open(const QString& url) {
 }
 
 SettingsMdi* QLin::settingsWindow() const {
-	auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+	auto ret = new SettingsDialog(nullptr, this);
 	QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLin::settingsChanged);
 	return ret;
 }

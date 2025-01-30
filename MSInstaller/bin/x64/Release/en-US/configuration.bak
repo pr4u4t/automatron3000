@@ -1,0 +1,651 @@
+[General]
+geometry=@ByteArray(\x1\xd9\xd0\xcb\0\x3\0\0\0\0\x3U\0\0\x1\xe\0\0\x6\xa9\0\0\x3H\0\0\x3U\0\0\x1-\0\0\x6\xa9\0\0\x3H\0\0\0\0\0\0\0\0\n\0\0\0\x3U\0\0\x1-\0\0\x6\xa9\0\0\x3H)
+translations=true
+
+[Modules]
+enabled=LogViewer, PluginList, QSerial, QData, Instances, QKonsole, QLin, QLinReadByID, QLinWriteByID, QLinBus, QLinCommand, QLinKonsole, QLinTester, QBadge, QCircularBar, QCustomAction, QExternalAction, QMLVisual, QWeb
+directory=./plugins
+
+[Perspectives]
+size=3
+1\Name=Default
+1\State="@ByteArray(<?xml version=\"1.0\" encoding=\"UTF-8\"?><QtAdvancedDockingSystem Version=\"1\" UserVersion=\"0\" Containers=\"1\"><Container Floating=\"0\"><Splitter Orientation=\"-\" Count=\"4\"><Area Tabs=\"1\" Current=\"QLinTester\"><Widget Name=\"QLinTester\" Closed=\"1\"/></Area><Area Tabs=\"1\" Current=\"QCustomAction 1\"><Widget Name=\"QCustomAction 1\" Closed=\"1\"/></Area><Area Tabs=\"1\" Current=\"QCustomAction 2\"><Widget Name=\"QCustomAction 2\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QCustomAction 3\"><Widget Name=\"QCustomAction 3\" Closed=\"0\"/></Area><Sizes>0 0 162 1484 </Sizes></Splitter><SideBar Area=\"2\" Tabs=\"3\"><Widget Name=\"Instances\" Closed=\"0\" Size=\"795\"/><Widget Name=\"Plugins\" Closed=\"0\" Size=\"290\"/><Widget Name=\"QLinBus\" Closed=\"0\" Size=\"654\"/></SideBar><SideBar Area=\"3\" Tabs=\"1\"><Widget Name=\"LogViewer\" Closed=\"0\" Size=\"1306\"/></SideBar></Container></QtAdvancedDockingSystem>\n)"
+2\Name=T2L LIMO
+2\State="@ByteArray(<?xml version=\"1.0\" encoding=\"UTF-8\"?><QtAdvancedDockingSystem Version=\"1\" UserVersion=\"0\" Containers=\"1\"><Container Floating=\"0\"><Splitter Orientation=\"-\" Count=\"10\"><Area Tabs=\"1\" Current=\"QLinTester\"><Widget Name=\"QLinTester\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinReadByID\"><Widget Name=\"QLinReadByID\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinReadByID 1\"><Widget Name=\"QLinReadByID 1\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QExternalAction\"><Widget Name=\"QExternalAction\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QExternalAction 1\"><Widget Name=\"QExternalAction 1\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinCommand\"><Widget Name=\"QLinCommand\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinWriteByID\"><Widget Name=\"QLinWriteByID\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinWriteByID 1\"><Widget Name=\"QLinWriteByID 1\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinCommand 1\"><Widget Name=\"QLinCommand 1\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QCustomAction\"><Widget Name=\"QCustomAction\" Closed=\"1\"/></Area><Sizes>204 206 215 156 156 149 161 196 168 0 </Sizes></Splitter><SideBar Area=\"2\" Tabs=\"3\"><Widget Name=\"Instances\" Closed=\"0\" Size=\"795\"/><Widget Name=\"Plugins\" Closed=\"0\" Size=\"290\"/><Widget Name=\"QLinBus\" Closed=\"0\" Size=\"797\"/></SideBar><SideBar Area=\"3\" Tabs=\"2\"><Widget Name=\"LogViewer\" Closed=\"0\" Size=\"166\"/><Widget Name=\"QLinKonsole\" Closed=\"0\" Size=\"224\"/></SideBar></Container></QtAdvancedDockingSystem>\n)"
+3\Name=T2R LIMO
+3\State="@ByteArray(<?xml version=\"1.0\" encoding=\"UTF-8\"?><QtAdvancedDockingSystem Version=\"1\" UserVersion=\"0\" Containers=\"1\"><Container Floating=\"0\"><Splitter Orientation=\"-\" Count=\"10\"><Area Tabs=\"1\" Current=\"QLinTester\"><Widget Name=\"QLinTester\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinReadByID 8\"><Widget Name=\"QLinReadByID 8\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinReadByID 9\"><Widget Name=\"QLinReadByID 9\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QExternalAction 7\"><Widget Name=\"QExternalAction 7\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QExternalAction 8\"><Widget Name=\"QExternalAction 8\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinCommand 8\"><Widget Name=\"QLinCommand 8\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinWriteByID 7\"><Widget Name=\"QLinWriteByID 7\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinWriteByID 8\"><Widget Name=\"QLinWriteByID 8\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinCommand 9\"><Widget Name=\"QLinCommand 9\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QCustomAction\"><Widget Name=\"QCustomAction\" Closed=\"1\"/></Area><Sizes>204 206 215 156 156 149 161 196 168 0 </Sizes></Splitter><SideBar Area=\"2\" Tabs=\"3\"><Widget Name=\"Instances\" Closed=\"0\" Size=\"795\"/><Widget Name=\"Plugins\" Closed=\"0\" Size=\"290\"/><Widget Name=\"QLinBus\" Closed=\"0\" Size=\"797\"/></SideBar><SideBar Area=\"3\" Tabs=\"2\"><Widget Name=\"LogViewer\" Closed=\"0\" Size=\"166\"/><Widget Name=\"QLinKonsole\" Closed=\"0\" Size=\"224\"/></SideBar></Container></QtAdvancedDockingSystem>\n)"
+4\Name=T2R LIMO
+4\State="@ByteArray(<?xml version=\"1.0\" encoding=\"UTF-8\"?><QtAdvancedDockingSystem Version=\"1\" UserVersion=\"0\" Containers=\"1\"><Container Floating=\"0\"><Splitter Orientation=\"-\" Count=\"10\"><Area Tabs=\"1\" Current=\"QLinTester\"><Widget Name=\"QLinTester\" Closed=\"0\"/></Area><Area Tabs=\"2\" Current=\"QLinReadByID 3\"><Widget Name=\"QLinReadByID 3\" Closed=\"0\"/><Widget Name=\"QLinReadByID 3/Settings\" Closed=\"0\"/></Area><Area Tabs=\"2\" Current=\"QLinReadByID 5\"><Widget Name=\"QLinReadByID 5\" Closed=\"0\"/><Widget Name=\"QLinReadByID 5/Settings\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QExternalAction 2\"><Widget Name=\"QExternalAction 2\" Closed=\"0\"/></Area><Area Tabs=\"2\" Current=\"QExternalAction 4\"><Widget Name=\"QExternalAction 4\" Closed=\"0\"/><Widget Name=\"QExternalAction 4/Settings\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinCommand 4\"><Widget Name=\"QLinCommand 4\" Closed=\"0\"/></Area><Area Tabs=\"1\" Current=\"QLinWriteByID 4\"><Widget Name=\"QLinWriteByID 4\" Closed=\"0\"/></Area><Area Tabs=\"2\" Current=\"QLinCommand 2\"><Widget Name=\"QLinWriteByID 2\" Closed=\"1\"/><Widget Name=\"QLinCommand 2\" Closed=\"1\"/></Area><Area Tabs=\"1\" Current=\"QCustomAction\"><Widget Name=\"QCustomAction\" Closed=\"1\"/></Area><Area Tabs=\"1\" Current=\"QLinCommand 5\"><Widget Name=\"QLinCommand 5\" Closed=\"0\"/></Area><Sizes>292 238 243 187 154 159 192 0 0 151 </Sizes></Splitter><SideBar Area=\"2\" Tabs=\"3\"><Widget Name=\"Instances\" Closed=\"0\" Size=\"795\"/><Widget Name=\"Plugins\" Closed=\"0\" Size=\"290\"/><Widget Name=\"QLinBus\" Closed=\"0\" Size=\"797\"/></SideBar><SideBar Area=\"3\" Tabs=\"2\"><Widget Name=\"LogViewer\" Closed=\"0\" Size=\"166\"/><Widget Name=\"QLinKonsole\" Closed=\"0\" Size=\"224\"/></SideBar></Container></QtAdvancedDockingSystem>\n)"
+
+[Session]
+instances=QExternalAction-{edc1ab3c-2de3-4855-878f-2d2260e83a9b}@QExternalAction 1, QExternalAction-{4ab7db9d-ad5c-4ca7-88e7-0d88e736e80e}@QExternalAction, QExternalAction-{fab251c8-4375-4d13-9141-350680053d34}@QExternalAction 3, QExternalAction-{447beebc-1417-4b1f-ad8f-38304d1384a6}@QExternalAction 2, QExternalAction-{f240073a-e72c-4c7e-a48f-efe3f55ed40b}@QExternalAction 4, QExternalAction-{1e211d69-1ac6-4e76-9fe3-d5290dc4aa68}@QExternalAction 6, QExternalAction-{4c7e3e24-d560-41b2-8713-c76c42f9612e}@QExternalAction 5, QExternalAction-{c645a3e3-2308-4329-a470-21f87ac57c03}@QExternalAction 8, QExternalAction-{0816fb98-6fc4-4729-b3a1-82c541bb806b}@QExternalAction 7, QExternalAction-{8e60567d-da71-41ea-9ad6-8e60e6768abd}@QExternalAction 10, QExternalAction-{9f551b60-cd7e-496b-8fb4-da6bb9da9768}@QExternalAction 9, QCustomAction-{735cd8a9-0b8e-4858-81e7-e3341c029dff}@QCustomAction 1, QCustomAction-{cd12a574-2d90-4d24-a32b-6683a039b6c4}@QCustomAction, QCustomAction-{cd12a574-2d90-4d24-a32b-6683a039b6c4}@QCustomAction 1, QCustomAction-{735cd8a9-0b8e-4858-81e7-e3341c029dff}@QCustomAction, QCustomAction-{c4b3a910-0605-4320-abce-2a685d3ea683}@QCustomAction 2, QCustomAction-{fb6f57d5-fda5-450f-a850-b85da3eb238c}@QCustomAction 3, LogViewer-{3bf1fb59-9f61-4989-aab5-edb036396ff7}@LogViewer, Plugins-{f5b036bf-7a00-44e9-9e1f-1dbdc14cefef}@Plugins, Instances-{5bc53aa3-e1a8-4f39-9a82-cc0512f59360}@Instances, QLin-{3fdef8cb-a9e7-4557-a253-928a2ff732bd}@QLin, QLinCommand-{e6200eae-2366-4b6c-b82b-680f36969f79}@QLinCommand, QLinCommand-{4649be68-1b09-4dfe-be6a-2c24d5931b8d}@QLinCommand 1, QLinCommand-{e574ebe5-bb51-4ced-8b53-76beabab446f}@QLinCommand 3, QLinCommand-{6182e58e-80f2-4eaa-80e7-a09ae6f29a80}@QLinCommand 2, QLinCommand-{42a25836-25f6-4eec-9eb6-3a29c8404f2f}@QLinCommand 4, QLinCommand-{14058175-5628-40a4-b673-5cd8e564f046}@QLinCommand 5, QLinCommand-{2d75ac1f-b360-4f8e-a4f5-744b387fea58}@QLinCommand 7, QLinCommand-{00189b72-3d0c-4aba-b268-b29edc6367f1}@QLinCommand 6, QLinCommand-{af21ffea-ceea-4456-91cb-f611bed2fff9}@QLinCommand 9, QLinCommand-{240e2f31-278f-497e-90fe-8f27acd0bd5e}@QLinCommand 8, QLinCommand-{ba486b2b-a4da-4f0c-893b-8fbab21510cb}@QLinCommand 11, QLinCommand-{e2977df3-d215-4850-b7c0-033257661b97}@QLinCommand 10, QLinKonsole-{0a928dbd-b3b6-462b-8cb4-35ec817e8762}@QLinKonsole, QLinTester-{2a92e757-10f0-4aba-ae16-59b180f2c4b8}@QLinTester, QLinBus-{126680d7-f3e9-47cf-b5b4-e65271e547b3}@QLinBus, QLinWriteByID-{95af5103-b648-47bb-b11d-0ce40a611371}@QLinWriteByID 1, QLinWriteByID-{f6fe0be0-ca03-4bde-8182-d4d1c80c2a11}@QLinWriteByID, QLinWriteByID-{9b6742a1-5aec-4609-8e61-d2c5e46e2268}@QLinWriteByID 4, QLinWriteByID-{2820e143-9545-4356-8b5d-44135a34c1a1}@QLinWriteByID 3, QLinWriteByID-{b955cb97-8447-439d-a916-46305a56c8d1}@QLinWriteByID 2, QLinWriteByID-{538ed64a-7f78-44e6-9f98-5524f513c6d3}@QLinWriteByID 6, QLinWriteByID-{053b37eb-2f59-4236-a4e0-222b369704b1}@QLinWriteByID 5, QLinWriteByID-{9e4684fa-37ae-4fd2-942d-86db96602746}@QLinWriteByID 8, QLinWriteByID-{80f762d9-40f5-4a65-a363-45d8f45dd39c}@QLinWriteByID 7, QLinWriteByID-{9b392490-36c9-4089-bd3b-6600869eb316}@QLinWriteByID 10, QLinWriteByID-{3441512b-29ae-43ba-992b-34a8df826bae}@QLinWriteByID 9, QLinReadByID-{1fcd96af-6435-4873-8b86-8385f6bdce0a}@QLinReadByID, QLinReadByID-{770788e5-3477-44ea-9899-549d34d98e5d}@QLinReadByID 1, QLinReadByID-{1667e646-84ae-4caf-a301-1a6f5b21bc53}@QLinReadByID 2, QLinReadByID-{94d5b242-d116-4bad-b5d9-88c336c7adf5}@QLinReadByID 5, QLinReadByID-{a9296753-872f-4401-9a8b-14fe669352da}@QLinReadByID 4, QLinReadByID-{6ff78e76-dce4-4b84-a269-4dd96dc02865}@QLinReadByID 3, QLinReadByID-{c0b0af0a-6cb7-454a-a772-e4521276b598}@QLinReadByID 7, QLinReadByID-{b8c48eeb-ed6c-481d-86c8-ce5c67213472}@QLinReadByID 6, QLinReadByID-{49cf1cf9-5920-4d97-b054-f83cc581aea0}@QLinReadByID 9, QLinReadByID-{db300941-4a84-478a-96e9-64aa618bdc3f}@QLinReadByID 8, QLinReadByID-{093fb1f3-eab0-494e-82d0-ec5da45d84ea}@QLinReadByID 11, QLinReadByID-{98f0f010-5678-45ef-bbe0-886076ae2512}@QLinReadByID 10
+lock=false
+
+[Window]
+geometry=@ByteArray(\x1\xd9\xd0\xcb\0\x3\0\0\0\0\0\0\0\0\0\x1d\0\0\x4\x35\0\0\a-\0\0\0\0\0\0\0<\0\0\x4\x35\0\0\a-\0\0\0\0\0\0\0\0\x4\x38\0\0\0\0\0\0\0<\0\0\x4\x35\0\0\a-)
+fontSize=-1
+statusTimeout=2000
+hideMenu=false
+lock=false
+kiosk=false
+perspective=T1L
+translations=false
+
+[QLin-%7B3fdef8cb-a9e7-4557-a253-928a2ff732bd%7D]
+lin\version=1
+lin\slaveID=60
+lin\mode=2
+lin\initialSlaveData=@ByteArray(\xff\xff\xff\xff\xff\xff\xff\xff)
+lin\autoConnect=false
+lin\baudrate=19200
+lin\slaveDLC=8
+lin\dlc=@ByteArray(\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b)
+appName=QLin
+hwChannel=@ByteArray(VN1611 Channel 1\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x61\xb7\0\0\x1b\xf3\0\0\0\x1\0\0\0\x2\0\0\0\0\0\0\0\0\0\0\0\0)
+QueueSize=256
+lin\checksum=256
+objectName=QLin
+
+[QLinTester-%7B2a92e757-10f0-4aba-ae16-59b180f2c4b8%7D]
+testStartID=0
+testStopID=63
+testInterval=0
+tries=3
+linDevice=QLin
+objectName=QLinTester
+
+[Instances-%7B5bc53aa3-e1a8-4f39-9a82-cc0512f59360%7D]
+objectName=Instances
+
+[LogViewer-%7B3bf1fb59-9f61-4989-aab5-edb036396ff7%7D]
+objectName=LogViewer
+
+[Plugins-%7Bf5b036bf-7a00-44e9-9e1f-1dbdc14cefef%7D]
+objectName=Plugins
+
+[QLinBus-%7B126680d7-f3e9-47cf-b5b4-e65271e547b3%7D]
+scanStartID=0
+scanStopID=60
+scanInterval=99
+enableColors=true
+linDevice=QLin
+objectName=QLinBus
+
+[QLinKonsole-%7B0a928dbd-b3b6-462b-8cb4-35ec817e8762%7D]
+prompt="-> "
+localEcho=true
+commandDelay=0
+linDevice=
+objectName=QLinKonsole
+
+[QLinReadByID-%7B1fcd96af-6435-4873-8b86-8385f6bdce0a%7D]
+frameData=@ByteArray(0x650322f18c)
+Interval=99
+tries=3
+title=T2L LIMO: ECU SERIAL NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID
+
+[QLinReadByID-%7B770788e5-3477-44ea-9899-549d34d98e5d%7D]
+frameData=@ByteArray(0x650322f1a3)
+Interval=99
+tries=3
+title=T2L LIMO: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 1
+
+[QExternalAction-%7B4ab7db9d-ad5c-4ca7-88e7-0d88e736e80e%7D]
+title=T2L: Wymazanie pamięci
+buttonLabel=Wymaż
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\x46[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-erasechip\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction
+
+[QExternalAction-%7Bedc1ab3c-2de3-4855-878f-2d2260e83a9b%7D]
+title=T2L: Wgranie programu
+buttonLabel=Wgraj
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\xe4[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\SK49X_T2L_ECE_FBL_Z800_APP_ED8.0.0.hex,0x100000\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-auto\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 1
+
+[QLinCommand-%7Be6200eae-2366-4b6c-b82b-680f36969f79%7D]
+frameData=@ByteArray(0x65021002)
+Interval=99
+tries=3
+title=T2L: SESJA PROGRAMOWANIA
+buttonText=Wykonaj
+previous=
+linDevice=QLin
+objectName=QLinCommand
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinReadByID-%7B1667e646-84ae-4caf-a301-1a6f5b21bc53%7D]
+frameData=@ByteArray(0x650322f1a3)
+Interval=99
+tries=3
+title=T2L LIMO: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 2
+
+[QLinCommand-%7B4649be68-1b09-4dfe-be6a-2c24d5931b8d%7D]
+frameData=@ByteArray(0x65021101)
+Interval=99
+tries=3
+title=T2L LIMO: ECU RESET
+buttonText=Reset
+previous=
+linDevice=QLin
+objectName=QLinCommand 1
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinWriteByID-%7B95af5103-b648-47bb-b11d-0ce40a611371%7D]
+frameData=@ByteArray(0x65032ef1a3)
+Interval=99
+tries=3
+title=T2L LIMO : VW ECU Hardware Version Number
+dataSource=QLinReadByID 1
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 1
+nad=@ByteArray(65)
+didl=@ByteArray(a3)
+didh=@ByteArray(f1)
+
+[QLinWriteByID-%7Bf6fe0be0-ca03-4bde-8182-d4d1c80c2a11%7D]
+frameData=@ByteArray(0x65032ef18c)
+Interval=99
+tries=3
+title=T2L LIMO : ECU Serial Number
+dataSource=QLinReadByID
+previous=
+linDevice=QLin
+objectName=QLinWriteByID
+nad=@ByteArray(65)
+didl=@ByteArray(8c)
+didh=@ByteArray(f1)
+
+[QCustomAction-%7B%7B735cd8a9-0b8e-4858-81e7-e3341c029dff%7D%7D]
+pluginsActions="@Variant(\0\0\0\x90\0\0\0\x9d[{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID 1\",\"type\":\"bool\"}])"
+buttonText=Wykonaj
+title=T2L LIMO
+progress=true
+verbose=true
+interval=99
+objectName=QCustomAction 1
+
+[QCustomAction-%7B%7Bcd12a574-2d90-4d24-a32b-6683a039b6c4%7D%7D]
+pluginsActions="@Variant(\0\0\0\x90\0\0\x2\xcb[{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinTester\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID 1\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction 1\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinWriteByID\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinWriteByID 1\",\"type\":\"bool\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand 1\",\"type\":\"bool\"}])"
+buttonText=Exec
+title=Custom Action
+progress=false
+verbose=false
+interval=0
+objectName=QCustomAction
+
+[QCustomAction-%7B735cd8a9-0b8e-4858-81e7-e3341c029dff%7D]
+pluginsActions=@Variant(\0\0\0\x90\0\0\0\x2[])
+buttonText=Exec
+title=Custom Action
+progress=false
+verbose=false
+interval=0
+objectName=QCustomAction
+retryOnFailure=true
+numberOfRetries=3
+retryInterval=5000
+
+[QCustomAction-%7Bcd12a574-2d90-4d24-a32b-6683a039b6c4%7D]
+pluginsActions="@Variant(\0\0\0\x90\0\0\0\x9d[{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID 1\",\"type\":\"void\"}])"
+buttonText=Wykonaj
+title=T2L LIMO
+progress=false
+verbose=false
+interval=0
+objectName=QCustomAction 1
+retryOnFailure=true
+numberOfRetries=3
+retryInterval=5000
+
+[QCustomAction-%7B%7Bc4b3a910-0605-4320-abce-2a685d3ea683%7D%7D]
+pluginsActions="@Variant(\0\0\0\x90\0\0\x3\x1a[{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QExternalAction\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QExternalAction 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinCommand\",\"type\":\"void\"}])"
+buttonText=Wykonaj
+title=T2L LIMO
+progress=true
+verbose=true
+interval=0
+objectName=QCustomAction 2
+
+[QCustomAction-%7Bc4b3a910-0605-4320-abce-2a685d3ea683%7D]
+pluginsActions="@Variant(\0\0\0\x90\0\0\x4\xf5[{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinWriteByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinWriteByID 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QExternalAction\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QExternalAction 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinCommand\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinWriteByID\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinWriteByID 1\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinCommand 1\",\"type\":\"void\"}])"
+buttonText=Wykonaj
+title=T2L LIMO
+progress=true
+verbose=false
+interval=2000
+objectName=QCustomAction 2
+retryOnFailure=true
+numberOfRetries=3
+retryInterval=5000
+
+[QCustomAction-%7Bfb6f57d5-fda5-450f-a850-b85da3eb238c%7D]
+pluginsActions="@Variant(\0\0\0\x90\0\0\x5\x5[{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinReadByID 9\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction 7\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QExternalAction 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinWriteByID 7\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinWriteByID 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"reset\",\"objectName\":\"QLinCommand 9\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinReadByID 9\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QExternalAction 7\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QExternalAction 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinCommand 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinWriteByID 7\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinWriteByID 8\",\"type\":\"void\"},{\"enabled\":true,\"function\":\"exec\",\"objectName\":\"QLinCommand 9\",\"type\":\"void\"}])"
+buttonText=Wykonaj
+title=T2R LIMO
+progress=true
+verbose=true
+interval=2000
+objectName=QCustomAction 3
+retryOnFailure=true
+numberOfRetries=3
+retryInterval=5000
+
+[QExternalAction-%7B447beebc-1417-4b1f-ad8f-38304d1384a6%7D]
+title=T2L: Wymazanie pamięci
+buttonLabel=Wymaż
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\x46[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-erasechip\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 2
+
+[QExternalAction-%7Bf240073a-e72c-4c7e-a48f-efe3f55ed40b%7D]
+title=T2L: Wgranie programu
+buttonLabel=Wgraj
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\xe4[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\SK49X_T2R_ECE_FBL_Z800_APP_ED8.0.0.hex,0x100000\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-auto\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 4
+
+[QExternalAction-%7Bfab251c8-4375-4d13-9141-350680053d34%7D]
+title=T2L: Wgranie programu
+buttonLabel=Wgraj
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\xe4[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\SK49X_T2L_ECE_FBL_Z800_APP_ED8.0.0.hex,0x100000\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-auto\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 3
+
+[QLinCommand-%7B14058175-5628-40a4-b673-5cd8e564f046%7D]
+frameData=@ByteArray(0x66021101)
+Interval=99
+tries=3
+title=T2L LIMO: ECU RESET
+buttonText=Reset
+previous=
+linDevice=QLin
+objectName=QLinCommand 5
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinCommand-%7B42a25836-25f6-4eec-9eb6-3a29c8404f2f%7D]
+frameData=@ByteArray(0x66021002)
+Interval=99
+tries=3
+title=T2L: SESJA PROGRAMOWANIA
+buttonText=Wykonaj
+previous=
+linDevice=QLin
+objectName=QLinCommand 4
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinCommand-%7B6182e58e-80f2-4eaa-80e7-a09ae6f29a80%7D]
+frameData=@ByteArray(0x65021002)
+Interval=99
+tries=3
+title=T2L: SESJA PROGRAMOWANIA
+buttonText=Wykonaj
+previous=
+linDevice=QLin
+objectName=QLinCommand 2
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinCommand-%7Be574ebe5-bb51-4ced-8b53-76beabab446f%7D]
+frameData=@ByteArray(0x65021101)
+Interval=99
+tries=3
+title=T2L LIMO: ECU RESET
+buttonText=Reset
+previous=
+linDevice=QLin
+objectName=QLinCommand 3
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinReadByID-%7B6ff78e76-dce4-4b84-a269-4dd96dc02865%7D]
+frameData=@ByteArray(0x660322f18c)
+Interval=99
+tries=3
+title=T2L LIMO: ECU SERIAL NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 3
+
+[QLinReadByID-%7B94d5b242-d116-4bad-b5d9-88c336c7adf5%7D]
+frameData=@ByteArray(0x660322f1a3)
+Interval=99
+tries=3
+title=T2L LIMO: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 5
+
+[QLinReadByID-%7Ba9296753-872f-4401-9a8b-14fe669352da%7D]
+frameData=@ByteArray(0x650322f1a3)
+Interval=99
+tries=3
+title=T2L LIMO: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 4
+
+[QLinWriteByID-%7B2820e143-9545-4356-8b5d-44135a34c1a1%7D]
+nad=@ByteArray(65)
+didl=@ByteArray(a3)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : VW ECU Hardware Version Number
+dataSource=QLinReadByID 1
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 3
+
+[QLinWriteByID-%7B9b6742a1-5aec-4609-8e61-d2c5e46e2268%7D]
+nad=@ByteArray(66)
+didl=@ByteArray(a3)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2R LIMO : VW ECU Hardware Version Number
+dataSource=QLinReadByID 1
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 4
+
+[QLinWriteByID-%7Bb955cb97-8447-439d-a916-46305a56c8d1%7D]
+nad=@ByteArray(65)
+didl=@ByteArray(8c)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : ECU Serial Number
+dataSource=QLinReadByID
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 2
+
+[QExternalAction-%7B1e211d69-1ac6-4e76-9fe3-d5290dc4aa68%7D]
+title=T2L: Wgranie programu
+buttonLabel=Wgraj
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\xe4[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\SK49X_T2R_ECE_FBL_Z800_APP_ED8.0.0.hex,0x100000\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-auto\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 6
+
+[QExternalAction-%7B4c7e3e24-d560-41b2-8713-c76c42f9612e%7D]
+title=T2L: Wymazanie pamięci
+buttonLabel=Wymaż
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\x46[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-erasechip\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 5
+
+[QLinCommand-%7B00189b72-3d0c-4aba-b268-b29edc6367f1%7D]
+frameData=@ByteArray(0x66021002)
+Interval=99
+tries=3
+title=T2L: SESJA PROGRAMOWANIA
+buttonText=Wykonaj
+previous=
+linDevice=QLin
+objectName=QLinCommand 6
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinCommand-%7B2d75ac1f-b360-4f8e-a4f5-744b387fea58%7D]
+frameData=@ByteArray(0x65021101)
+Interval=99
+tries=3
+title=T2L LIMO: ECU RESET
+buttonText=Reset
+previous=
+linDevice=QLin
+objectName=QLinCommand 7
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinReadByID-%7Bb8c48eeb-ed6c-481d-86c8-ce5c67213472%7D]
+frameData=@ByteArray(0x660322f18c)
+Interval=99
+tries=3
+title=T2L LIMO: ECU SERIAL NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 6
+
+[QLinReadByID-%7Bc0b0af0a-6cb7-454a-a772-e4521276b598%7D]
+frameData=@ByteArray(0x660322f1a3)
+Interval=99
+tries=3
+title=T2L LIMO: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 7
+
+[QLinWriteByID-%7B053b37eb-2f59-4236-a4e0-222b369704b1%7D]
+nad=@ByteArray(65)
+didl=@ByteArray(8c)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : ECU Serial Number
+dataSource=QLinReadByID 6
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 5
+
+[QLinWriteByID-%7B538ed64a-7f78-44e6-9f98-5524f513c6d3%7D]
+nad=@ByteArray(65)
+didl=@ByteArray(a3)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : VW ECU Hardware Version Number
+dataSource=QLinReadByID 7
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 6
+
+[QExternalAction-%7B0816fb98-6fc4-4729-b3a1-82c541bb806b%7D]
+title=T2L: Wymazanie pamięci
+buttonLabel=Wymaż
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\x46[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-erasechip\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 7
+
+[QExternalAction-%7Bc645a3e3-2308-4329-a470-21f87ac57c03%7D]
+title=T2L: Wgranie programu
+buttonLabel=Wgraj
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\xe4[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\SK49X_T2R_ECE_FBL_Z800_APP_ED8.0.0.hex,0x100000\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-auto\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 8
+
+[QLinCommand-%7B240e2f31-278f-497e-90fe-8f27acd0bd5e%7D]
+frameData=@ByteArray(0x66021002)
+Interval=99
+tries=3
+title=T2L: SESJA PROGRAMOWANIA
+buttonText=Wykonaj
+previous=
+linDevice=QLin
+objectName=QLinCommand 8
+maxReschedules=0
+rescheduleInterval=0
+
+[QLinCommand-%7Baf21ffea-ceea-4456-91cb-f611bed2fff9%7D]
+frameData=@ByteArray(0x66021101)
+Interval=99
+tries=3
+title=T2L LIMO: ECU RESET
+buttonText=Reset
+previous=
+linDevice=QLin
+objectName=QLinCommand 9
+maxReschedules=3
+rescheduleInterval=250
+
+[QLinReadByID-%7B49cf1cf9-5920-4d97-b054-f83cc581aea0%7D]
+frameData=@ByteArray(0x660322f1a3)
+Interval=99
+tries=3
+title=T2L LIMO: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 9
+
+[QLinReadByID-%7Bdb300941-4a84-478a-96e9-64aa618bdc3f%7D]
+frameData=@ByteArray(0x660322f18c)
+Interval=99
+tries=3
+title=T2L LIMO: ECU SERIAL NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 8
+
+[QLinWriteByID-%7B80f762d9-40f5-4a65-a363-45d8f45dd39c%7D]
+nad=@ByteArray(66)
+didl=@ByteArray(8c)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : ECU Serial Number
+dataSource=QLinReadByID 8
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 7
+
+[QLinWriteByID-%7B9e4684fa-37ae-4fd2-942d-86db96602746%7D]
+nad=@ByteArray(66)
+didl=@ByteArray(a3)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : VW ECU Hardware Version Number
+dataSource=QLinReadByID 9
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 8
+
+[QExternalAction-%7B8e60567d-da71-41ea-9ad6-8e60e6768abd%7D]
+title=T2L: Wgranie programu
+buttonLabel=Wgraj
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\xe4[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\SK49X_T1L_ECE_FBL_Z800_APP_ED8.0.0.hex,0x100000\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-auto\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 10
+
+[QExternalAction-%7B9f551b60-cd7e-496b-8fb4-da6bb9da9768%7D]
+title=T2L: Wymazanie pamięci
+buttonLabel=Wymaż
+path=C:/Program Files/SEGGER/JLink_V810/JFlash.exe
+arguments="@Variant(\0\0\0\x90\0\0\x1\x46[{\"argument\":\"-min\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-openprjC:\\\\\\\\Users\\\\\\\\HusaALPL_PC\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Automatron 3000\\\\\\\\Default.jflash\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-hide\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-erasechip\",\"enabled\":true,\"value\":\"\"},{\"argument\":\"-exit\",\"enabled\":true,\"value\":\"\"}])"
+tries=3
+previous=
+objectName=QExternalAction 9
+
+[QLinCommand-%7Bba486b2b-a4da-4f0c-893b-8fbab21510cb%7D]
+frameData=@ByteArray(0x67021101)
+Interval=99
+tries=3
+title=T1L: ECU RESET
+buttonText=Reset
+previous=
+linDevice=QLin
+maxReschedules=3
+rescheduleInterval=250
+objectName=QLinCommand 11
+
+[QLinCommand-%7Be2977df3-d215-4850-b7c0-033257661b97%7D]
+frameData=@ByteArray(0x67021002)
+Interval=99
+tries=3
+title=T1L: SESJA PROGRAMOWANIA
+buttonText=Wykonaj
+previous=
+linDevice=QLin
+maxReschedules=3
+rescheduleInterval=250
+objectName=QLinCommand 10
+
+[QLinReadByID-%7B093fb1f3-eab0-494e-82d0-ec5da45d84ea%7D]
+frameData=@ByteArray(0x670322f1a3)
+Interval=99
+tries=3
+title=T1L: VW ECU HARDWARE VERSION NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 11
+
+[QLinReadByID-%7B98f0f010-5678-45ef-bbe0-886076ae2512%7D]
+frameData=@ByteArray(0x670322f18c)
+Interval=99
+tries=3
+title=T1L: ECU SERIAL NUMBER
+previous=
+linDevice=QLin
+maxReschedules=3
+objectName=QLinReadByID 10
+
+[QLinWriteByID-%7B3441512b-29ae-43ba-992b-34a8df826bae%7D]
+nad=@ByteArray(67)
+didl=@ByteArray(8c)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : ECU Serial Number
+dataSource=QLinReadByID 10
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 9
+
+[QLinWriteByID-%7B9b392490-36c9-4089-bd3b-6600869eb316%7D]
+nad=@ByteArray(67)
+didl=@ByteArray(a3)
+didh=@ByteArray(f1)
+Interval=99
+tries=3
+title=T2L LIMO : VW ECU Hardware Version Number
+dataSource=QLinReadByID 11
+previous=
+linDevice=QLin
+objectName=QLinWriteByID 10

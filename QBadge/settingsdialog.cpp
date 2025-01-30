@@ -70,8 +70,9 @@ void SettingsDialog::updateSettings() {
 
     //QSettings s = Settings::get();
     //newSettings.save(s, settingsPath());
+    newSettings.setObjectName(setts->objectName());
     *setts = newSettings;
-    Settings::store<BadgeSettings>(settingsPath(), setts);
+    //Settings::store<BadgeSettings>(settingsPath(), setts);
 }
 
 void SettingsDialog::chooseImage() {

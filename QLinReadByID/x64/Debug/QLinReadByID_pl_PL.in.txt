@@ -1,7 +1,0 @@
-settingsdialog.cpp
-QLinReadByID.cpp
-qlinreadbyid_global.h
-QLinReadByID.h
-settingsdialog.h
-linreadbyid.ui
-settingsdialog.ui

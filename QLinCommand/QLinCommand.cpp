@@ -85,7 +85,7 @@ QLinCommand::QLinCommand(Loader* ld, PluginsLoader* plugins, QWidget* parent, co
 }
 
 SettingsMdi* QLinCommand::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinCommand::settingsChanged);
     return ret;
 }
@@ -93,7 +93,6 @@ SettingsMdi* QLinCommand::settingsWindow() const {
 bool QLinCommand::initialize() {
     emit message("QLinCommand::init()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinCommandSettings>();
-    *(set) = LinCommandSettings(Settings::get(), settingsPath());
     
     m_data.m_ui->title->setText(set->title());
     m_data.m_ui->pushButton->setText(set->buttonText());
@@ -132,48 +131,12 @@ bool QLinCommand::deinitialize() {
 void QLinCommand::settingsChanged() {
     emit message("QLinCommand::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinCommandSettings>();
-    //*(set) = LinCommandSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<LinCommandSettings>(settingsPath()));
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<LinCommandSettings>();
+    *set = *nset;
 
-    disconnect(this, SLOT(dataReady(const QByteArray&)));
-    disconnect(this, SLOT(errorReady(const QByteArray&)));
-    disconnect(this, SLOT(previousSuccess(const QByteArray&)));
+    initialize();
 
-    m_data.m_ui->title->setText(set->title());
-    m_data.m_ui->pushButton->setText(set->buttonText());
-    
-    if (set->linDevice().isEmpty()) {
-        emit message("QLinReadByID::initialize: !!! lin device is empty please updated settings !!!");
-        return;
-    }
-
-    if (set->previous().isEmpty() == false) {
-        emit message("QLinReadByID::settingsChanged: previous not empty");
-        auto prev = plugins()->findByObjectName(set->previous());
-        if (prev.isNull() == false) {
-            emit message("QLinReadByID::settingsChanged: connecting previous");
-            connect(prev.dynamicCast<QObject>().data(), SIGNAL(success(const QByteArray&)), this, SLOT(previousSuccess(const QByteArray&)));
-        }
-        else {
-            emit message(QString("QLinReadByID::settingsChanged: failed to find previous: %1").arg(set->previous()));
-        }
-    }
-
-    auto plugin = plugins()->instance(set->linDevice(), 0);
-    auto lin = plugin.dynamicCast<IODevice>();
-    m_data.m_lin = lin;
-    
-    connect(lin.data(), &IODevice::dataReady, this, &QLinCommand::dataReady);
-    connect(lin.data(), &IODevice::error, this, &QLinCommand::errorReady);
-    
-    if (lin->isOpen() == false) {
-        emit message(QString("QLinCommand::settingsChanged: %1 is closed").arg(set->linDevice()));
-        if (lin->open() == false) {
-            emit message(QString("QLinCommand::settingsChanged: failed to open %1 device").arg(set->linDevice()));
-        }
-    }
-
-    QObject::connect(lin.data(), &IODevice::closed, this, &QLinCommand::linClosed);
     emit settingsApplied();
 }
 
@@ -181,18 +144,38 @@ QLinCommand::~QLinCommand() {
 }
 
 void QLinCommand::dataReady(const QByteArray& data) {
-    emit message("QLinCommand::dataReady()");
+    emit message("QLinCommand::dataReady(const QByteArray& data)");
+    emit message(QString("QLinCommand::dataReady: recv %1").arg(data));
 
     if (m_data.m_state != QLinCommandState::READ) {
-        emit message("QLinCommand::dataReady(): not in read state");
+        emit message(QString("QLinCommand::dataReady(): not in read state, state: %1").arg(static_cast<int>(m_data.m_state)));
         return;
     }
 
+    const auto set = settings<LinCommandSettings>();
     auto response = dataFromResponse(data);
     
     const UDSframe* frame = nullptr;
 
     if (response.has_value() == false) {
+        emit message("QLinCommand::dataReady: no answer response request sent to early looks like device needs more time to process");
+
+        emit message(QString("QLinCommand::dataReady: try %1 reschedule %2 of %3").arg(m_data.m_try).arg(m_data.m_resched).arg(set->maxReschedules()));
+        if (m_data.m_resched < set->maxReschedules()) {
+            ++m_data.m_resched;
+            QByteArray data(1, 0);
+            data[0] = QString("0x3d").toUInt(nullptr, 16);
+
+            emit message(QString("QLinCommand::dataReady: waiting %1 before next response request").arg(set->rescheduleInterval()));
+            QThread::msleep(set->rescheduleInterval());
+
+            if (m_data.m_lin->write(data) != -1) {
+                emit message("QLinCommand::dataReady: rescheduling read event successful");
+                return;
+            }
+        }
+
+        emit message(QString("QLinCommand::dataReady: failed to read response after max: %1 reschedules").arg(m_data.m_resched));
         m_data.m_state = QLinCommandState::ERR;
     }
 
@@ -216,10 +199,14 @@ void QLinCommand::dataReady(const QByteArray& data) {
         [[fallthrough]];
 
     case QLinCommandState::ERR:
-        --m_data.m_try;
-        if (m_data.m_try > 0) {
+        emit message("QLinCommand::dataReady: error state");
+        emit message(QString("QLinCommand::dataReady: try %1 of %2").arg(m_data.m_try).arg(set->tries()));
+        ++m_data.m_try;
+        if (m_data.m_try < set->tries()) {
+            emit message("QLinCommand::dataReady: sending next try");
             send();
         } else {
+            emit message("QLinCommand::dataReady: entering failed state");
             m_data.m_state = QLinCommandState::ERR;
             failed();
         } 
@@ -300,6 +287,9 @@ void QLinCommand::success() {
     m_data.m_ui->successLabel->setEnabled(true);
     m_data.m_ui->pushButton->setEnabled(true);
     setStyleSheet("QLinCommand { border:2px solid green; }");
+    if (m_data.m_loop != nullptr) {
+        m_data.m_loop->exit();
+    }
 }
 
 void QLinCommand::failed() {
@@ -311,6 +301,9 @@ void QLinCommand::failed() {
     m_data.m_ui->progressLabel->setEnabled(false);
     m_data.m_ui->pushButton->setEnabled(true);
     setStyleSheet("QLinCommand { border:2px solid red; }");
+    if (m_data.m_loop != nullptr) {
+        m_data.m_loop->exit();
+    }
 }
 
 void QLinCommand::inprogress() {
@@ -345,6 +338,7 @@ void QLinCommand::send() {
     }
 
     m_data.m_state = QLinCommandState::READ;
+    m_data.m_resched = 0;
     inprogress();
 
     const auto set = settings<LinCommandSettings>();
@@ -390,7 +384,7 @@ void QLinCommand::previousSuccess(const QByteArray& data) {
 void QLinCommand::sendCommand(bool checked) {
     emit message("QLinCommand::sendCommand()");
     const auto set = settings<LinCommandSettings>();
-    m_data.m_try = set->tries();
+    m_data.m_try = 0;
     m_data.m_startTime = QDateTime::currentMSecsSinceEpoch();
     send();
 }

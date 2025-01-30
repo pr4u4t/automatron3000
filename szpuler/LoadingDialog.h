@@ -10,6 +10,9 @@
 #include "../core/core.h"
 
 class LoadingDialog : public QWidget{
+
+	Q_OBJECT
+
 public:
 	LoadingDialog(QWidget* parent = nullptr, Logger* logger = nullptr) 
 		: QWidget(parent)

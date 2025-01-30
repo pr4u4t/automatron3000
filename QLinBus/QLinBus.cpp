@@ -108,9 +108,9 @@ QLinBus::QLinBus(Loader* ld, PluginsLoader* plugins, QWidget* parent, const QStr
 bool QLinBus::initialize() {
     emit message("QLinBus::init()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinBusSettings>();
-    *set = LinBusSettings(Settings::get(), settingsPath());
-    m_timer.setInterval(set->scanInterval());
 
+    m_timer.setInterval(set->scanInterval());
+    
     auto plugin = plugins()->instance("QLin", 0);
     auto lin = plugin.dynamicCast<IODevice>();
     m_lin = lin;
@@ -134,7 +134,7 @@ bool QLinBus::deinitialize() {
 }
 
 SettingsMdi* QLinBus::settingsWindow() const {
-    auto ret = new SettingsDialog(nullptr, nullptr, settingsPath());
+    auto ret = new SettingsDialog(nullptr, this);
     QObject::connect(ret, &SettingsDialog::settingsUpdated, this, &QLinBus::settingsChanged);
     return ret;
 }
@@ -142,11 +142,12 @@ SettingsMdi* QLinBus::settingsWindow() const {
 void QLinBus::settingsChanged() {
     emit message("QLinBus::settingsChanged()", LoggerSeverity::LOG_DEBUG);
     const auto set = settings<LinBusSettings>();
-    //*set = LinBusSettings(Settings::get(), settingsPath());
-    *set = *(Settings::fetch<LinBusSettings>(settingsPath()));
-    m_timer.setInterval(set->scanInterval());
-    m_ui->scanProgress->setMinimum(set->scanStartID());
-    m_ui->scanProgress->setMaximum(set->scanStopID());
+    const auto src = qobject_cast<SettingsDialog*>(sender());
+    const auto nset = src->settings<LinBusSettings>();
+    *set = *nset;
+
+    initialize();
+
     emit settingsApplied();
 }
 

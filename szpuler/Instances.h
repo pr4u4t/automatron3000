@@ -45,6 +45,8 @@ public slots:
 
 	void loaded(const Plugin* plugin);
 
+	void unloaded(const Plugin* plugin);
+
 	QVariant exec() {
 		//TODO: return Instances list 
 		return QVariant();

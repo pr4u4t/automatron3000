@@ -53,12 +53,21 @@ public:
             QTranslator* m_translator = new QTranslator();
             QTranslator* m_qtTranslator = new QTranslator();
             QTranslator* m_qtBaseTranslator = new QTranslator();
+            QTranslator* m_apiTranslator = new QTranslator();
 
             if (m_translator->load(locale, "Translation", "_", "translations")) { //set directory of ts
                 installTranslator(m_translator);
                 log->message(QString("Main::Main: Successfully installed %1 translation").arg("Translation"));
             } else {
                 log->message(QString("Main::Main: Failed to install %1 translation").arg("Translation"));
+            }
+
+            if (m_apiTranslator->load(locale, "api", "_", "translations")) { //set directory of ts
+                installTranslator(m_apiTranslator);
+                log->message(QString("Main::Main: Successfully installed %1 translation").arg("api"));
+            }
+            else {
+                log->message(QString("Main::Main: Failed to install %1 translation").arg("api"));
             }
 
             if (m_qtTranslator->load(locale,
