@@ -1,18 +1,18 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
-#include "QBadge.h"
+#include "UsbCam.h"
 
 #include <QFileDialog>
 
 SettingsDialog::SettingsDialog(QWidget* parent, Loader* loader, const QString& settingsPath)
-    : SettingsMdi(parent, new BadgeSettings(Settings::get(), settingsPath), settingsPath)
+    : SettingsMdi(parent, new UsbCamSettings(Settings::get(), settingsPath), settingsPath)
     , m_ui(new Ui::SettingsDialog)
     , m_intValidator(new QIntValidator(0, 4000000, this)) {
     setup();
 }
 
-SettingsDialog::SettingsDialog(QWidget* parent, const QBadge* badge)
-    : SettingsMdi(parent, new BadgeSettings(*(badge->settings<BadgeSettings>())), badge->settingsPath())
+SettingsDialog::SettingsDialog(QWidget* parent, const UsbCam* cam)
+    : SettingsMdi(parent, new UsbCamSettings(*(cam->settings<UsbCamSettings>())), cam->settingsPath())
     , m_ui(new Ui::SettingsDialog)
     , m_intValidator(new QIntValidator(0, 4000000, this)) {
     setup();
@@ -42,14 +42,14 @@ SettingsDialog::~SettingsDialog() {
 
 void SettingsDialog::fillFromSettings() {
     emit message("SettingsDialog::fillFromSettings");
-    BadgeSettings* setts = settings<BadgeSettings>();
+    UsbCamSettings* setts = settings<UsbCamSettings>();
     m_ui->imagePathEdit->setText(setts->imagePath());
     m_ui->textEdit->setText(setts->text());
     m_ui->titleEdit->setText(setts->title());
 
 }
 
-SettingsDialog::operator BadgeSettings() const {
+SettingsDialog::operator UsbCamSettings() const {
     UsbCamSettings ret;
     ret.setImagePath(m_ui->imagePathEdit->text());
     ret.setText(m_ui->textEdit->document()->toMarkdown());
@@ -61,7 +61,7 @@ void SettingsDialog::updateSettings() {
     emit message("SettingsDialog::updateSettings");
 
     UsbCamSettings newSettings = *this;
-    UsbCamSettings* setts = settings<BadgeSettings>();
+    UsbCamSettings* setts = settings<UsbCamSettings>();
 
     if (newSettings == *setts) {
         emit message("SettingsDialog::updateSettings: settings not changed");

@@ -201,6 +201,7 @@ void Session::disabled(const Loader* loader) {
 }
 
 bool Session::hasChanged() const {
+    emit message("Session::hasChanged()");
     return m_data.m_changed;
 }
 
